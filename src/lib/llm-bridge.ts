@@ -762,9 +762,11 @@ export async function generalStreamChat(
   signal?: AbortSignal
 ): Promise<LLMResponse | null> {
   const configs = loadProviderConfigs();
-  const enabledConfigs = configs.filter(c => c.enabled && c.apiKey);
+  // Use all configs with API keys, not just enabled ones
+  // This allows providers with API keys but disabled status to be used
+  const availableConfigs = configs.filter(c => c.apiKey);
 
-  if (enabledConfigs.length === 0) return null;
+  if (availableConfigs.length === 0) return null;
 
   // Build messages: system prompt + history + user message
   const messages: LLMMessage[] = [
@@ -775,11 +777,11 @@ export async function generalStreamChat(
 
   // Use router for smart provider selection
   const router = getRouter();
-  const candidateIds = enabledConfigs.map(c => c.providerId);
+  const candidateIds = availableConfigs.map(c => c.providerId);
   const failoverChain = router.getFailoverChain(candidateIds);
 
   for (const providerId of failoverChain) {
-    const config = enabledConfigs.find(c => c.providerId === providerId);
+    const config = availableConfigs.find(c => c.providerId === providerId);
     if (!config) continue;
 
     if (!router.canRequest(providerId)) continue;
@@ -823,10 +825,17 @@ export async function generalStreamChat(
 
 /**
  * Check if any LLM provider has a valid API key configured.
+ * Note: Checks for API key presence, not enabled status. A provider with
+ * an API key but disabled status is still considered "configured".
  */
 export function hasConfiguredProvider(): boolean {
   const configs = loadProviderConfigs();
-  return configs.some(c => c.enabled && c.apiKey);
+  return configs.some(c => {
+    const provider = PROVIDERS[c.providerId];
+    if (!provider) return false;
+    const isLocal = ['ollama', 'lmstudio'].includes(c.providerId);
+    return isLocal || c.apiKey;
+  });
 }
 
 // ============================================================
