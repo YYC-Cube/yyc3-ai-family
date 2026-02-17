@@ -310,8 +310,64 @@ function AppContent() {
     addMessage(newMessage);
     setIsStreaming(true);
 
-    const lowerText = text.toLowerCase();
+    const lowerText = text.toLowerCase().trim();
     const currentMode = useSystemStore.getState().chatMode;
+
+    // === Built-in Commands (工作在所有模式下) ===
+    const builtinCommands = {
+      'ls': () => {
+        const helpMsg = language === 'zh'
+          ? `**可用命令列表**\n\n📋 **导航命令**\n- 仪表盘 / dashboard\n- 架构 / architecture\n- DevOps / devops\n- 项目 / projects\n- 监控 / monitor\n- 设置 / settings\n- 知识库 / knowledge\n- 部署工具 / deploy\n\n🤖 **AI 命令**\n- 任意问题 → 发送给 AI\n- ollama list → 查看本地模型\n\n🎛️ **系统命令**\n- ls / help → 显示此帮助\n- status → 系统状态\n\n💡 **模式切换**\n- 点击顶栏切换「导航」/「AI 对话」模式\n- 快捷键: Ctrl+M (Mac: Cmd+M)\n\n---\n\n💬 现在可以输入问题开始 AI 对话，或输入导航命令跳转页面。`
+          : `**Available Commands**\n\n📋 **Navigation**\n- dashboard\n- architecture\n- devops\n- projects\n- monitor\n- settings\n- knowledge\n- deploy\n\n🤖 **AI Commands**\n- Any question → Send to AI\n- ollama list → List local models\n\n🎛️ **System Commands**\n- ls / help → Show this help\n- status → System status\n\n💡 **Mode Switch**\n- Toggle \"Navigate\" / \"AI Chat\" in top bar\n- Shortcut: Ctrl+M (Mac: Cmd+M)\n\n---\n\n💬 Enter a question to chat with AI, or use navigation commands.`;
+        addMessage({
+          id: (Date.now() + 1).toString(),
+          role: "ai",
+          content: helpMsg,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          agentName: "YYC3 Core",
+        });
+        setIsStreaming(false);
+      },
+      'help': () => builtinCommands['ls'](),
+      'status': () => {
+        const configs = loadProviderConfigs();
+        const availableProviders = configs.filter(c => c.apiKey);
+        const statusMsg = language === 'zh'
+          ? `**系统状态**\n\n🤖 **AI Provider**\n${availableProviders.length > 0
+            ? availableProviders.map(p => {
+              const provider = PROVIDERS[p.providerId];
+              return `- ${provider?.name || p.providerId}: ✅ 正常`;
+            }).join('\n')
+            : '- ⚠️ 未配置 AI Provider'}\n\n💾 **存储策略**\n- 当前: localStorage\n\n🎨 **当前模式**\n- ${currentMode === 'navigate' ? '导航模式' : 'AI 对话'}\n\n---\n\n💡 输入 \`ls\` 查看可用命令`
+          : `**System Status**\n\n🤖 **AI Provider**\n${availableProviders.length > 0
+            ? availableProviders.map(p => {
+              const provider = PROVIDERS[p.providerId];
+              return `- ${provider?.name || p.providerId}: ✅ Active`;
+            }).join('\n')
+            : '- ⚠️ No AI Provider configured'}\n\n💾 **Storage**\n- Current: localStorage\n\n🎨 **Current Mode**\n- ${currentMode === 'navigate' ? 'Navigate' : 'AI Chat'}\n\n---\n\n💡 Type \`ls\` for available commands`;
+        addMessage({
+          id: (Date.now() + 1).toString(),
+          role: "ai",
+          content: statusMsg,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          agentName: "YYC3 Core",
+        });
+        setIsStreaming(false);
+      },
+    };
+
+    // Check for built-in commands first (精确匹配)
+    if (builtinCommands[lowerText as keyof typeof builtinCommands]) {
+      addLog('info', 'BUILTIN_CMD', `Executing: ${lowerText}`);
+      setTimeout(() => builtinCommands[lowerText as keyof typeof builtinCommands](), 300);
+      return;
+    }
+
+    // Also check for commands with arguments (如 "ollama list")
+    if (lowerText === 'ollama list' || lowerText.startsWith('ollama ')) {
+      // This will be handled by the AI or special logic
+      addLog('info', 'CMD_PREFIX', `Ollama command detected: ${lowerText}`);
+    }
 
     // --- Navigate Mode ---
     if (currentMode === 'navigate') {
