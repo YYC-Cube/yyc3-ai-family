@@ -641,4 +641,10 @@ MIT License - 详见 [LICENSE](./LICENSE) 文件
 
 **让 AI 成为开发伙伴，让智能温暖每一个代码行**
 
+---
+
+### 🌐 在线体验
+
+**GitHub Pages 部署**: https://YYC-Cube.github.io/yyc3-ai-family/
+
 </div>
