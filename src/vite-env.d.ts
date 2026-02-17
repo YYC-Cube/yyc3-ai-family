@@ -56,4 +56,21 @@ interface ImportMetaEnv {
   readonly VITE_KB_VECTOR_PORT: string;
   readonly VITE_KB_MULTIMODAL_PORT: string;
   readonly VITE_KB_NLP_PORT: string;
+
+  // --- Application Environment (4-Environment Setup) ---
+  readonly VITE_APP_PORT: string;
+  readonly VITE_APP_ENV: 'development' | 'staging' | 'production' | 'testing';
+
+  // --- AI Capability Enhancement ---
+  readonly VITE_AI_CONTEXT_SIZE: string;
+  readonly VITE_AI_TEMPERATURE: string;
+  readonly VITE_AI_STREAMING: string;
+  readonly VITE_AI_MAX_RETRIES: string;
+  readonly VITE_AI_TIMEOUT: string;
+  readonly VITE_AI_FUNCTION_CALLING: string;
+
+  // --- Knowledge Base Enhancement ---
+  readonly VITE_KB_SIMILARITY_THRESHOLD: string;
+  readonly VITE_KB_MAX_RESULTS: string;
+  readonly VITE_KB_SEMANTIC_CACHE: string;
 }
