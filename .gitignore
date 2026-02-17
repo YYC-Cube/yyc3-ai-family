@@ -1,0 +1,59 @@
+# --- Dependencies ---
+node_modules/
+.pnp
+.pnp.js
+
+# --- Build Output ---
+dist/
+dist-ssr/
+build/
+
+# --- Vite Cache ---
+.vite/
+*.local
+
+# --- Environment Variables (NEVER commit real keys) ---
+.env
+.env.local
+.env.*.local
+!.env.example
+!.env.development
+!.env.production
+
+# --- Editor / IDE ---
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.idea/
+*.swp
+*.swo
+*~
+
+# --- TypeScript ---
+*.tsbuildinfo
+
+# --- Test / Coverage ---
+coverage/
+*.lcov
+.nyc_output/
+
+# --- OS ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+Thumbs.db
+
+# --- Logs ---
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Lock files (pnpm only, ignore others) ---
+package-lock.json
+yarn.lock

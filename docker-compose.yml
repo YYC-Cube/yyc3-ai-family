@@ -1,0 +1,28 @@
+# docker-compose.yml
+version: '3.8'
+services:
+  chroma-db:
+    image: chromadb/chroma:latest
+    ports:
+      - "8090:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+
+  paddle-ocr:
+    image: paddlepaddle/paddle:latest
+    ports:
+      - "8091:8001"
+    command: ["python", "paddle_ocr_service.py"]
+
+  whisper-asr:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    ports:
+      - "8092:8002"
+
+  hanlp-kg:
+    image: hanlp/hanlp:latest
+    ports:
+      - "8093:8003"
+
+volumes:
+  chroma_data:
