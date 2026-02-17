@@ -19,8 +19,9 @@ import { _registerEventBusRef } from "@/lib/agent-orchestrator";
 import { Loader2 } from "lucide-react";
 import { useOllamaDiscovery } from "@/lib/useOllamaDiscovery";
 import { updateOllamaModels } from "@/lib/llm-providers";
-import { generalStreamChat, hasConfiguredProvider, trackUsage } from "@/lib/llm-bridge";
+import { generalStreamChat, hasConfiguredProvider, trackUsage, loadProviderConfigs } from "@/lib/llm-bridge";
 import type { LLMMessage } from "@/lib/llm-bridge";
+import { PROVIDERS } from "@/lib/llm-providers";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import type { ImperativePanelHandle } from "react-resizable-panels";
 
@@ -418,6 +419,23 @@ function AppContent() {
 
     try {
       addLog('info', 'LLM_BRIDGE', `Streaming request: "${text.substring(0, 40)}..."`);
+
+      // Show current model info before AI response
+      const configs = loadProviderConfigs();
+      const availableProviders = configs.filter(c => c.apiKey);
+      const currentProvider = availableProviders.length > 0 ? availableProviders[0] : null;
+
+      if (currentProvider) {
+        const provider = PROVIDERS[currentProvider.providerId];
+        if (provider) {
+          const modelInfo = language === 'zh'
+            ? `**当前使用的 AI 模型**\n\n**${provider.name}**\n- 模型: ${currentProvider.defaultModel || provider.defaultModel}\n- 状态: 正常 ✅\n\n💭 正在思考...\n\n---\n\n`
+            : `**Current AI Model**\n\n**${provider.name}**\n- Model: ${currentProvider.defaultModel || provider.defaultModel}\n- Status: Active ✅\n\n💭 Thinking...\n\n---\n\n`;
+
+          // Prepend model info to the AI message
+          updateLastAiMessage(modelInfo);
+        }
+      }
 
       const response = await generalStreamChat(
         text,
