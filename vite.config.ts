@@ -8,9 +8,10 @@ export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, process.cwd(), '')
 
-  // Base path for GitHub Pages (使用仓库名作为路径)
-  // 本地开发时使用 '/', GitHub Pages 部署时使用 '/yyc3-ai-family/'
-  const base = mode === 'production' ? '/yyc3-ai-family/' : '/'
+  // Base path for GitHub Pages
+  // 使用自定义域名 https://ai.yyccube.xin/，base 应设置为 '/'
+  // 本地开发和生产环境都使用 '/'
+  const base = '/'
 
   return {
     base,
