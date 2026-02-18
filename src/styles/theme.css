@@ -2,6 +2,8 @@
   YYC3 Design System - Global Tokens & Styles
   Core Philosophy: Five Highs, Five Standards, Five Modernizations
   NOTE: @import "tailwindcss" is in tailwind.css — do NOT duplicate here.
+
+  Integrated with YYC3 Design System v1.3.0
 */
 
 @theme {
@@ -25,7 +27,7 @@
   --color-gray-100: #edf2f7;
   --color-gray-50: #f7fafc;
 
-  /* Semantic Aliases */
+  /* YYC3 Design System Tokens - Integrated */
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -48,11 +50,27 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
+  /* YYC3 Design System - Radius Tokens */
+  --radius-default: 0.5rem;
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.5rem;
+
+  /* YYC3 Design System - Shadow Tokens */
+  --shadow-card: 0px 6px 20px -4px #0a0a0a;
+  --shadow-popover: 0px 10px 30px 0px #0a0a0a;
+  --shadow-focus: 0px 0px 0px 2px #e06a70;
+
   /* --- 1.2 Typography System --- */
 
   /* Font Family - System Stack */
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* YYC3 Design System - Font Families */
+  --typography-font-sans: Geist, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  --typography-font-serif: Source Serif 4, Georgia, 'Times New Roman', serif;
+  --typography-font-mono: Geist Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
 
   /* Font Weights */
   --font-weight-regular: 400;
@@ -60,12 +78,30 @@
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
+  /* YYC3 Design System - Font Sizes */
+  --font-size-heading-1: 2rem;
+  --font-size-heading-2: 1.5rem;
+  --font-size-body: 1rem;
+  --font-size-caption: 0.875rem;
+  --line-height-heading: 1.2;
+  --line-height-body: 1.5;
+
+  /* YYC3 Design System - Animation Tokens */
+  --animation-duration-fast: 150ms;
+  --animation-duration-normal: 300ms;
+  --animation-duration-slow: 500ms;
+  --animation-easing-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --animation-easing-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --animation-easing-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --animation-easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
   /* --- 1.3 Spacing System (Extends default Tailwind) --- */
   /* Using default 4px grid (0.25rem) implicitly */
 }
 
 /*
   Theme Implementation - Dark-first for YYC3 Cyberpunk UI
+  Integrated with YYC3 Design System v1.3.0
 */
 :root {
   /* Dark Mode (Default for YYC3) */
@@ -225,21 +261,65 @@
   /* Custom scrollbar — thin visible track for dark themes */
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(14, 165, 233, 0.25) transparent;
+    scrollbar-color: rgba(14, 165, 233, 0.7) rgba(80, 80, 80, 1);
   }
   *::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 16px;
+    height: 16px;
   }
   *::-webkit-scrollbar-track {
-    background: transparent;
+    background: rgba(80, 80, 80, 1);
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.6);
   }
   *::-webkit-scrollbar-thumb {
-    background: rgba(14, 165, 233, 0.25);
-    border-radius: 3px;
+    background: rgba(14, 165, 233, 0.7);
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6);
   }
   *::-webkit-scrollbar-thumb:hover {
-    background: rgba(14, 165, 233, 0.45);
+    background: rgba(14, 165, 233, 0.9);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+  }
+  *::-webkit-scrollbar-thumb:active {
+    background: rgba(14, 165, 233, 1);
+    border-color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.8);
+  }
+
+  /* Specific scrollbar for custom-scrollbar class */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(14, 165, 233, 0.7) rgba(80, 80, 80, 1) !important;
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 16px !important;
+    height: 16px !important;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(80, 80, 80, 1) !important;
+    border-radius: 8px !important;
+    border: 2px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.6) !important;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(14, 165, 233, 0.7) !important;
+    border-radius: 8px !important;
+    border: 2px solid rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6) !important;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(14, 165, 233, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7) !important;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:active {
+    background: rgba(14, 165, 233, 1) !important;
+    border-color: rgba(255, 255, 255, 0.7) !important;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.8) !important;
   }
 
   .animate-pulse-slow {

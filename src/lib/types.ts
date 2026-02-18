@@ -18,7 +18,8 @@ export type ConsoleTabId =
   | 'knowledge_base' | 'token_usage' | 'architecture' | 'docker'
   | 'devops' | 'mcp' | 'persist' | 'orchestrate' | 'nas_deployment'
   | 'metrics_history' | 'remote_docker_deploy' | 'ollama_manager'
-  | 'api_docs' | 'settings' | 'smoke_test' | 'test_framework';
+  | 'api_docs' | 'settings' | 'smoke_test' | 'test_framework'
+  | 'stream_diagnostics' | 'security_audit' | 'hardware_monitor';
 
 export type Language = 'zh' | 'en';
 
@@ -67,6 +68,14 @@ export interface ChatMessage {
   agentName?: string;
   agentRole?: AgentRole;
   attachments?: FileAttachment[];
+  // Phase 34: Provider metadata for AI responses
+  providerMeta?: {
+    providerId: string;
+    modelId: string;
+    latencyMs: number;
+    totalTokens: number;
+    errorCode?: string;       // set when request failed
+  };
 }
 
 export interface AgentChatMessage {
@@ -319,7 +328,7 @@ export const PROMPT_TEMPLATES: PromptTemplate[] = [
   { id: 'performance', icon: '⚡', label: '性能优化', labelEn: 'Performance', prompt: '请分析以下代码的性能瓶颈，并给出优化建议：\n\n', category: 'analysis', color: 'text-yellow-400' },
   { id: 'explain', icon: '📖', label: '概念解释', labelEn: 'Explain', prompt: '请用三层递进方式解释以下技术概念（一句话→详解→深度扩展）：\n\n', category: 'general', color: 'text-emerald-400' },
   { id: 'test', icon: '🧪', label: '测试用例', labelEn: 'Test Cases', prompt: '请为以下功能编写全面的测试用例，包括单元测试和集成测试：\n\n', category: 'code', color: 'text-pink-400' },
-  { id: 'api-design', icon: '📡', label: 'API设计', labelEn: 'API Design', prompt: '请设计RESTful API接口，包括端点、请求体、响应格式和错误处理：\n\n', category: 'analysis', color: 'text-sky-400' },
+  { id: 'api-design', icon: '📡', label: 'API设计', labelEn: 'API Design', prompt: '请设计RESTful API接口，包括端点、请求体、响应格式和错误理：\n\n', category: 'analysis', color: 'text-sky-400' },
   { id: 'troubleshoot', icon: '🔬', label: '故障排查', labelEn: 'Troubleshoot', prompt: '集群出现以下异常，请进行根因分析并给出修复步骤：\n\n症状：', category: 'devops', color: 'text-orange-400' },
 ];
 
@@ -350,3 +359,84 @@ export type Dict<T> = Record<string, T>;
 
 /** Nullable type helper */
 export type Nullable<T> = T | null;
+
+// ============================================================
+// 14. YYC3 Max Database & Hardware Types
+// ============================================================
+
+export interface LocalSystemSpecs {
+  hostName: 'yyc3-22';
+  chip: 'Apple-M4-Max';
+  cores: { performance: 16; efficiency: 40 };
+  ram: '128GB';
+  storage: { main: '2TB SN850X'; extra: '2TB SN850X' };
+  ssh: { user: 'yyc3-22'; host: '192.168.3.22'; port: 22 };
+}
+
+export interface DatabaseConfig {
+  engine: 'PostgreSQL 15';
+  port: 5433;
+  user: 'yyc3_max';
+  dbName: 'yyc3_orchestration';
+  status: 'connected' | 'disconnected' | 'syncing';
+}
+
+export type CollaborationMode = 'pipeline' | 'parallel' | 'debate' | 'ensemble' | 'delegation';
+
+export interface AgentResult {
+  agentId: string;
+  role: string;
+  output: string;
+  confidence: number;
+  latencyMs: number;
+  tokensUsed: number;
+  timestamp: string;
+  pendingToolCall?: {
+    toolName: string;
+    arguments: any;
+    confirmed: boolean;
+    result?: string;
+  };
+}
+
+export interface CollaborationTask {
+  id: string;
+  intent: string;
+  mode: CollaborationMode;
+  status: 'pending' | 'executing' | 'consensus' | 'completed' | 'failed';
+  agents: Array<{
+    agentId: string;
+    status: 'idle' | 'thinking' | 'executing' | 'done';
+  }>;
+  results: AgentResult[];
+  finalOutput?: string;
+  totalLatencyMs: number;
+  totalTokens: number;
+  hardwareTelemetry?: HardwareSnapshot;
+}
+
+export interface HardwareSnapshot {
+  cpuLoad: number[];
+  ramUsedGB: number;
+  diskIOps: number;
+  gpuLoad: number;
+  tempCelsius: number;
+  timestamp: string;
+}
+
+export const YYC3_MAX_SPECS: LocalSystemSpecs = {
+  hostName: 'yyc3-22',
+  chip: 'Apple-M4-Max',
+  cores: { performance: 16, efficiency: 40 },
+  ram: '128GB',
+  storage: { main: '2TB SN850X', extra: '2TB SN850X' },
+  ssh: { user: 'yyc3-22', host: '192.168.3.22', port: 22 },
+};
+
+export const DEFAULT_DATABASE_CONFIG: DatabaseConfig = {
+  engine: 'PostgreSQL 15',
+  port: 5433,
+  user: 'yyc3_max',
+  dbName: 'yyc3_orchestration',
+  status: 'disconnected',
+};

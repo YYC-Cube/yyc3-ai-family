@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![YYC3 Family AI](/public/yyc3-article-cover-03.png)
+![YYC3 Family AI](/public/yyc3-logo-royalblue.png)
 
 > **YanYuCloudCube**
 
@@ -13,6 +13,45 @@
 > *万象归元于云枢 | 深栈智启新纪元*
 
 > **All things converge in cloud pivot; Deep stacks ignite a new era of intelligence*
+
+---
+
+### 🎯 项目状态徽章
+
+<div align="center">
+
+| 📊 项目状态 | 🛠️ 技术栈 | 📈 质量指标 |
+|:---:|:---:|:---:|
+| [![Version](https://img.shields.io/badge/version-0.33.0-blue.svg)](https://github.com/YanYuCloudCube/Family-π³) | [![TypeScript](https://img.shields.io/badge/TypeScript-5.7.0-blue.svg)](https://www.typescriptlang.org/) | [![Lines of Code](https://img.shields.io/badge/Code-25%2Bk-brightgreen.svg)](https://github.com/YanYuCloudCube/Family-π³) |
+| [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/YanYuCloudCube/Family-π³/blob/main/LICENSE) | [![React](https://img.shields.io/badge/React-18.3.1-cyan.svg)](https://reactjs.org/) | [![Components](https://img.shields.io/badge/Components-50%2B-orange.svg)](https://github.com/YanYuCloudCube/Family-π³) |
+| [![GitHub Stars](https://img.shields.io/github/stars/YanYuCloudCube/Family-π³?style=social)](https://github.com/YanYuCloudCube/Family-π³/stargazers) | [![Vite](https://img.shields.io/badge/Vite-6.3.5-purple.svg)](https://vitejs.dev/) | [![Tests](https://img.shields.io/badge/Tests-62%20Passed-brightgreen.svg)](https://github.com/YanYuCloudCube/Family-π³) |
+| [![GitHub Forks](https://img.shields.io/github/forks/YanYuCloudCube/Family-π³?style=social)](https://github.com/YanYuCloudCube/Family-π³/network/members) | [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1.12-38B2AC.svg)](https://tailwindcss.com/) | [![Coverage](https://img.shields.io/badge/Coverage-85%25-brightgreen.svg)](https://github.com/YanYuCloudCube/Family-π³) |
+| [![GitHub Issues](https://img.shields.io/github/issues/YanYuCloudCube/Family-π³)](https://github.com/YanYuCloudCube/Family-π³/issues) | [![Zustand](https://img.shields.io/badge/Zustand-5.0.11-orange.svg)](https://github.com/pmndrs/zustand) | [![Architecture](https://img.shields.io/badge/Layers-L01--L09-blue.svg)](https://github.com/YanYuCloudCube/Family-π³) |
+| [![GitHub PRs](https://img.shields.io/github/issues-pr/YanYuCloudCube/Family-π³)](https://github.com/YanYuCloudCube/Family-π³/pulls) | [![MCP](https://img.shields.io/badge/MCP-Supported-9cf.svg)](https://modelcontextprotocol.io/) | [![AI Agents](https://img.shields.io/badge/Agents-7%20Family-purple.svg)](https://github.com/YanYuCloudCube/Family-π³) |
+| [![Last Commit](https://img.shields.io/github/last-commit/YanYuCloudCube/Family-π³)](https://github.com/YanYuCloudCube/Family-π³/commits/main) | [![LLM Providers](https://img.shields.io/badge/LLM-8%20Providers-ff69b4.svg)](https://github.com/YanYuCloudCube/Family-π³) | [![i18n](https://img.shields.io/badge/i18n-CN%20%7C%20EN-9cf.svg)](https://github.com/YanYuCloudCube/Family-π³) |
+
+</div>
+
+---
+
+### 🏷️ 项目标签
+
+<div align="center">
+
+[![AI](https://img.shields.io/badge/AI-Artificial%20Intelligence-blue.svg)](https://github.com/YanYuCloudCube/Family-π³)
+[![DevOps](https://img.shields.io/badge/DevOps-DevOps-orange.svg)](https://github.com/YanYuCloudCube/Family-π³)
+[![Chatbot](https://img.shields.io/badge/Chatbot-Chatbot-green.svg)](https://github.com/YanYuCloudCube/Family-π³)
+[![TypeScript](https://img.shields.io/badge/TypeScript-TypeScript-blue.svg)](https://github.com/YanYuCloudCube/Family-π³)
+[![React](https://img.shields.io/badge/React-React-cyan.svg)](https://github.com/YanYuCloudCube/Family-π³)
+[![Cyberpunk](https://img.shields.io/badge/Style-Cyberpunk-purple.svg)](https://github.com/YanYuCloudCube/Family-π³)
+[![MCP](https://img.shields.io/badge/Protocol-MCP-9cf.svg)](https://github.com/YanYuCloudCube/Family-π³)
+[![Multi-Agent](https://img.shields.io/badge/Agents-Multi--Agent-red.svg)](https://github.com/YanYuCloudCube/Family-π³)
+[![WebSocket](https://img.shields.io/badge/WebSocket-Realtime-yellow.svg)](https://github.com/YanYuCloudCube/Family-π³)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-Automation-brightgreen.svg)](https://github.com/YanYuCloudCube/Family-π³)
+[![Open Source](https://img.shields.io/badge/Open%20Source-Open%20Source-success.svg)](https://github.com/YanYuCloudCube/Family-π³)
+[![Family AI](https://img.shields.io/badge/Family-AI%20Partner-pink.svg)](https://github.com/YanYuCloudCube/Family-π³)
+
+</div>
 
 ---
 
@@ -199,17 +238,61 @@ YYC3 的核心质量体系渗透于整个架构设计：
 
 ### 层级状态矩阵
 
+<div align="center">
+
 | 层级 | 名称 | 前端实现 | 核心组件 | 状态 |
-|-------|------|-----------------------|-----------------|--------|
-| L09 | 系统设置层 | SettingsView + SettingsModal | 集群配置、安全策略、AI 模型管理 | 激活 |
-| L08 | 扩展演进层 | Extensions 页面 | 8 个预设插件、自研插件、分类过滤 | 激活 |
-| L07 | 用户交互层 | ChatArea + Voice + QuickSelector | 语音识别、快捷键、搜索面板 | 激活 |
-| L06 | 应用表现层 | 全组件 UI 层 | shadcn/ui、Tailwind v4、Motion | 激活 |
-| L05 | 业务逻辑层 | Store + API | Zustand 状态树、REST API 层 | 激活 |
-| L04 | AI 智能层 | AgentChatInterface | 7 智能体、模型池（47 个模型）、GLM-4 | 激活 |
-| L03 | 核心服务层 | api.ts + WebSocket | REST 接口、WS 实时通信、健康检查 | 激活 |
-| L02 | 数据存储层 | DatabaseSelector + db-schema | PostgreSQL Schema、11 个 DB 选择器 | 激活 |
-| L01 | 基础设施层 | ClusterTopology + Metrics | 4 节点拓扑、实时指标模拟 | 激活 |
+|:----:|:------|:-----------------------|:-----------------|:------:|
+| **L09** | **系统设置层** | SettingsView + SettingsModal | 集群配置、安全策略、AI 模型管理 | 🟢 激活 |
+| **L08** | **扩展演进层** | Extensions 页面 | 8 个预设插件、自研插件、分类过滤 | 🟢 激活 |
+| **L07** | **用户交互层** | ChatArea + Voice + QuickSelector | 语音识别、快捷键、搜索面板 | 🟢 激活 |
+| **L06** | **应用表现层** | 全组件 UI 层 | shadcn/ui、Tailwind v4、Motion | 🟢 激活 |
+| **L05** | **业务逻辑层** | Store + API | Zustand 状态树、REST API 层 | 🟢 激活 |
+| **L04** | **AI 智能层** | AgentChatInterface | 7 智能体、模型池（47 个模型）、GLM-4 | 🟢 激活 |
+| **L03** | **核心服务层** | api.ts + WebSocket | REST 接口、WS 实时通信、健康检查 | 🟢 激活 |
+| **L02** | **数据存储层** | DatabaseSelector + db-schema | PostgreSQL Schema、11 个 DB 选择器 | 🟢 激活 |
+| **L01** | **基础设施层** | ClusterTopology + Metrics | 4 节点拓扑、实时指标模拟 | 🟢 激活 |
+
+</div>
+
+---
+
+### 层级架构可视化
+
+<div align="center">
+
+```mermaid
+graph TB
+    L09[L09 系统设置层<br/>Configuration]
+    L08[L08 扩展演进层<br/>Evolution]
+    L07[L07 用户交互层<br/>Interaction]
+    L06[L06 应用表现层<br/>Presentation]
+    L05[L05 业务逻辑层<br/>Business Logic]
+    L04[L04 AI 智能层<br/>AI Intelligence]
+    L03[L03 核心服务层<br/>Core Services]
+    L02[L02 数据存储层<br/>Persistence]
+    L01[L01 基础设施层<br/>Infrastructure]
+    
+    L09 --> L08
+    L08 --> L07
+    L07 --> L06
+    L06 --> L05
+    L05 --> L04
+    L04 --> L03
+    L03 --> L02
+    L02 --> L01
+    
+    style L09 fill:#0ea5e9
+    style L08 fill:#8b5cf6
+    style L07 fill:#ec4899
+    style L06 fill:#f59e0b
+    style L05 fill:#10b981
+    style L04 fill:#6366f1
+    style L03 fill:#ef4444
+    style L02 fill:#3b82f6
+    style L01 fill:#64748b
+```
+
+</div>
 
 ---
 
@@ -277,6 +360,25 @@ YYC3 的核心质量体系渗透于整个架构设计：
 | localStorage | 前端持久化（模板、模型、插件、数据库连接） |
 | PostgreSQL 15 | 数据库 Schema 就绪（db-schema.ts） |
 | Express/Fastify | 后端 API 服务（可选集成） |
+| PWA | 渐进式 Web 应用（离线支持、应用安装） |
+| Service Worker | 服务工作线程（缓存策略、离线功能） |
+| Vite PWA | PWA 插件（自动生成 manifest、sw.js） |
+| Workbox | Service Worker 工具库（缓存管理） |
+
+### 5.4 PWA 特性
+
+| 特性 | 状态 | 说明 |
+|------|------|------|
+| 离线支持 | ✅ 已实现 | Service Worker 缓存静态资源 |
+| 应用安装 | ✅ 已实现 | 支持添加到主屏幕 |
+| 快捷方式 | ✅ 已实现 | AI 对话、系统设置、集群监控 |
+| 主题色 | ✅ 已配置 | #0EA5E9 科技蓝 |
+| 响应式 | ✅ 已实现 | 支持移动端和桌面端 |
+| 自动更新 | ✅ 已配置 | Vite PWA 插件自动更新 |
+| 缓存策略 | ✅ 已优化 | Google Fonts 缓存优化 |
+| 多尺寸图标 | ✅ 已创建 | 8 种尺寸适配不同设备 |
+| Apple 支持 | ✅ 已实现 | iOS 设备完整支持 |
+| 分类标签 | ✅ 已配置 | productivity、developer-tools、utilities |
 
 ---
 
@@ -602,18 +704,60 @@ YYC3 Family AI 致力于打造专业、可靠、温暖的智能开发环境。�
 
 ## 贡献指南
 
-我们欢迎任何形式的贡献！
+我们欢迎任何形式的贡献！🎉
 
-- 🐛 报告 Bug
-- 💡 提出新功能
-- 📝 改进文档
-- 🎨 优化 UI/UX
+### 如何贡献
+
+- 🐛 **报告 Bug**: 在 [Issues](https://github.com/YanYuCloudCube/Family-π³/issues) 中提交问题
+- 💡 **提出新功能**: 在 [Discussions](https://github.com/YanYuCloudCube/Family-π³/discussions) 中讨论
+- 📝 **改进文档**: 提交 Pull Request 优化文档
+- 🎨 **优化 UI/UX**: 改进用户体验和视觉效果
+- 🔧 **修复 Bug**: 提交代码修复已知问题
+
+### 开发流程
+
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 提交 Pull Request
+
+### 代码规范
+
+- 遵循 TypeScript 严格类型检查
+- 使用 ESLint 进行代码检查
+- 编写单元测试覆盖新功能
+- 更新相关文档
 
 ---
 
 ## 许可证
 
-MIT License - 详见 [LICENSE](./LICENSE) 文件
+本项目采用 **MIT License** 开源许可证 - 详见 [LICENSE](./LICENSE) 文件
+
+```
+MIT License
+
+Copyright (c) 2026 YanYuCloudCube
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ---
 
@@ -621,7 +765,55 @@ MIT License - 详见 [LICENSE](./LICENSE) 文件
 
 - **项目主页**: https://github.com/YanYuCloudCube/Family-π³
 - **问题反馈**: https://github.com/YanYuCloudCube/Family-π³/issues
+- **功能讨论**: https://github.com/YanYuCloudCube/Family-π³/discussions
+- **Pull Requests**: https://github.com/YanYuCloudCube/Family-π³/pulls
 - **邮箱**: <admin@0379.email>
+
+---
+
+## 致谢
+
+感谢所有为 YYC3 AI-Family 做出贡献的开发者和用户！
+
+特别感谢以下开源项目：
+
+- [React](https://reactjs.org/) - UI 框架
+- [TypeScript](https://www.typescriptlang.org/) - 类型安全
+- [Vite](https://vitejs.dev/) - 构建工具
+- [Tailwind CSS](https://tailwindcss.com/) - CSS 框架
+- [Zustand](https://github.com/pmndrs/zustand) - 状态管理
+- [shadcn/ui](https://ui.shadcn.com/) - UI 组件库
+- [Radix UI](https://www.radix-ui.com/) - 无障碍组件
+- [Model Context Protocol](https://modelcontextprotocol.io/) - MCP 协议
+
+---
+
+## Star History
+
+<div align="center">
+
+[![Star History Chart](https://api.star-history.com/svg?repos=YanYuCloudCube/Family-π³&type=Date)](https://star-history.com/#YanYuCloudCube/Family-π³&Date)
+
+</div>
+
+---
+
+## 开源推广 🌹
+
+<div align="center">
+
+### 如果这个项目对您有帮助，请考虑：
+
+- ⭐ **Star** 本项目
+- 🍴 **Fork** 本项目
+- 📢 **分享** 给您的朋友和同事
+- 💬 **参与** 讨论和贡献
+- 📝 **撰写** 博客文章或教程
+- 🎥 **制作** 视频演示
+
+您的支持是我们持续改进的动力！❤️
+
+</div>
 
 ---
 

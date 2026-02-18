@@ -58,10 +58,10 @@ fi
 
 cd "$PROJECT_ROOT"
 echo -e "${CYAN}"
-echo "  ╔═══════════════════════════════════════════════════╗"
+echo "  ╔═════════════════════════════════════════════════╗"
 echo "  ║   YYC3 Hacker Chatbot — Dev Environment Setup    ║"
 echo "  ║   Cyberpunk DevOps Intelligence Platform          ║"
-echo "  ╚═══════════════════════════════════════════════════╝"
+echo "  ╚═════════════════════════════════════════════════╝"
 echo -e "${NC}"
 echo -e "${BRAND} Project root: ${BOLD}$PROJECT_ROOT${NC}"
 echo ""
@@ -242,12 +242,12 @@ check_pkg() {
 ALL_OK=true
 check_pkg "react"       "18" || ALL_OK=false
 check_pkg "react-dom"   "18" || ALL_OK=false
-check_pkg "zustand"     "5"  || ALL_OK=false
-check_pkg "zod"         "4"  || ALL_OK=false
-check_pkg "vite"        "6"  || ALL_OK=false
-check_pkg "typescript"  "5"  || ALL_OK=false
-check_pkg "tailwindcss" "4"  || ALL_OK=false
-check_pkg "vitest"      "3"  || ALL_OK=false
+check_pkg "zustand"     "5" || ALL_OK=false
+check_pkg "zod"         "4" || ALL_OK=false
+check_pkg "vite"        "6" || ALL_OK=false
+check_pkg "typescript"  "5" || ALL_OK=false
+check_pkg "tailwindcss" "4" || ALL_OK=false
+check_pkg "vitest"      "3" || ALL_OK=false
 
 if [ "$ALL_OK" = false ]; then
   echo -e "${YELLOW}  Some packages missing — try: pnpm install${NC}"
@@ -331,9 +331,9 @@ echo ""
 # ============================================================
 
 echo -e "${CYAN}"
-echo "  ╔═══════════════════════════════════════════════════╗"
+echo "  ╔═════════════════════════════════════════════════╗"
 echo "  ║              Setup Complete!                      ║"
-echo "  ╠═══════════════════════════════════════════════════╣"
+echo "  ╠═════════════════════════════════════════════════╣"
 echo "  ║                                                   ║"
 echo "  ║  Quick Start:                                     ║"
 echo "  ║    pnpm dev            → http://localhost:5173    ║"
@@ -354,7 +354,7 @@ echo "  ║    brew install ollama → local LLM inference      ║"
 echo "  ║    Console > NAS Deploy → configure NAS           ║"
 echo "  ║    Gear icon > AI Model → configure providers     ║"
 echo "  ║                                                   ║"
-echo "  ╚═══════════════════════════════════════════════════╝"
+echo "  ╚═════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
 # List generated dotfiles for confirmation

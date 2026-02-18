@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import {
   Play, CheckCircle2, XCircle, Loader2, Clock,
   RotateCcw, Zap, Radio, Wifi, WifiOff, Shield,
-  ChevronDown, ChevronRight, Activity, Copy
+  ChevronDown, ChevronRight, Activity, Copy, Globe
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -18,6 +18,7 @@ import {
   type ProviderHealthResult,
   type LLMMessage,
 } from "@/lib/llm-bridge";
+import { resolveProviderEndpoint, getProxiedProviders, isDevProxyAvailable } from "@/lib/proxy-endpoints";
 
 // ============================================================
 // Phase 28 — E2E Streaming Diagnostics Panel
@@ -94,7 +95,7 @@ export function StreamDiagnostics() {
       ));
 
       const health = config.enabled && config.apiKey
-        ? await checkProviderHealth(config.providerId, config.apiKey, config.endpoint)
+        ? await checkProviderHealth(config.providerId, config.apiKey, resolveProviderEndpoint(config.providerId, config.endpoint))
         : { providerId: config.providerId, status: 'no_key' as const };
 
       results.push({
@@ -210,6 +211,8 @@ export function StreamDiagnostics() {
 
   const enabledCount = providers.filter(p => p.config.enabled && p.config.apiKey).length;
   const healthyCount = providers.filter(p => p.health?.status === 'ok').length;
+  const proxiedProviders = getProxiedProviders();
+  const isProxyActive = proxiedProviders.length > 0;
 
   return (
     <div className="h-full flex flex-col gap-4 p-4 bg-black/20">
@@ -225,6 +228,17 @@ export function StreamDiagnostics() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {/* Phase 35: PROXY ACTIVE badge */}
+          {isProxyActive && (
+            <Badge
+              variant="outline"
+              className="text-xs font-mono border border-sky-500/40 text-sky-400 bg-sky-500/5 gap-1"
+              title={`Vite dev proxy active for: ${proxiedProviders.join(', ')}`}
+            >
+              <Globe className="w-3 h-3" />
+              PROXY ACTIVE ({proxiedProviders.length})
+            </Badge>
+          )}
           <Badge variant="outline" className={cn(
             "text-xs font-mono border",
             enabledCount > 0 ? "border-emerald-500/30 text-emerald-400" : "border-zinc-700 text-zinc-500"
@@ -299,6 +313,11 @@ export function StreamDiagnostics() {
                               <Activity className="w-3.5 h-3.5 text-zinc-500" />
                             )}
                             <span className="text-zinc-300">{p.config.providerId}</span>
+                            {isDevProxyAvailable(p.config.providerId) && (
+                              <span className="text-[9px] text-sky-400/70 border border-sky-500/20 rounded px-1 py-px" title="Routed via Vite dev proxy">
+                                PROXY
+                              </span>
+                            )}
                             {p.config.defaultModel && (
                               <span className="text-zinc-600">{p.config.defaultModel}</span>
                             )}

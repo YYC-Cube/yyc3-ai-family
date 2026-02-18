@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { useSystemStore } from './store';
 import type { ClusterMetricsSnapshot } from './store';
 import { loadDeviceConfigs } from './nas-client';
+import { eventBus } from './event-bus';
 
 // ============================================================
 // YYC3 — Enhanced WebSocket Client Hook
@@ -109,6 +110,15 @@ export function useWebSocket() {
           break;
 
         default:
+          // Emit to event bus for specialized hooks
+          eventBus.emit({
+            category: 'system',
+            type: `ws:${msg.type}`,
+            level: 'info',
+            source: 'WebSocket',
+            message: `WS message: ${msg.type}`,
+            metadata: msg.data as Record<string, unknown>
+          });
           break;
       }
     } catch {
@@ -202,4 +212,36 @@ export function useWebSocket() {
   }, []);
 
   return { status, send, activeEndpoint: _activeEndpoint };
+}
+
+/**
+ * Phase 35: Dedicated hook for streaming Docker container logs
+ */
+export function useDockerLogs(containerId: string | null) {
+  const { send } = useWebSocket();
+  const [logs, setLogs] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!containerId) {
+      setLogs([]);
+      return;
+    }
+
+    const subId = `docker_logs:${containerId}`;
+    send('subscribe', { channel: subId });
+    setLogs(['[WS] Establishing real-time connection to container stdout...']);
+
+    const unsubscribe = eventBus.on((event) => {
+      if (event.type === 'ws:docker_logs' && event.metadata?.containerId === containerId) {
+        setLogs(prev => [...prev.slice(-200), (event.metadata as any).line]);
+      }
+    });
+    
+    return () => {
+      send('unsubscribe', { channel: subId });
+      eventBus.off(unsubscribe);
+    };
+  }, [containerId, send]);
+
+  return logs.join('\n');
 }

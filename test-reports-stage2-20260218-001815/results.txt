@@ -1,0 +1,4 @@
+❌ orchestrateCollaboration 函数不存在
+❌ 协作模式定义不存在
+✅ Agent Orchestrator UI 组件存在
+✅ 协作模式 UI 实现存在

@@ -40,6 +40,8 @@ const DOMAIN_META: Record<PersistDomain, { label: string; icon: typeof Database;
   llm_configs:      { label: 'LLM Configs', icon: Shield, color: 'text-red-400' },
   llm_usage:        { label: 'LLM Usage', icon: BarChart3, color: 'text-emerald-400' },
   preferences:      { label: 'Preferences', icon: Settings, color: 'text-zinc-400' },
+  knowledge_base:   { label: 'Knowledge Base', icon: Database, color: 'text-blue-500' },
+  agent_profiles:   { label: 'Agent Profiles', icon: Database, color: 'text-amber-600' },
 };
 
 const STRATEGY_OPTIONS: Array<{ value: SyncStrategy; label: string; desc: string }> = [

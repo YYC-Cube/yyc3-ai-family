@@ -212,7 +212,7 @@ const TYPE_AUDIT_TESTS: TestCase[] = [
         'setStatus', 'addLog', 'updateMetrics', 'setDbConnected',
         'newSession', 'runDiagnosis',
       ];
-      const missing = expectedActions.filter(a => typeof (state as Record<string, unknown>)[a] !== 'function');
+      const missing = expectedActions.filter(a => typeof (state as unknown as Record<string, unknown>)[a] !== 'function');
       if (missing.length > 0) {
         return { status: 'fail', message: `SystemState: ${missing.length} missing actions`, details: missing };
       }
@@ -676,10 +676,10 @@ const INTEGRATION_TESTS: TestCase[] = [
       const mod = await import('@/lib/persistence-engine');
       const engine = mod.getPersistenceEngine();
       if (!engine) return { status: 'fail', message: 'Engine not created' };
-      // Verify the engine has save/load methods
-      if (typeof engine.save !== 'function') return { status: 'fail', message: 'engine.save not a function' };
-      if (typeof engine.load !== 'function') return { status: 'fail', message: 'engine.load not a function' };
-      return { status: 'pass', message: 'Persistence engine: save/load verified' };
+      // Verify the engine has read/write methods
+      if (typeof engine.read !== 'function') return { status: 'fail', message: 'engine.read not a function' };
+      if (typeof engine.write !== 'function') return { status: 'fail', message: 'engine.write not a function' };
+      return { status: 'pass', message: 'Persistence engine: read/write verified' };
     }
   },
   {

@@ -511,8 +511,8 @@ export function DeviceCardManager() {
       {/* Device Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {devices.map(device => {
-          const metricKey = metricMap[device.id] as keyof typeof clusterMetrics | undefined;
-          const metric = metricKey && clusterMetrics ? clusterMetrics[metricKey as 'm4-max' | 'imac-m4' | 'matebook' | 'yanyucloud'] : undefined;
+          const metricKey = metricMap[device.id] as keyof typeof clusterMetrics;
+          const metric = clusterMetrics ? clusterMetrics[metricKey] : undefined;
 
           return (
             <DeviceCard

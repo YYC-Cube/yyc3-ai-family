@@ -22,6 +22,7 @@
 ## 概述
 
 本文档详细描述YYC³(YanYuCloudCube)-AI-Family-详细设计-数据模型设计文档相关内容，YYC³-AI-Family不仅仅是一个软件系统，而是一个"智能生命体"。它以"五化一体"为法则，以插件化架构为骨骼，以AI能力为灵魂，构建一个能够自我进化、持续学习的智能协同平台。
+
 ## 核心内容
 
 ### 1. 背景与目标
@@ -31,6 +32,7 @@
 YYC³(YanYuCloudCube)-AI-Family 本地一站式智能工作平台是一个**完全本地化、一体化、自进化**的智能工作生态系统。它以"五化一体"为法则，以AI Family为核心，以多机协同为骨架，以NAS存储为基石，构建一个能够学习、积累、生成、迭代的闭环智能平台。
 
 #### 1.2 文档目标
+
 - 规范数据模型设计文档相关的业务标准与技术落地要求
 - 为项目相关人员提供清晰的参考依据
 - 保障相关模块开发、实施、运维的一致性与规范性
@@ -38,6 +40,7 @@ YYC³(YanYuCloudCube)-AI-Family 本地一站式智能工作平台是一个**完�
 ### 2. 设计原则
 
 #### 2.1 五高原则
+
 - 高效协同
   - 分布式任务分配与实时状态同步
 - 高维智能
@@ -50,6 +53,7 @@ YYC³(YanYuCloudCube)-AI-Family 本地一站式智能工作平台是一个**完�
   - 零信任架构与动态权限管理
 
 #### 2.2 五标体系
+
 - 架构标准
   - 微服务、事件驱动、API优先
 - 接口标准
@@ -62,6 +66,7 @@ YYC³(YanYuCloudCube)-AI-Family 本地一站式智能工作平台是一个**完�
   - 版本管理、灰度发布、回滚策略
 
 #### 2.3 五化架构
+
 - 流程自动化
   - 脚本化流程、触发器机制
 - 能力模块化
@@ -74,6 +79,159 @@ YYC³(YanYuCloudCube)-AI-Family 本地一站式智能工作平台是一个**完�
   - 嵌入式治理、实时监控
 
 ### 3. 数据模型设计文档
+
+## 📝 本地大模型配置指南
+
+根据代码分析，在添加本地大模型时，需要填写以下字段：
+
+### 🎯 配置界面字段
+
+| 字段 | 说明 | 示例 |
+|------|------|------|
+| **Model name** | 模型名称（自定义名称） | `Qwen2.5-72B` |
+| **Provider** | 提供商名称 | `Ollama` 或 `LM Studio` |
+| **API URL** | API 端点地址 | 见下方详细配置 |
+| **API Key** | API 密钥（本地模型可留空） | 留空即可 |
+
+---
+
+## 🔧 Ollama 本地模型配置
+
+### 基础配置
+
+| 字段 | 填写内容 |
+|------|---------|
+| **Model name** | 任意名称，如 `Qwen2.5-72B`、`Llama3-8B` |
+| **Provider** | `Ollama` 或 `ollama` |
+| **API URL** | `http://localhost:11434/v1` |
+| **API Key** | **留空**（Ollama 不需要 API Key） |
+
+### 完整示例
+
+```
+Model name:    Qwen2.5-72B
+Provider:      Ollama
+API URL:      http://localhost:11434/v1
+API Key:       (留空)
+```
+
+### 环境变量配置（可选）
+
+在 [`.env.development`](file:///Users/yanyu/Family-π³/.env.development#L38-L40) 中：
+
+```bash
+# Ollama 配置
+VITE_OLLAMA_HOST=localhost
+VITE_OLLAMA_PORT=11434
+```
+
+### 启动 Ollama 服务
+
+```bash
+# 确保 Ollama 正在运行
+ollama serve
+
+# 或使用 Docker
+docker run -d -p 11434:11434 ollama/ollama
+
+# 验证服务
+curl http://localhost:11434/api/tags
+```
+
+---
+
+## 🎨 LM Studio 本地模型配置
+
+### 基础配置
+
+| 字段 | 填写内容 |
+|------|---------|
+| **Model name** | 任意名称，如 `Llama3-70B`、`Mistral-7B` |
+| **Provider** | `LM Studio` 或 `lmstudio` |
+| **API URL** | `http://localhost:1234/v1` |
+| **API Key** | **留空**（LM Studio 不需要 API Key） |
+
+### 完整示例
+
+```
+Model name:    Llama3-70B
+Provider:      LM Studio
+API URL:      http://localhost:1234/v1
+API Key:       (留空)
+```
+
+### 环境变量配置（可选）
+
+在 [`.env.development`](file:///Users/yanyu/Family-π³/.env.development#L41-L42) 中：
+
+```bash
+# LM Studio 配置
+VITE_LMSTUDIO_HOST=localhost
+VITE_LMSTUDIO_PORT=1234
+```
+
+### 启动 LM Studio 服务
+
+```bash
+# 确保 LM Studio 正在运行
+# LM Studio 会自动启动本地 API 服务器
+
+# 验证服务
+curl http://localhost:1234/v1/models
+```
+
+---
+
+## 📋 快速参考表
+
+### 本地模型配置速查
+
+| 模型类型 | Provider | API URL | API Key | 端口 |
+|---------|---------|---------|---------|------|
+| **Ollama** | `Ollama` | `http://localhost:11434/v1` | 留空 | 11434 |
+| **LM Studio** | `LM Studio` | `http://localhost:1234/v1` | 留空 | 1234 |
+
+### 云端模型配置速查（对比）
+
+| 模型类型 | Provider | API URL | API Key |
+|---------|---------|---------|---------|
+| **OpenAI** | `OpenAI` | `https://api.openai.com/v1` | 需要填写 |
+| **Anthropic** | `Anthropic` | `https://api.anthropic.com/v1` | 需要填写 |
+| **DeepSeek** | `DeepSeek` | `https://api.deepseek.com/v1` | 需要填写 |
+| **智谱 Z.AI** | `Zhipu` | `https://open.bigmodel.cn/api/paas/v4` | 需要填写 |
+| **Google** | `Google` | `https://generativelanguage.googleapis.com/v1` | 需要填写 |
+
+---
+
+## ✅ 配置步骤
+
+1. **打开设置**：点击应用右上角设置图标
+2. **选择 Models 标签页**：进入模型配置界面
+3. **点击 ADD MODEL**：添加新模型
+4. **填写表单**：
+   - Model name：输入模型名称
+   - Provider：输入 `Ollama` 或 `LM Studio`
+   - API URL：输入对应的端点地址
+   - API Key：留空（本地模型不需要）
+5. **点击 Register**：保存配置
+6. **激活模型**：点击模型卡片上的绿色圆点激活
+
+---
+
+## 🔍 验证配置
+
+配置完成后，可以通过以下方式验证：
+
+```bash
+# 测试 Ollama
+curl http://localhost:11434/api/tags
+
+# 测试 LM Studio
+curl http://localhost:1234/v1/models
+
+# 或在应用中查看模型状态
+# 应该显示为绿色（active）状态
+```
 
 ---
 

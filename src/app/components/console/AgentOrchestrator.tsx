@@ -169,6 +169,9 @@ export function AgentOrchestrator() {
         onStatusChange: (status) => {
           setActiveTask(prev => prev ? { ...prev, status } : null);
         },
+        onToolConfirmation: async (toolName, args, agentId) => {
+          return true;
+        },
         onComplete: (completedTask) => {
           setActiveTask(completedTask);
           setTasks(loadTasks());

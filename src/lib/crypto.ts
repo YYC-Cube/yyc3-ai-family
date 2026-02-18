@@ -33,9 +33,10 @@ function getDeviceSalt(): Uint8Array {
  */
 async function deriveKey(passphrase: string): Promise<CryptoKey> {
   const enc = new TextEncoder();
+  const encoded = enc.encode(passphrase);
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
-    enc.encode(passphrase),
+    new Uint8Array(encoded),
     'PBKDF2',
     false,
     ['deriveKey']
@@ -44,7 +45,7 @@ async function deriveKey(passphrase: string): Promise<CryptoKey> {
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: getDeviceSalt(),
+      salt: new Uint8Array(getDeviceSalt()),
       iterations: ITERATIONS,
       hash: 'SHA-256',
     },

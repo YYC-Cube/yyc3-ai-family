@@ -26,6 +26,8 @@
 
 import { PROVIDERS, AGENT_ROUTES, type ProviderDefinition } from './llm-providers';
 import { getRouter, type FailoverResult } from './llm-router';
+import { resolveProviderEndpoint } from './proxy-endpoints';
+import { encryptValue, decryptValue, isCryptoAvailable } from './crypto';
 
 // ============================================================
 // Types
@@ -102,16 +104,19 @@ export type LLMErrorCode =
 // ============================================================
 
 const PROVIDER_CONFIG_KEY = 'yyc3-llm-provider-config';
+let _cachedConfigs: ProviderConfig[] = [];
 
 export interface ProviderConfig {
   providerId: string;
-  apiKey: string;          // encrypted in storage, decrypted at runtime
+  apiKey: string;          // may be encrypted or plaintext
   endpoint: string;        // override endpoint
   enabled: boolean;
   defaultModel: string;
+  encrypted?: boolean;     // Phase 35: encryption status flag
 }
 
 export function loadProviderConfigs(): ProviderConfig[] {
+  if (_cachedConfigs.length > 0) return _cachedConfigs;
   try {
     const raw = localStorage.getItem(PROVIDER_CONFIG_KEY);
     if (raw) return JSON.parse(raw);
@@ -119,10 +124,41 @@ export function loadProviderConfigs(): ProviderConfig[] {
   return [];
 }
 
-export function saveProviderConfigs(configs: ProviderConfig[]) {
+export async function saveProviderConfigs(configs: ProviderConfig[]) {
   try {
-    localStorage.setItem(PROVIDER_CONFIG_KEY, JSON.stringify(configs));
+    const encryptEnabled = isCryptoAvailable();
+    const processedConfigs = await Promise.all(configs.map(async c => {
+      if (c.apiKey && !c.encrypted && encryptEnabled) {
+        return { ...c, apiKey: await encryptValue(c.apiKey), encrypted: true };
+      }
+      return c;
+    }));
+    localStorage.setItem(PROVIDER_CONFIG_KEY, JSON.stringify(processedConfigs));
+    _cachedConfigs = configs.map(c => ({ ...c, encrypted: false })); // keep decrypted in cache
   } catch { /* ignore */ }
+}
+
+/**
+ * Phase 35: Async initialization of configs (decryption)
+ */
+export async function initProviderConfigs(): Promise<ProviderConfig[]> {
+  try {
+    const raw = localStorage.getItem(PROVIDER_CONFIG_KEY);
+    if (!raw) return [];
+    const configs = JSON.parse(raw) as ProviderConfig[];
+    
+    const decrypted = await Promise.all(configs.map(async c => {
+      if (c.apiKey && c.encrypted) {
+        try {
+          return { ...c, apiKey: await decryptValue(c.apiKey), encrypted: false };
+        } catch { return c; }
+      }
+      return c;
+    }));
+    
+    _cachedConfigs = decrypted;
+    return decrypted;
+  } catch { return []; }
 }
 
 export function getProviderConfig(providerId: string): ProviderConfig | undefined {
@@ -610,6 +646,7 @@ export async function chat(opts: LLMRequestOptions): Promise<LLMResponse> {
  * @param chatHistory - 聊天历史 (用于上下文)
  * @param onChunk - 流式回调
  * @param signal - AbortSignal
+ * @param overrideSystemPrompt - Phase 35: 可选的系统提示词覆盖 (用于注入工具等)
  * @returns LLMResponse 或 null (如果降级为模板)
  */
 export async function agentStreamChat(
@@ -617,7 +654,8 @@ export async function agentStreamChat(
   userMessage: string,
   chatHistory: LLMMessage[],
   onChunk: StreamCallback,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  overrideSystemPrompt?: string
 ): Promise<LLMResponse | null> {
   const route = AGENT_ROUTES[agentId];
   if (!route) return null;
@@ -632,7 +670,7 @@ export async function agentStreamChat(
 
   // 构建消息列表: System Prompt + 聊天历史 + 新消息
   const messages: LLMMessage[] = [
-    { role: 'system', content: route.systemPrompt },
+    { role: 'system', content: overrideSystemPrompt || route.systemPrompt },
     ...chatHistory.slice(-20),
     { role: 'user', content: userMessage },
   ];
@@ -682,7 +720,7 @@ export async function agentStreamChat(
           modelId,
           messages,
           apiKey: config.apiKey,
-          endpoint: config.endpoint || undefined,
+          endpoint: resolveProviderEndpoint(providerId, config.endpoint),
           temperature: route.temperature,
           maxTokens: route.maxTokens,
           stream: true,
@@ -722,7 +760,7 @@ export async function agentStreamChat(
         error: `${err.code}: ${err.message?.slice(0, 60) || 'unknown'}`,
       });
 
-      // 非重试类错误 (如 AUTH_FAILED) 对该 provider 不重试，继续 failover
+      // 非重试类错误 (�� AUTH_FAILED) 对该 provider 不重试，继续 failover
       // 重试类错误 (RATE_LIMITED, PROVIDER_ERROR) 也继续 failover
       continue;
     }
@@ -741,13 +779,33 @@ export interface LLMResponseWithFailover extends LLMResponse {
 // General Chat API (for main ChatArea — not agent-specific)
 // ============================================================
 
-const YYC3_SYSTEM_PROMPT = `You are YYC3 Core, the central AI assistant of the YYC3 Hacker Chatbot platform — a cyberpunk DevOps intelligence system running on a home NAS. You are helpful, concise, and technically competent. You can assist with:
-- Code generation, review, and debugging
-- DevOps tasks (Docker, CI/CD, monitoring)
-- System administration and NAS management
-- Architecture design and tech discussions
-- General knowledge questions
-Respond in the same language as the user's message. Keep responses concise and actionable.`;
+const YYC3_SYSTEM_PROMPT = `You are YYC3 Core, the central AI assistant of the "YYC3 Hacker Chatbot" — a cyberpunk DevOps intelligence platform built with React 18 + TypeScript + Tailwind CSS v4, running as a pure-frontend SPA that connects to a local NAS cluster.
+
+## Your Identity
+- Name: YYC3 Core (闫宇宸 Cloud 3.0)
+- Role: The "brain" of a 4-node home cluster (MacBook Pro M4 Max, iMac M4, MateBook X Pro, TerraMaster NAS F4-423)
+- You are powered by whichever LLM provider the user has configured (DeepSeek, OpenAI, Anthropic, etc.)
+
+## Platform Architecture
+- 7 AI Agents: Navigator(领航员), Thinker(思想家), Prophet(先知), Bole(伯乐), Pivot(天枢), Sentinel(哨兵), Grandmaster(宗师)
+- MCP (Model Context Protocol) tool integration: Figma, GitHub, Filesystem, Docker, PostgreSQL, Browser
+- NAS direct connection: SQLite HTTP Proxy, Docker Engine API, Heartbeat WebSocket
+- Knowledge Base: vector search, OCR/ASR multimodal, knowledge graph NER
+
+## Capabilities
+- Code generation, review, debugging, and refactoring
+- DevOps guidance (Docker, CI/CD, monitoring, deployment)
+- System architecture design and tech discussions
+- NAS and cluster management advice
+- Knowledge base queries and analysis
+
+## Critical Rules
+1. NEVER fabricate terminal/shell output. You cannot execute commands. If asked "ollama list" or "docker ps", explain that you're a chat AI and guide the user to the Console tab or terminal.
+2. NEVER pretend to have direct access to the filesystem, database, or running services. You can advise, but not execute.
+3. When discussing platform features, reference real module names (llm-bridge.ts, mcp-protocol.ts, agent-orchestrator.ts, etc.).
+4. Respond in the same language as the user's message (Chinese/English).
+5. Be concise and actionable. Use Markdown formatting.
+6. If the user asks about system status, guide them to the appropriate Console tab (Dashboard, Monitoring, etc.).`;
 
 /**
  * General-purpose streaming chat for the main ChatArea.
@@ -762,11 +820,9 @@ export async function generalStreamChat(
   signal?: AbortSignal
 ): Promise<LLMResponse | null> {
   const configs = loadProviderConfigs();
-  // Use all configs with API keys, not just enabled ones
-  // This allows providers with API keys but disabled status to be used
-  const availableConfigs = configs.filter(c => c.apiKey);
+  const enabledConfigs = configs.filter(c => c.enabled && c.apiKey);
 
-  if (availableConfigs.length === 0) return null;
+  if (enabledConfigs.length === 0) return null;
 
   // Build messages: system prompt + history + user message
   const messages: LLMMessage[] = [
@@ -777,11 +833,11 @@ export async function generalStreamChat(
 
   // Use router for smart provider selection
   const router = getRouter();
-  const candidateIds = availableConfigs.map(c => c.providerId);
+  const candidateIds = enabledConfigs.map(c => c.providerId);
   const failoverChain = router.getFailoverChain(candidateIds);
 
   for (const providerId of failoverChain) {
-    const config = availableConfigs.find(c => c.providerId === providerId);
+    const config = enabledConfigs.find(c => c.providerId === providerId);
     if (!config) continue;
 
     if (!router.canRequest(providerId)) continue;
@@ -799,7 +855,7 @@ export async function generalStreamChat(
           modelId,
           messages,
           apiKey: config.apiKey,
-          endpoint: config.endpoint || undefined,
+          endpoint: resolveProviderEndpoint(providerId, config.endpoint),
           temperature: 0.7,
           maxTokens: 4096,
           stream: true,
@@ -825,17 +881,10 @@ export async function generalStreamChat(
 
 /**
  * Check if any LLM provider has a valid API key configured.
- * Note: Checks for API key presence, not enabled status. A provider with
- * an API key but disabled status is still considered "configured".
  */
 export function hasConfiguredProvider(): boolean {
   const configs = loadProviderConfigs();
-  return configs.some(c => {
-    const provider = PROVIDERS[c.providerId];
-    if (!provider) return false;
-    const isLocal = ['ollama', 'lmstudio'].includes(c.providerId);
-    return isLocal || c.apiKey;
-  });
+  return configs.some(c => c.enabled && c.apiKey);
 }
 
 // ============================================================

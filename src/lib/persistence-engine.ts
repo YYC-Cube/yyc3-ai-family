@@ -206,7 +206,7 @@ export class NasSQLiteAdapter implements StorageAdapter {
         [domain],
         this.config
       );
-      return result.rows.map((row: Record<string, unknown>) => {
+      return result.rows.map((row) => {
         try { return JSON.parse(row[0] as string); } catch { return row[0]; }
       });
     } catch {

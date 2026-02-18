@@ -14,6 +14,8 @@
 //        Mock Runtime → localStorage 持久化
 // ============================================================
 
+import { encryptValue, decryptValue, isCryptoAvailable } from './crypto';
+
 // ============================================================
 // 1. MCP JSON-RPC 2.0 Types
 // ============================================================
@@ -181,6 +183,7 @@ export interface MCPServerDefinition {
   color?: string;
   createdAt: string;
   updatedAt: string;
+  encrypted?: boolean;     // Phase 35: encryption status flag for env vars
 }
 
 // ============================================================
@@ -721,9 +724,51 @@ export function loadMCPRegistry(): MCPServerDefinition[] {
   return [];
 }
 
-export function saveMCPRegistry(servers: MCPServerDefinition[]): void {
+/**
+ * Phase 35: Decrypt MCP credentials (tokens in env)
+ */
+export async function initMCPRegistry(): Promise<MCPServerDefinition[]> {
   try {
-    localStorage.setItem(MCP_REGISTRY_KEY, JSON.stringify(servers));
+    const raw = localStorage.getItem(MCP_REGISTRY_KEY);
+    if (!raw) return [];
+    const servers = JSON.parse(raw) as MCPServerDefinition[];
+    
+    return await Promise.all(servers.map(async s => {
+      if (s.env && s.encrypted) {
+        const decryptedEnv: Record<string, string> = {};
+        for (const [key, value] of Object.entries(s.env)) {
+          decryptedEnv[key] = await decryptValue(value);
+        }
+        return { ...s, env: decryptedEnv, encrypted: false };
+      }
+      return s;
+    }));
+  } catch { return []; }
+}
+
+export async function saveMCPRegistry(servers: MCPServerDefinition[]): Promise<void> {
+  try {
+    const encryptEnabled = isCryptoAvailable();
+    const processedServers = await Promise.all(servers.map(async s => {
+      // Check if any env value might be a token (heuristic: ALL_CAPS or contains 'TOKEN', 'KEY', 'SECRET')
+      const envKeys = s.env ? Object.keys(s.env) : [];
+      const hasSensitiveKeys = envKeys.some(k => 
+        k.toUpperCase().includes('TOKEN') || 
+        k.toUpperCase().includes('KEY') || 
+        k.toUpperCase().includes('SECRET') ||
+        (k === k.toUpperCase() && k.length > 2)
+      );
+
+      if (s.env && hasSensitiveKeys && !s.encrypted && encryptEnabled) {
+        const encryptedEnv: Record<string, string> = {};
+        for (const [key, value] of Object.entries(s.env)) {
+          encryptedEnv[key] = await encryptValue(value);
+        }
+        return { ...s, env: encryptedEnv, encrypted: true };
+      }
+      return s;
+    }));
+    localStorage.setItem(MCP_REGISTRY_KEY, JSON.stringify(processedServers));
   } catch { /* ignore */ }
 }
 
@@ -734,20 +779,20 @@ export function getAllMCPServers(): MCPServerDefinition[] {
   return [...presets, ...custom];
 }
 
-export function registerMCPServer(server: MCPServerDefinition): void {
-  const existing = loadMCPRegistry();
+export async function registerMCPServer(server: MCPServerDefinition): Promise<void> {
+  const existing = await initMCPRegistry(); // use decrypted versions for manipulation
   const idx = existing.findIndex(s => s.id === server.id);
   if (idx >= 0) {
     existing[idx] = server;
   } else {
     existing.push(server);
   }
-  saveMCPRegistry(existing);
+  await saveMCPRegistry(existing);
 }
 
-export function removeMCPServer(serverId: string): void {
-  const existing = loadMCPRegistry().filter(s => s.id !== serverId);
-  saveMCPRegistry(existing);
+export async function removeMCPServer(serverId: string): Promise<void> {
+  const existing = (await initMCPRegistry()).filter(s => s.id !== serverId);
+  await saveMCPRegistry(existing);
 }
 
 // ============================================================
@@ -1062,7 +1107,7 @@ export function getAllMCPConnections(): MCPTransportConnection[] {
  */
 export async function testMCPConnection(
   server: MCPServerDefinition
-): Promise<{ success: boolean; latencyMs: number; error?: string; serverInfo?: unknown }> {
+): Promise<{ success: boolean; latencyMs: number; error?: string; serverInfo?: string }> {
   if (server.transport === 'stdio') {
     return {
       success: false,
@@ -1129,7 +1174,7 @@ export async function testMCPConnection(
     return {
       success: true,
       latencyMs,
-      serverInfo: data.result,
+      serverInfo: JSON.stringify(data.result, null, 2),
     };
   } catch (error) {
     const latencyMs = Math.round(performance.now() - startTime);

@@ -20,6 +20,7 @@ import {
   generateEntrySummary,
   type HighlightSegment,
   type KBImportResult,
+  type SimpleDoc,
 } from "@/lib/kb-utils";
 import type { KnowledgeEntry } from "@/lib/agent-identity";
 
@@ -304,11 +305,11 @@ export function KnowledgeBaseView() {
     let results = docs.filter(d => activeCategory === 'all' || d.category === activeCategory);
 
     if (search.trim()) {
-      const fuzzyResults = fuzzySearchSimpleDocs(results, search);
-      results = fuzzyResults.map(r => r.item);
+      const fuzzyResults = fuzzySearchSimpleDocs(results as unknown as SimpleDoc[], search);
+      results = fuzzyResults.map(r => r.item as unknown as KnowledgeDoc);
       // If sorting by score and we have search
       if (sortBy === 'score') {
-        return fuzzyResults.map(r => r.item);
+        return fuzzyResults.map(r => r.item as unknown as KnowledgeDoc);
       }
     }
 

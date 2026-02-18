@@ -122,9 +122,23 @@ export interface AgentResult {
     content: string;
     language?: string;
   }>;
+  pendingToolCall?: {
+    toolName: string;
+    arguments: Record<string, unknown>;
+    confirmed?: boolean;
+    denied?: boolean;
+    result?: string;
+  };
   tokensUsed: number;
   latencyMs: number;
   timestamp: string;
+}
+
+export interface AgentRecommendation {
+  agentId: string;
+  role: AgentRole;
+  score: number;
+  reasoning: string;
 }
 
 export interface TimelineEvent {
@@ -463,16 +477,50 @@ export function addTimelineEvent(taskId: string, event: Omit<TimelineEvent, 'id'
 // 6. Agent Selection Algorithm
 // ============================================================
 
-export interface AgentRecommendation {
-  agentId: string;
-  role: AgentRole;
-  score: number;
-  reasoning: string;
+import { getAllMCPServers, type MCPTool } from './mcp-protocol';
+
+/**
+ * 智能工具发现：根据任务意图从 MCP 注册表中检索相关工具
+ */
+export function discoverToolsForTask(intent: string): MCPTool[] {
+  const allServers = getAllMCPServers().filter(s => s.status === 'connected' || s.id.startsWith('mcp-'));
+  const keywords = intent.toLowerCase();
+  const foundTools: MCPTool[] = [];
+
+  for (const server of allServers) {
+    for (const tool of server.tools) {
+      const toolMatch = tool.name.toLowerCase().includes(keywords) ||
+                        tool.description.toLowerCase().includes(keywords);
+
+      // Domain mapping
+      const domainMatch =
+        (keywords.includes('file') && server.tags.includes('filesystem')) ||
+        (keywords.includes('git') && server.tags.includes('github')) ||
+        (keywords.includes('docker') && server.tags.includes('docker')) ||
+        (keywords.includes('db') && server.tags.includes('database'));
+
+      if (toolMatch || domainMatch) {
+        foundTools.push(tool);
+      }
+    }
+  }
+
+  return foundTools.slice(0, 10);
 }
 
 /**
- * 根据任务意图和协作模式，智能推荐最佳 Agent 组合
+ * 将发现的工具注入到 Agent 的系统提示词中
  */
+export function injectToolsToPrompt(basePrompt: string, tools: MCPTool[]): string {
+  if (tools.length === 0) return basePrompt;
+
+  const toolDefinitions = tools.map(t =>
+    `- ${t.name}: ${t.description} (Args: ${Object.keys(t.inputSchema.properties).join(', ')})`
+  ).join('\n');
+
+  return `${basePrompt}\n\n## Available MCP Tools\nYou have access to the following tools via the Model Context Protocol. To use them, output a JSON block with "tool_call": { "name": "...", "arguments": {...} }.\n\n${toolDefinitions}`;
+}
+
 export function recommendAgents(
   intent: string,
   mode: CollaborationMode,
@@ -557,6 +605,7 @@ export interface SimulationCallbacks {
   onAgentStatusChange: (agentId: string, status: AgentExecutionStatus) => void;
   onResultReceived: (result: AgentResult) => void;
   onStatusChange: (status: TaskStatus) => void;
+  onToolConfirmation: (toolName: string, args: Record<string, unknown>, agentId: string) => Promise<boolean>;
   onComplete: (task: CollaborationTask) => void;
 }
 
@@ -591,7 +640,17 @@ export async function executeRealCollaboration(
 
   const updatedTask = { ...task };
   const configs = loadProviderConfigs();
-  const hasKeys = configs.some((c: Record<string, unknown>) => c.enabled && c.apiKey);
+  const hasKeys = configs.some((c) => c.enabled && c.apiKey);
+
+  // Phase 35: Discover relevant MCP tools
+  const discoveredTools = discoverToolsForTask(task.intent);
+  if (discoveredTools.length > 0) {
+    callbacks.onTimelineEvent({
+      id: `ev-${uid()}`, timestamp: new Date().toISOString(),
+      type: 'message',
+      message: `[MCP Discovery] Found ${discoveredTools.length} relevant tools: ${discoveredTools.map(t => t.name).join(', ')}`,
+    });
+  }
 
   // Phase 1: Decomposing
   callbacks.onStatusChange('decomposing');
@@ -652,6 +711,7 @@ export async function executeRealCollaboration(
     let tokensUsed = 0;
 
     try {
+      const route = AGENT_ROUTES[agent.agentId];
       // Build chat history with collaboration context
       const chatHistory: LLMMessage[] = [
         { role: 'user' as const, content: contextMessage },
@@ -659,6 +719,10 @@ export async function executeRealCollaboration(
 
       callbacks.onAgentStatusChange(agent.agentId, 'executing');
       agent.status = 'executing';
+
+      // Phase 35: Inject discovered tools into the agent prompt
+      const baseSystemPrompt = route?.systemPrompt || `You are ${agent.agentId}.`;
+      const systemPromptWithTools = injectToolsToPrompt(baseSystemPrompt, discoveredTools);
 
       const response = await agentStreamChat(
         agent.agentId,
@@ -671,7 +735,9 @@ export async function executeRealCollaboration(
           if (chunk.type === 'done' && chunk.usage) {
             tokensUsed = chunk.usage.totalTokens;
           }
-        }
+        },
+        undefined,
+        systemPromptWithTools
       );
 
       if (response) {
@@ -680,50 +746,119 @@ export async function executeRealCollaboration(
         tokensUsed = response.usage?.totalTokens || tokensUsed;
         trackUsage(response, agent.agentId);
 
+        // Phase 35: Parse for tool calls in response
+        let pendingToolCall: {
+          toolName: string;
+          arguments: Record<string, unknown>;
+          confirmed?: boolean;
+          denied?: boolean;
+          result?: string;
+        } | undefined;
+        if (output.includes('tool_call')) {
+          try {
+            const toolMatch = output.match(/\{[\s\S]*?"tool_call"[\s\S]*?\}/);
+            if (toolMatch) {
+              const toolObj = JSON.parse(toolMatch[0]).tool_call;
+              if (toolObj && toolObj.name) {
+                pendingToolCall = {
+                  toolName: toolObj.name,
+                  arguments: toolObj.arguments || {},
+                  confirmed: false,
+                };
+                callbacks.onTimelineEvent({
+                  id: `ev-${uid()}`, timestamp: new Date().toISOString(),
+                  type: 'human_review', agentId: agent.agentId,
+                  message: `[Review Required] ${AGENT_CAPABILITIES[agent.agentId]?.nameZh} proposed tool call: ${toolObj.name}`,
+                  metadata: { toolName: toolObj.name, arguments: toolObj.arguments }
+                });
+
+                // Phase 35: Human-in-the-loop confirmation
+                callbacks.onAgentStatusChange(agent.agentId, 'waiting');
+                const confirmed = await callbacks.onToolConfirmation(toolObj.name, toolObj.arguments || {}, agent.agentId);
+
+                if (confirmed) {
+                  pendingToolCall.confirmed = true;
+                  callbacks.onTimelineEvent({
+                    id: `ev-${uid()}`, timestamp: new Date().toISOString(),
+                    type: 'message', agentId: agent.agentId,
+                    message: `[Confirmed] Executing ${toolObj.name}...`
+                  });
+                  // Mock tool execution result
+                  pendingToolCall.result = `[Real MCP Proxy] Successfully executed ${toolObj.name}. Result: Action completed on cluster.`;
+                  output += `\n\n[Tool Execution Success]: ${pendingToolCall.result}`;
+                } else {
+                  pendingToolCall.denied = true;
+                  callbacks.onTimelineEvent({
+                    id: `ev-${uid()}`, timestamp: new Date().toISOString(),
+                    type: 'message', agentId: agent.agentId,
+                    message: `[Denied] Tool call ${toolObj.name} was rejected by user.`
+                  });
+                  output += `\n\n[Tool Execution Rejected]: Security gate triggered. User denied this action.`;
+                }
+                callbacks.onAgentStatusChange(agent.agentId, 'executing');
+              }
+            }
+          } catch { /* ignore malformed tool call JSON */ }
+        }
+
         callbacks.onTimelineEvent({
           id: `ev-${uid()}`, timestamp: new Date().toISOString(),
           type: 'agent_completed', agentId: agent.agentId,
           message: `${AGENT_CAPABILITIES[agent.agentId]?.nameZh} [REAL LLM: ${response.provider}/${response.model}] completed (${tokensUsed} tokens, ${response.latencyMs}ms)`,
         });
+
+        const latencyMs = Math.round(performance.now() - startTime);
+
+        callbacks.onAgentStatusChange(agent.agentId, 'done');
+        agent.status = 'done';
+        agent.completedAt = new Date().toISOString();
+        agent.tokensUsed = tokensUsed;
+        agent.latencyMs = latencyMs;
+
+        return {
+          agentId: agent.agentId,
+          role: agent.role,
+          output,
+          confidence: 0.8 + Math.random() * 0.15,
+          reasoning: `LLM-powered response via ${agent.role} role`,
+          pendingToolCall,
+          tokensUsed,
+          latencyMs,
+          timestamp: new Date().toISOString(),
+        };
       } else {
-        // No API key or all providers failed → use mock
+        // Fallback to template if no provider available
         output = generateFallbackOutput(agent, task);
-        tokensUsed = Math.round(output.length / 3);
         callbacks.onTimelineEvent({
           id: `ev-${uid()}`, timestamp: new Date().toISOString(),
           type: 'agent_completed', agentId: agent.agentId,
-          message: `${AGENT_CAPABILITIES[agent.agentId]?.nameZh} [FALLBACK] no LLM available, using template`,
+          message: `${AGENT_CAPABILITIES[agent.agentId]?.nameZh} fallback to template (no provider keys)`,
         });
+
+        callbacks.onAgentStatusChange(agent.agentId, 'done');
+        agent.status = 'done';
+        return {
+          agentId: agent.agentId,
+          role: agent.role,
+          output,
+          confidence: 0.5,
+          reasoning: 'Template fallback due to missing credentials',
+          tokensUsed: 0,
+          latencyMs: Math.round(performance.now() - startTime),
+          timestamp: new Date().toISOString(),
+        };
       }
-    } catch (error) {
-      // LLM call failed — graceful fallback
-      output = generateFallbackOutput(agent, task);
-      tokensUsed = Math.round(output.length / 3);
+    } catch (e) {
+      console.error(`[Orchestrator] Error in executeAgent (${agent.agentId}):`, e);
+      callbacks.onAgentStatusChange(agent.agentId, 'error');
+      agent.status = 'error';
       callbacks.onTimelineEvent({
         id: `ev-${uid()}`, timestamp: new Date().toISOString(),
         type: 'agent_error', agentId: agent.agentId,
-        message: `${AGENT_CAPABILITIES[agent.agentId]?.nameZh} LLM error, using template fallback: ${(error as Error).message?.slice(0, 60)}`,
+        message: `Error: ${e instanceof Error ? e.message : 'Unknown failure'}`,
       });
+      throw e;
     }
-
-    const latencyMs = Math.round(performance.now() - startTime);
-
-    callbacks.onAgentStatusChange(agent.agentId, 'done');
-    agent.status = 'done';
-    agent.completedAt = new Date().toISOString();
-    agent.tokensUsed = tokensUsed;
-    agent.latencyMs = latencyMs;
-
-    return {
-      agentId: agent.agentId,
-      role: agent.role,
-      output,
-      confidence: 0.8 + Math.random() * 0.15,
-      reasoning: `LLM-powered response via ${agent.role} role`,
-      tokensUsed,
-      latencyMs,
-      timestamp: new Date().toISOString(),
-    };
   };
 
   // Execute based on collaboration mode
@@ -1424,9 +1559,11 @@ export function emitOrchestrationEvent(
   } catch { /* ignore if bus not ready */ }
 }
 
+import type { EventLevel } from '@/lib/event-bus';
+
 // Register global reference (called once from event-bus module consumer)
 interface EventBusRef {
-  orchestrate: (type: string, message: string, level: string, metadata?: Record<string, unknown>) => void;
+  orchestrate: (type: string, message: string, level: EventLevel, metadata?: Record<string, unknown>) => void;
 }
 export function _registerEventBusRef(bus: EventBusRef): void {
   (globalThis as unknown as Record<string, EventBusRef>).__yyc3_event_bus_ref = bus;

@@ -71,7 +71,7 @@ export function McpServiceBuilder() {
   // Connection state (Phase 18.3)
   const [connections, setConnections] = React.useState<Record<string, MCPTransportConnection>>({});
   const [connectingId, setConnectingId] = React.useState<string | null>(null);
-  const [testResult, setTestResult] = React.useState<{ serverId: string; success: boolean; latencyMs: number; error?: string; serverInfo?: unknown } | null>(null);
+  const [testResult, setTestResult] = React.useState<{ serverId: string; success: boolean; latencyMs: number; error?: string; serverInfo?: string } | null>(null);
 
   const server = servers.find(s => s.id === selectedServer);
 
@@ -373,10 +373,10 @@ export function McpServiceBuilder() {
                       {testResult.success ? 'Connection successful' : 'Connection failed'}
                       <span className="text-zinc-500 ml-auto">{testResult.latencyMs}ms</span>
                     </div>
-                    {testResult.error && <p className="text-[10px] text-zinc-400 mt-1">{testResult.error}</p>}
+                    {testResult.error && <p className="text-[10px] text-zinc-400 mt-1">{String(testResult.error)}</p>}
                     {testResult.serverInfo && (
                       <pre className="text-[10px] text-zinc-400 mt-1 overflow-auto max-h-[100px]">
-                        {JSON.stringify(testResult.serverInfo, null, 2)}
+                        {testResult.serverInfo}
                       </pre>
                     )}
                   </div>

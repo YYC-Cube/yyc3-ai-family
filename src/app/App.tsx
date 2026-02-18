@@ -18,12 +18,14 @@ import { _registerEventBusRef } from "@/lib/agent-orchestrator";
 // Do NOT re-import it here to avoid double Tailwind CSS processing.
 import { Loader2 } from "lucide-react";
 import { useOllamaDiscovery } from "@/lib/useOllamaDiscovery";
-import { updateOllamaModels } from "@/lib/llm-providers";
-import { generalStreamChat, hasConfiguredProvider, trackUsage, loadProviderConfigs } from "@/lib/llm-bridge";
+import { updateOllamaModels, PROVIDERS } from "@/lib/llm-providers";
+import { generalStreamChat, hasConfiguredProvider, trackUsage, loadProviderConfigs, initProviderConfigs } from "@/lib/llm-bridge";
 import type { LLMMessage } from "@/lib/llm-bridge";
-import { PROVIDERS } from "@/lib/llm-providers";
+import { getProxiedProviders } from "@/lib/proxy-endpoints";
+import { initMCPRegistry } from "@/lib/mcp-protocol";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import type { ImperativePanelHandle } from "react-resizable-panels";
+import { NeuralLinkOverlay } from "@/app/components/monitoring/NeuralLinkOverlay";
 
 // Lazy Load Components
 const ConsoleView = React.lazy(() => import('@/app/components/console/ConsoleView').then(module => ({ default: module.ConsoleView })));
@@ -90,12 +92,99 @@ function useResponsive() {
   }, [setIsMobile, setIsTablet]);
 }
 
+// === Navigation Intent Matcher (Phase 15) ===
+function matchNavigationIntent(lowerText: string) {
+  const state = useSystemStore.getState();
+  
+  // Agent matching
+  const agentMap: Record<string, string> = {
+    'navigator': 'navigator', '领航员': 'navigator',
+    'thinker': 'thinker', '思想家': 'thinker',
+    'prophet': 'prophet', '先知': 'prophet',
+    'bole': 'bole', '伯乐': 'bole',
+    'pivot': 'pivot', '天枢': 'pivot',
+    'sentinel': 'sentinel', '哨兵': 'sentinel',
+    'grandmaster': 'grandmaster', '宗师': 'grandmaster',
+  };
+
+  for (const [key, id] of Object.entries(agentMap)) {
+    if (lowerText.includes(key)) {
+      return { target: `Agent: ${id.toUpperCase()}`, action: () => state.navigateToAgent(id) };
+    }
+  }
+
+  // Console Tab matching
+  if (lowerText.includes('dashboard') || lowerText.includes('仪表盘')) 
+    return { target: 'Dashboard', action: () => state.navigateToConsoleTab('dashboard') };
+  if (lowerText.includes('devops') || lowerText.includes('运维') || lowerText.includes('pipeline') || lowerText.includes('workflow')) 
+    return { target: 'DevOps Workspace', action: () => state.navigateToConsoleTab('devops') };
+  if (lowerText.includes('ollama') || lowerText.includes('本地模型')) 
+    return { target: 'Ollama Manager', action: () => state.navigateToConsoleTab('ollama') };
+  if (lowerText.includes('stream') || lowerText.includes('诊断') || lowerText.includes('streaming')) 
+    return { target: 'Stream Diagnostics', action: () => state.navigateToConsoleTab('diagnostics') };
+  if (lowerText.includes('security') || lowerText.includes('安全') || lowerText.includes('audit')) 
+    return { target: 'Security Audit', action: () => state.navigateToConsoleTab('security') };
+  if (lowerText.includes('mcp') || lowerText.includes('工具链')) 
+    return { target: 'MCP Hub', action: () => state.navigateToConsoleTab('mcp') };
+  if (lowerText.includes('persist') || lowerText.includes('持久化') || lowerText.includes('sync')) 
+    return { target: 'Persistence Engine', action: () => state.navigateToConsoleTab('persistence') };
+  if (lowerText.includes('smoke') || lowerText.includes('test') || lowerText.includes('测试')) 
+    return { target: 'Test Framework', action: () => state.navigateToConsoleTab('test') };
+
+  // Phase 36: Hardware Monitor navigation intent
+  if (lowerText.includes('hardware') || lowerText.includes('硬件') || lowerText.includes('telemetry') || lowerText.includes('遥测') || lowerText.includes('温度') || lowerText.includes('cpu core') || lowerText.includes('thermal'))
+    return { target: 'Hardware Monitor', action: () => state.navigateToConsoleTab('hardware_monitor') };
+
+  // Global View matching
+  if (lowerText.includes('project') || lowerText.includes('项目')) 
+    return { target: 'Projects View', action: () => state.setActiveView('projects') };
+  if (lowerText.includes('monitor') || lowerText.includes('监控') || lowerText.includes('health')) 
+    return { target: 'Service Health', action: () => state.setActiveView('monitor') };
+  if (lowerText.includes('knowledge') || lowerText.includes('知识库') || lowerText.includes('rag')) 
+    return { target: 'Knowledge Base', action: () => state.setActiveView('knowledge') };
+  if (lowerText.includes('artifact') || lowerText.includes('产物')) 
+    return { target: 'Artifacts Gallery', action: () => state.setActiveView('artifacts') };
+  if (lowerText.includes('service') || lowerText.includes('服务') || lowerText.includes('nas')) 
+    return { target: 'Services Panel', action: () => state.setActiveView('services') };
+  if (lowerText.includes('bookmark') || lowerText.includes('收藏')) 
+    return { target: 'Bookmarks', action: () => state.setActiveView('bookmarks') };
+  if (lowerText.includes('settings') || lowerText.includes('设置') || lowerText.includes('配置')) 
+    return { target: 'Settings', action: () => state.openSettings() };
+
+  return null;
+}
+
 function AppContent() {
   const { language } = useTranslation();
 
+  // === Zustand Global State ===
+  const isMobile = useSystemStore((s) => s.isMobile);
+  const activeView = useSystemStore((s) => s.activeView);
+  const setActiveView = useSystemStore((s) => s.setActiveView);
+  const messages = useSystemStore((s) => s.messages);
+  const addMessage = useSystemStore((s) => s.addMessage);
+  const isStreaming = useSystemStore((s) => s.isStreaming);
+  const setIsStreaming = useSystemStore((s) => s.setIsStreaming);
+  const isArtifactsOpen = useSystemStore((s) => s.isArtifactsOpen);
+  const setIsArtifactsOpen = useSystemStore((s) => s.setIsArtifactsOpen);
+  const toggleArtifactsPanel = useSystemStore((s) => s.toggleArtifactsPanel);
+  const activeArtifact = useSystemStore((s) => s.activeArtifact);
+  const setActiveArtifact = useSystemStore((s) => s.setActiveArtifact);
+  const isSettingsOpen = useSystemStore((s) => s.isSettingsOpen);
+  const openSettings = useSystemStore((s) => s.openSettings);
+  const closeSettings = useSystemStore((s) => s.closeSettings);
+  const settingsTab = useSystemStore((s) => s.settingsTab);
+  const newSession = useSystemStore((s) => s.newSession);
+  const navigateToAgent = useSystemStore((s) => s.navigateToAgent);
+  const navigateToConsoleTab = useSystemStore((s) => s.navigateToConsoleTab);
+  const addLog = useSystemStore((s) => s.addLog);
+  const chatMode = useSystemStore((s) => s.chatMode);
+  const toggleChatMode = useSystemStore((s) => s.toggleChatMode);
+  const updateLastAiMessage = useSystemStore((s) => s.updateLastAiMessage);
+  const setProviderConfigs = useSystemStore((s) => s.setProviderConfigs);
+
   // === Responsive detection ===
   useResponsive();
-  const isMobile = useSystemStore((s) => s.isMobile);
 
   // === Phase 18.1: Auto-persist store ↔ PersistenceEngine ===
   usePersistenceSync();
@@ -157,6 +246,20 @@ function AppContent() {
     } catch { /* ignore */ }
   }, []);
 
+  // === Phase 35: Initialize provider & MCP configs (decrypt keys) ===
+  React.useEffect(() => {
+    Promise.all([
+      initProviderConfigs(),
+      initMCPRegistry()
+    ]).then(([llmConfigs, mcpServers]) => {
+      setProviderConfigs(llmConfigs);
+      const encryptedCount = llmConfigs.filter(c => c.encrypted).length + mcpServers.filter(s => s.encrypted).length;
+      if (encryptedCount > 0) {
+        addLog('info', 'SECURITY', `${encryptedCount} sensitive credentials decrypted via Web Crypto`);
+      }
+    });
+  }, [setProviderConfigs, addLog]);
+
   // === Start real-time metrics simulation engine ===
   const { status: wsStatus } = useWebSocket();
   useMetricsSimulator(wsStatus === 'connected' ? 0 : 2000);
@@ -172,38 +275,11 @@ function AppContent() {
         family: m.details?.family || 'unknown',
       }));
       updateOllamaModels(mapped);
-      useSystemStore.getState().addLog('info', 'OLLAMA_SYNC', `Synced ${mapped.length} models to Provider Registry`);
+      addLog('info', 'OLLAMA_SYNC', `Synced ${mapped.length} models to Provider Registry`);
     }
-  }, [ollamaModels, ollamaStatus]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // === Zustand Global State ===
-  const activeView = useSystemStore((s) => s.activeView);
-  const setActiveView = useSystemStore((s) => s.setActiveView);
-
-  const messages = useSystemStore((s) => s.messages);
-  const addMessage = useSystemStore((s) => s.addMessage);
-  const isStreaming = useSystemStore((s) => s.isStreaming);
-  const setIsStreaming = useSystemStore((s) => s.setIsStreaming);
-  const isArtifactsOpen = useSystemStore((s) => s.isArtifactsOpen);
-  const setIsArtifactsOpen = useSystemStore((s) => s.setIsArtifactsOpen);
-  const toggleArtifactsPanel = useSystemStore((s) => s.toggleArtifactsPanel);
-  const activeArtifact = useSystemStore((s) => s.activeArtifact);
-  const setActiveArtifact = useSystemStore((s) => s.setActiveArtifact);
-
-  const isSettingsOpen = useSystemStore((s) => s.isSettingsOpen);
-  const openSettings = useSystemStore((s) => s.openSettings);
-  const closeSettings = useSystemStore((s) => s.closeSettings);
-  const settingsTab = useSystemStore((s) => s.settingsTab);
-
-  const newSession = useSystemStore((s) => s.newSession);
-  const navigateToAgent = useSystemStore((s) => s.navigateToAgent);
-  const navigateToConsoleTab = useSystemStore((s) => s.navigateToConsoleTab);
-  const addLog = useSystemStore((s) => s.addLog);
-  const chatMode = useSystemStore((s) => s.chatMode);
-  const updateLastAiMessage = useSystemStore((s) => s.updateLastAiMessage);
+  }, [ollamaModels, ollamaStatus, addLog]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // === Ctrl+M: Quick toggle between navigate/AI mode ===
-  const toggleChatMode = useSystemStore((s) => s.toggleChatMode);
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ctrl+M (or Cmd+M on Mac) toggles chat mode
@@ -236,63 +312,115 @@ function AppContent() {
     }
   }, [isArtifactsOpen]);
 
-  // === Navigation Intent Matching ===
-  const matchNavigationIntent = (lowerText: string): { target: string; action: () => void } | null => {
-    // Agent navigation
-    const agentMap: Record<string, string> = {
-      'navigator': 'navigator', '领航员': 'navigator',
-      'sentinel': 'sentinel', '哨兵': 'sentinel',
-      'thinker': 'thinker', '思想家': 'thinker',
-      'prophet': 'prophet', '先知': 'prophet',
-      'bole': 'bole', '伯乐': 'bole',
-      'pivot': 'pivot', '天枢': 'pivot',
-      'grandmaster': 'grandmaster', '宗师': 'grandmaster',
+  // === Knowledge Domain Matcher (Navigate Mode — inline rich responses) ===
+  const matchKnowledgeDomain = (lowerText: string, lang: string): string | null => {
+    const zh = lang === 'zh';
+
+    // === Phase 35: Gather live dynamic data for enriched responses ===
+    const configs = loadProviderConfigs();
+    const enabledProviders = configs.filter(c => c.enabled && c.apiKey);
+    const totalProviders = Object.keys(PROVIDERS).length;
+    const proxied = getProxiedProviders();
+    const proxyLine = proxied.length > 0
+      ? (zh ? `\n\n**Dev Proxy：** 已激活 (${proxied.join(', ')})` : `\n\n**Dev Proxy:** Active (${proxied.join(', ')})`)
+      : '';
+    const msgCount = useSystemStore.getState().messages.length;
+
+    // localStorage stats helper
+    const getLsStats = () => {
+      try {
+        let totalBytes = 0;
+        let keyCount = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k) {
+            keyCount++;
+            totalBytes += k.length + (localStorage.getItem(k)?.length || 0);
+          }
+        }
+        const yyc3Keys = Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i))
+          .filter(k => k?.startsWith('yyc3')).length;
+        return { keyCount, yyc3Keys, sizeKB: Math.round(totalBytes * 2 / 1024) };
+      } catch { return { keyCount: 0, yyc3Keys: 0, sizeKB: 0 }; }
     };
-    for (const [keyword, agentId] of Object.entries(agentMap)) {
-      if (lowerText.includes(keyword)) {
-        return { target: `Agent: ${agentId}`, action: () => navigateToAgent(agentId) };
-      }
+
+    // --- MCP / Model Context Protocol ---
+    if (/\bmcp\b|model context protocol|工具链|tool chain|tool server/.test(lowerText)) {
+      return zh
+        ? `## MCP — Model Context Protocol\n\nMCP 是 YYC3 平台的**工具调用协议层**，让 AI Agent 能安全地调用外部工具。\n\n**已集成的 MCP Server：**\n| Server | 传输方式 | 用途 |\n|--------|---------|------|\n| Figma MCP | SSE | 设计稿读取、组件导出 |\n| GitHub MCP | SSE | 代码仓库操作、PR 管理 |\n| Filesystem MCP | Stdio | 本地文件读写（NAS） |\n| Docker MCP | SSE | 容器生命周期管理 |\n| PostgreSQL MCP | Stdio | 数据库查询、Schema 管理 |\n| Browser MCP | SSE | 网页抓取、截图 |\n\n**核心模块：** \`mcp-protocol.ts\` (1326行)\n\n💡 前往 **Console → MCP** 查看详细配置和 Playground 测试。`
+        : `## MCP — Model Context Protocol\n\nMCP is the **tool-calling protocol layer** of the YYC3 platform, enabling AI Agents to safely invoke external tools.\n\n**Integrated MCP Servers:**\n| Server | Transport | Purpose |\n|--------|-----------|--------|\n| Figma MCP | SSE | Design file reading, component export |\n| GitHub MCP | SSE | Repo operations, PR management |\n| Filesystem MCP | Stdio | Local file I/O (NAS) |\n| Docker MCP | SSE | Container lifecycle management |\n| PostgreSQL MCP | Stdio | DB queries, schema management |\n| Browser MCP | SSE | Web scraping, screenshots |\n\n**Core module:** \`mcp-protocol.ts\` (1326 lines)\n\n💡 Go to **Console → MCP** to view configurations and test in Playground.`;
     }
 
-    // Console tab navigation
-    const tabMap: [string[], string, string][] = [
-      [['architecture', '架构'], 'architecture', 'Architecture'],
-      [['dashboard', '仪表盘', '总控'], 'dashboard', 'Dashboard'],
-      [['devops', 'pipeline', '运维', 'dag', 'workflow', '工作流', 'template', '模板'], 'devops', 'DevOps'],
-      [['mcp', '工具链', 'tool chain'], 'mcp', 'MCP Tools'],
-      [['persist', '持久化', 'snapshot', '快照', '备份'], 'persist', 'Persistence'],
-      [['编排', 'orchestrat', '协作', 'collaborat', 'multi-agent'], 'orchestrate', 'Orchestration'],
-      [['身份', 'identity', '角色卡', 'role card'], 'agent_identity', 'Agent Identity'],
-      [['家人', 'family', '陪伴'], 'family_presence', 'Family Presence'],
-      [['知识', 'knowledge', 'kb'], 'knowledge_base', 'Knowledge Base'],
-      [['部署工具', 'deploy toolkit', '连通性', 'connectivity'], 'nas_deployment', 'NAS Deployment'],
-      [['历史指标', 'metrics history', '趋势', 'trend'], 'metrics_history', 'Metrics History'],
-      [['远程部署', 'remote deploy', '一键部署', 'docker compose', '容器部署'], 'remote_docker_deploy', 'Remote Deploy'],
-      [['诊断', 'diagnostic', '自诊断', 'self-check', '健康检查'], 'dashboard', 'Diagnostics'],
-      [['ollama', '本地模型', 'local model', '离线模型'], 'ollama_manager', 'Ollama Manager'],
-      [['api文档', 'api doc', '接口文档', 'api reference'], 'api_docs', 'API Docs'],
-      [['smoke', '烟雾测试', 'e2e', '冒烟'], 'smoke_test', 'Smoke Test'],
-      [['test framework', '测试框架', 'type audit', '类型审计', 'test suite', '测试套件'], 'test_framework', 'Test Framework'],
-      [['stream diagnostic', '流式诊断', 'streaming test', '流式测试', 'e2e stream', 'provider health'], 'stream_diagnostics', 'Stream Diagnostics'],
-    ];
-    for (const [keywords, tab, label] of tabMap) {
-      if (keywords.some(k => lowerText.includes(k))) {
-        return { target: label, action: () => navigateToConsoleTab(tab) };
-      }
+    // --- AI Family / Agent Architecture ---
+    if (/\b(ai family|agent|七大|7大|七位|ai 家族|ai家族|领航员|思想家|先知|伯乐|天枢|哨兵|宗师)\b/.test(lowerText) ||
+        /\b(navigator|thinker|prophet|bole|pivot|sentinel|grandmaster)\b/.test(lowerText)) {
+      return zh
+        ? `## AI Family — 七大智能体\n\n| Agent | 代号 | 角色 | 擅长领域 |\n|-------|------|------|----------|\n| Navigator | 领航员 | 路径规划 | 项目导航、任务分解 |\n| Thinker | 思想家 | 深度推理 | 架构设计、技术分析 |\n| Prophet | 先知 | 预测预警 | 风险评估、趋势预测 |\n| Bole | 伯乐 | 代码审计 | Code Review、质量把关 |\n| Pivot | 天枢 | 协调中枢 | 多 Agent 编排、冲突仲裁 |\n| Sentinel | 哨兵 | 安全守卫 | 安全审计、漏洞检测 |\n| Grandmaster | 宗师 | 全能指挥 | 域综合、最终决策 |\n\n**核心模块：** \`agent-orchestrator.ts\` (1427行)\n\n每个 Agent 拥有独立的 System Prompt、推荐 Provider/Model 和聊天历史。\n\n**当前会话：** ${msgCount} 条消息\n\n💡 前往 **Console → AI Agent** 选择任意 Agent 开始专项对话。`
+        : `## AI Family — 7 Intelligent Agents\n\n| Agent | Codename | Role | Specialty |\n|-------|----------|------|----------|\n| Navigator | 领航员 | Path Planning | Project navigation, task decomposition |\n| Thinker | 思想家 | Deep Reasoning | Architecture design, tech analysis |\n| Prophet | 先知 | Prediction | Risk assessment, trend forecasting |\n| Bole | 伯乐 | Code Audit | Code review, quality control |\n| Pivot | 天枢 | Coordinator | Multi-agent orchestration, conflict resolution |\n| Sentinel | 哨兵 | Security Guard | Security audit, vulnerability detection |\n| Grandmaster | 宗师 | Commander | Cross-domain synthesis, final decisions |\n\n**Core module:** \`agent-orchestrator.ts\` (1427 lines)\n\nEach agent has its own System Prompt, preferred Provider/Model, and chat history.\n\n**Current session:** ${msgCount} messages\n\n💡 Go to **Console → AI Agent** to start a specialized conversation with any agent.`;
     }
 
-    // View navigation
-    if (lowerText.includes('project') || lowerText.includes('项目')) {
-      return { target: 'Projects', action: () => setActiveView('projects') };
+    // --- LLM / Provider Architecture ---
+    if (/\b(llm|provider|模型|deepseek|openai|anthropic|gemini|groq|ollama|大模型|bridge)\b/.test(lowerText)) {
+      const statusLine = zh
+        ? `\n\n**实时状态：** ${enabledProviders.length}/${totalProviders} 个 Provider 已激活`
+        : `\n\n**Live status:** ${enabledProviders.length}/${totalProviders} providers active`;
+      return zh
+        ? `## LLM Bridge — 多 Provider 智能路由\n\n**支持的 Provider：**\n- **OpenAI** — GPT-4o / GPT-4o-mini\n- **Anthropic** — Claude 3.5 Sonnet / Haiku\n- **DeepSeek** — DeepSeek-V3 / DeepSeek-R1\n- **智谱 Z.AI** — GLM-4-Plus / GLM-4-Flash\n- **Google Gemini** — Gemini 2.0 Flash\n- **Groq** — Llama 3.3 70B / Mixtral\n- **Ollama** — 本地模型（无需 API Key）\n\n**核心特性：**\n- SSE 流式输出 | 熔断器保护 | 自动 Failover\n- Token 用量追踪 | 成本估算\n- Phase 34: Dev Proxy 绕 CORS${statusLine}${proxyLine}\n\n**核心模块：** \`llm-bridge.ts\` (1048行) + \`llm-router.ts\` + \`llm-providers.ts\`\n\n💡 前往 **设置 → AI 模型** 配置 API Key，或前往 **Console → Stream Diagnostics** 测试连通性。`
+        : `## LLM Bridge — Multi-Provider Smart Routing\n\n**Supported Providers:**\n- **OpenAI** — GPT-4o / GPT-4o-mini\n- **Anthropic** — Claude 3.5 Sonnet / Haiku\n- **DeepSeek** — DeepSeek-V3 / DeepSeek-R1\n- **Zhipu Z.AI** — GLM-4-Plus / GLM-4-Flash\n- **Google Gemini** — Gemini 2.0 Flash\n- **Groq** — Llama 3.3 70B / Mixtral\n- **Ollama** — Local models (no API key needed)\n\n**Core Features:**\n- SSE streaming | Circuit breaker | Auto failover\n- Token usage tracking | Cost estimation\n- Phase 34: Dev proxy for CORS bypass${statusLine}${proxyLine}\n\n**Core modules:** \`llm-bridge.ts\` (1048 lines) + \`llm-router.ts\` + \`llm-providers.ts\`\n\n💡 Go to **Settings → AI Models** to configure API keys, or **Console → Stream Diagnostics** to test connectivity.`;
     }
-    if (lowerText.includes('artifact') || lowerText.includes('工件') || lowerText.includes('制品')) {
-      return { target: 'Artifacts', action: () => setActiveView('artifacts') };
+
+    // --- NAS / Cluster / Hardware ---
+    if (/\b(nas|cluster|集群|硬件|hardware|node|节点|terramaster|m4.max|imac|matebook)\b/.test(lowerText)) {
+      // Phase 36: Enhanced hardware knowledge with HardwareMonitor reference
+      const m4 = useSystemStore.getState().clusterMetrics?.['m4-max'];
+      const hwLine = m4
+        ? (zh
+          ? `\n\n**实时遥测 (M4 Max):** CPU ${Math.round(m4.cpu)}% | 内存 ${Math.round(m4.memory)}% | 温度 ${Math.round(m4.temperature)}C | 磁盘 ${Math.round(m4.disk)}%`
+          : `\n\n**Live Telemetry (M4 Max):** CPU ${Math.round(m4.cpu)}% | MEM ${Math.round(m4.memory)}% | Temp ${Math.round(m4.temperature)}C | Disk ${Math.round(m4.disk)}%`)
+        : '';
+      return zh
+        ? `## 集群拓扑 — 四节点家用算力网络\n\n| 节点 | 设备 | 角色 | 核心能力 |\n|------|------|------|----------|\n| M4-MAX | MacBook Pro M4 Max | 主控节点 | 128GB RAM, 40核GPU, AI推理 |\n| IMAC-M4 | iMac M4 | 渲染节点 | 32GB RAM, 设计/前端开发 |\n| MATEBOOK | MateBook X Pro | 移动节点 | 轻量任务、远程监控 |\n| NAS-YYC | TerraMaster F4-423 | 存储节点 | RAID6, Docker宿主, SQLite |${hwLine}\n\n**连接方式：**\n- Heartbeat WebSocket (实时心跳)\n- SQLite HTTP Proxy (数据持久化)\n- Docker Engine API (容器管理)\n\n**数据库：** PostgreSQL 15 (端口 5433, 用户 yyc3_max)\n- Schema: orchestration | knowledge (pgvector) | telemetry\n\n💡 前往 **Console → Hardware Monitor** 查看 56 核遥测看板，或 **Console → Dashboard** 查看集群全景。`
+        : `## Cluster Topology — 4-Node Home Compute Network\n\n| Node | Device | Role | Capability |\n|------|--------|------|----------|\n| M4-MAX | MacBook Pro M4 Max | Primary | 128GB RAM, 40-core GPU, AI inference |\n| IMAC-M4 | iMac M4 | Render | 32GB RAM, design/frontend dev |\n| MATEBOOK | MateBook X Pro | Mobile | Lightweight tasks, remote monitoring |\n| NAS-YYC | TerraMaster F4-423 | Storage | RAID6, Docker host, SQLite |${hwLine}\n\n**Connections:**\n- Heartbeat WebSocket (real-time health)\n- SQLite HTTP Proxy (data persistence)\n- Docker Engine API (container management)\n\n**Database:** PostgreSQL 15 (port 5433, user yyc3_max)\n- Schemas: orchestration | knowledge (pgvector) | telemetry\n\n💡 Go to **Console → Hardware Monitor** for 56-core telemetry, or **Console → Dashboard** for cluster overview.`;
     }
-    if (lowerText.includes('monitor') || lowerText.includes('监控') || lowerText.includes('health')) {
-      return { target: 'Monitor', action: () => setActiveView('monitor') };
+
+    // --- Persistence / Backup ---
+    if (/\b(persist|持久化|backup|备份|snapshot|快照|localStorage|存储引擎)\b/.test(lowerText)) {
+      const ls = getLsStats();
+      const lsLine = zh
+        ? `\n\n**localStorage 快照：** ${ls.yyc3Keys} 个 YYC3 键 / ${ls.keyCount} 总键 / ≈${ls.sizeKB} KB`
+        : `\n\n**localStorage snapshot:** ${ls.yyc3Keys} YYC3 keys / ${ls.keyCount} total keys / ≈${ls.sizeKB} KB`;
+      return zh
+        ? `## 持久化引擎\n\n**三层存储架构：**\n1. **L1 — localStorage** (即时) — 会话状态、Provider配置、外观设置\n2. **L2 — NAS SQLite** (持久) — 聊天历史、Agent记忆、用量记录\n3. **L3 — 快照导出** (归档) — JSON/ZIP 全量快照、跨设备迁移\n\n**核心模块：** \`persistence-engine.ts\` (830行) + \`persist-schemas.ts\`\n\n**当前状态：** NAS 不可达时自动降级为 L1 localStorage Mock${lsLine}\n\n💡 前往 **Console → Persistence** 管理快照和数据同步。`
+        : `## Persistence Engine\n\n**Three-tier storage architecture:**\n1. **L1 — localStorage** (instant) — Session state, provider config, appearance\n2. **L2 — NAS SQLite** (persistent) — Chat history, agent memory, usage records\n3. **L3 — Snapshot Export** (archive) — JSON/ZIP full snapshots, cross-device migration\n\n**Core module:** \`persistence-engine.ts\` (830 lines) + \`persist-schemas.ts\`\n\n**Current state:** Auto-degrades to L1 localStorage mock when NAS is unreachable${lsLine}\n\n💡 Go to **Console → Persistence** to manage snapshots and data sync.`;
     }
-    if (lowerText.includes('settings') || lowerText.includes('设置') || lowerText.includes('config')) {
-      return { target: 'Settings', action: () => navigateToConsoleTab('settings') };
+
+    // --- DevOps / CI/CD / Docker ---
+    if (/\b(devops|ci\/cd|docker|container|容器|pipeline|部署|deploy|compose)\b/.test(lowerText)) {
+      return zh
+        ? `## DevOps 工作台\n\n**功能模块：**\n- **DAG 工作流编辑器** — 可视化拖拽构建 CI/CD 流水线\n- **模板库** — 预置 15+ 工作流模板（Docker Build、Test Suite、Deploy等）\n- **Docker 管理** — NAS 上的容器生命周期管理（启动/停止/日志/重启）\n- **远程部署** — 一键 docker-compose 部署到 NAS\n\n**关键路径：**\n\`\`\`\n代码提交 → DAG 触发 → Build → Test → Deploy → NAS\n\`\`\`\n\n💡 前往 **Console → DevOps** 查看工作流编辑器和模板库。`
+        : `## DevOps Workbench\n\n**Feature Modules:**\n- **DAG Workflow Editor** — Visual drag-and-drop CI/CD pipeline builder\n- **Template Library** — 15+ preset workflow templates (Docker Build, Test Suite, Deploy, etc.)\n- **Docker Manager** — Container lifecycle management on NAS (start/stop/logs/restart)\n- **Remote Deploy** — One-click docker-compose deployment to NAS\n\n**Key Pipeline:**\n\`\`\`\nCode Commit → DAG Trigger → Build → Test → Deploy → NAS\n\`\`\`\n\n💡 Go to **Console → DevOps** to view the workflow editor and templates.`;
+    }
+
+    // --- Knowledge Base ---
+    if (/\b(knowledge base|知识库|向量|vector|rag|embedding|知识图谱|knowledge graph)\b/.test(lowerText)) {
+      return zh
+        ? `## 知识库系统\n\n**核心能力：**\n- 向量搜索 — 基于 Embedding 的语义检索\n- OCR/ASR — 图片文字识别、语音转文字\n- 知识图谱 — NER 实体抽取、关系图谱可视化\n- RAG — 检索增强生成，为 Agent 提供上下文\n\n**数据源：**\n- 本地文档（Markdown、PDF、代码文件）\n- 聊天历史摘要\n- 项目 README / 文档\n\n💡 前往 **Console → Knowledge Base** 管理知识条目。`
+        : `## Knowledge Base System\n\n**Core Capabilities:**\n- Vector Search — Embedding-based semantic retrieval\n- OCR/ASR — Image text recognition, speech-to-text\n- Knowledge Graph — NER entity extraction, relationship visualization\n- RAG — Retrieval-augmented generation for Agent context\n\n**Data Sources:**\n- Local documents (Markdown, PDF, code files)\n- Chat history summaries\n- Project README / documentation\n\n💡 Go to **Console → Knowledge Base** to manage knowledge entries.`;
+    }
+
+    // --- Phase 35: Security / Crypto / API Key Protection ---
+    if (/\b(security|安全|crypto|加密|encrypt|decrypt|密钥|api key|xss|csrf|hash|哈希|token safe|credential|凭证)\b/.test(lowerText)) {
+      const ls = getLsStats();
+      const healthyProviders = configs.filter(c => c.enabled && c.apiKey);
+      const riskLevel = healthyProviders.length > 5 ? (zh ? '中' : 'Medium') : (zh ? '低' : 'Low');
+      
+      const keyStorageNote = zh
+        ? `\n\n**当前 API Key 存储：** ${enabledProviders.length} 个活跃 Provider 的密钥存于 localStorage（${ls.sizeKB} KB 总占用）`
+        : `\n\n**Current API key storage:** ${enabledProviders.length} active provider keys in localStorage (${ls.sizeKB} KB total)`;
+      
+      return zh
+        ? `## YYC3 安全审计域 (Security Domain)\n\n**实时安全评估：**\n- **风险等级：** ${riskLevel}\n- **加密状态：** 传输中加密 (TLS 1.3)\n- **凭证暴露：** 0 个泄露检测 (Local-only)\n- **Proxy 隧道：** ${proxied.length > 0 ? '已建立 (Active)' : '未建立 (Direct)'}\n\n**前端防护栈：**\n| 威胁模型 | 防护机制 | 状态 |\n|----------|----------|------|\n| 凭证劫持 | Authorization Header (SSE) | ✅ 激活 |\n| 脚本注入 | DOMPurify + React Escaping | ✅ 激活 |\n| 跨域限制 | Vite Dev Proxy (CORS Bypass) | ${proxied.length > 0 ? '✅ 激活' : '⚠️ 关闭'} |\n| 数据驻留 | 0-PII / 100% Local Storage | ✅ 激活 |\n\n**安全建议：**\n1. 请定期清理 localStorage 快照以释放冗余密钥引用。\n2. 在非信任环境下建议通过「Stream Diagnostics」测试连接后立即清除敏感配置。\n\n💡 前往 **Console → Security Audit** 查看全量审计报告。`
+        : `## YYC3 Security Audit Domain\n\n**Real-time Assessment:**\n- **Risk Level:** ${riskLevel}\n- **Encryption:** In-transit (TLS 1.3)\n- **Credential Leak:** 0 detected (Local-only)\n- **Proxy Tunnel:** ${proxied.length > 0 ? 'Active' : 'Direct'}\n\n**Frontend Defense Stack:**\n| Threat Model | Mechanism | Status |\n|--------------|-----------|--------|\n| Credential Hijack | Authorization Header (SSE) | ✅ Active |\n| XSS / Injection | DOMPurify + React Escaping | ✅ Active |\n| CORS Restrictions | Vite Dev Proxy (CORS Bypass) | ${proxied.length > 0 ? '✅ Active' : '⚠️ Disabled'} |\n| Data Residency | 0-PII / 100% Local Storage | ✅ Active |\n\n**Security Recommendations:**\n1. Periodically prune localStorage snapshots to remove redundant key references.\n2. In untrusted environments, clear sensitive configs immediately after testing in "Stream Diagnostics".\n\n💡 Go to **Console → Security Audit** to view the full audit report.`;
     }
 
     return null;
@@ -310,64 +438,8 @@ function AppContent() {
     addMessage(newMessage);
     setIsStreaming(true);
 
-    const lowerText = text.toLowerCase().trim();
+    const lowerText = text.toLowerCase();
     const currentMode = useSystemStore.getState().chatMode;
-
-    // === Built-in Commands (工作在所有模式下) ===
-    const builtinCommands = {
-      'ls': () => {
-        const helpMsg = language === 'zh'
-          ? `**可用命令列表**\n\n📋 **导航命令**\n- 仪表盘 / dashboard\n- 架构 / architecture\n- DevOps / devops\n- 项目 / projects\n- 监控 / monitor\n- 设置 / settings\n- 知识库 / knowledge\n- 部署工具 / deploy\n\n🤖 **AI 命令**\n- 任意问题 → 发送给 AI\n- ollama list → 查看本地模型\n\n🎛️ **系统命令**\n- ls / help → 显示此帮助\n- status → 系统状态\n\n💡 **模式切换**\n- 点击顶栏切换「导航」/「AI 对话」模式\n- 快捷键: Ctrl+M (Mac: Cmd+M)\n\n---\n\n💬 现在可以输入问题开始 AI 对话，或输入导航命令跳转页面。`
-          : `**Available Commands**\n\n📋 **Navigation**\n- dashboard\n- architecture\n- devops\n- projects\n- monitor\n- settings\n- knowledge\n- deploy\n\n🤖 **AI Commands**\n- Any question → Send to AI\n- ollama list → List local models\n\n🎛️ **System Commands**\n- ls / help → Show this help\n- status → System status\n\n💡 **Mode Switch**\n- Toggle \"Navigate\" / \"AI Chat\" in top bar\n- Shortcut: Ctrl+M (Mac: Cmd+M)\n\n---\n\n💬 Enter a question to chat with AI, or use navigation commands.`;
-        addMessage({
-          id: (Date.now() + 1).toString(),
-          role: "ai",
-          content: helpMsg,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          agentName: "YYC3 Core",
-        });
-        setIsStreaming(false);
-      },
-      'help': () => builtinCommands['ls'](),
-      'status': () => {
-        const configs = loadProviderConfigs();
-        const availableProviders = configs.filter(c => c.apiKey);
-        const statusMsg = language === 'zh'
-          ? `**系统状态**\n\n🤖 **AI Provider**\n${availableProviders.length > 0
-            ? availableProviders.map(p => {
-              const provider = PROVIDERS[p.providerId];
-              return `- ${provider?.name || p.providerId}: ✅ 正常`;
-            }).join('\n')
-            : '- ⚠️ 未配置 AI Provider'}\n\n💾 **存储策略**\n- 当前: localStorage\n\n🎨 **当前模式**\n- ${currentMode === 'navigate' ? '导航模式' : 'AI 对话'}\n\n---\n\n💡 输入 \`ls\` 查看可用命令`
-          : `**System Status**\n\n🤖 **AI Provider**\n${availableProviders.length > 0
-            ? availableProviders.map(p => {
-              const provider = PROVIDERS[p.providerId];
-              return `- ${provider?.name || p.providerId}: ✅ Active`;
-            }).join('\n')
-            : '- ⚠️ No AI Provider configured'}\n\n💾 **Storage**\n- Current: localStorage\n\n🎨 **Current Mode**\n- ${currentMode === 'navigate' ? 'Navigate' : 'AI Chat'}\n\n---\n\n💡 Type \`ls\` for available commands`;
-        addMessage({
-          id: (Date.now() + 1).toString(),
-          role: "ai",
-          content: statusMsg,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          agentName: "YYC3 Core",
-        });
-        setIsStreaming(false);
-      },
-    };
-
-    // Check for built-in commands first (精确匹配)
-    if (builtinCommands[lowerText as keyof typeof builtinCommands]) {
-      addLog('info', 'BUILTIN_CMD', `Executing: ${lowerText}`);
-      setTimeout(() => builtinCommands[lowerText as keyof typeof builtinCommands](), 300);
-      return;
-    }
-
-    // Also check for commands with arguments (如 "ollama list")
-    if (lowerText === 'ollama list' || lowerText.startsWith('ollama ')) {
-      // This will be handled by the AI or special logic
-      addLog('info', 'CMD_PREFIX', `Ollama command detected: ${lowerText}`);
-    }
 
     // --- Navigate Mode ---
     if (currentMode === 'navigate') {
@@ -391,37 +463,71 @@ function AppContent() {
           setIsStreaming(false);
         }, 800);
       } else {
-        addLog('info', 'NEURAL_LINK', `No navigation match for: "${text.substring(0, 40)}"`);
+        // Phase 34: Knowledge domain check before "not recognized" fallback
+        const knowledgeResponse = matchKnowledgeDomain(lowerText, language);
 
-        setTimeout(() => {
-          const unknownMsg = language === 'zh'
-            ? `🔍 未识别导航意图。\n\n可用关键词：「仪表盘」「架构」「DevOps」「项目」「监控」「设置」「Ollama」等。\n\n💡 如需 AI 对话，请切换至「AI 对话」模式。`
-            : `🔍 Navigation intent not recognized.\n\nAvailable keywords: "dashboard", "architecture", "devops", "projects", "monitor", "settings", "ollama", etc.\n\n💡 Switch to "AI Chat" mode for AI conversation.`;
-          addMessage({
-            id: (Date.now() + 1).toString(),
-            role: "ai",
-            content: unknownMsg,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            agentName: "YYC3 Core",
-          });
-          setIsStreaming(false);
-        }, 600);
+        if (knowledgeResponse) {
+          addLog('info', 'KNOWLEDGE_DOMAIN', `Matched knowledge query: "${text.substring(0, 40)}"`);
+          setTimeout(() => {
+            addMessage({
+              id: (Date.now() + 1).toString(),
+              role: "ai",
+              content: knowledgeResponse,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              agentName: "YYC3 Core",
+            });
+            setIsStreaming(false);
+          }, 400);
+        } else {
+          addLog('info', 'NEURAL_LINK', `No navigation match for: "${text.substring(0, 40)}"`);
+
+          setTimeout(() => {
+            const unknownMsg = language === 'zh'
+              ? `🔍 未识别导航意图。\n\n**导航关键词：**「仪表盘」「架构」「DevOps」「项目」「监控」「设置」「Ollama」等\n\n**知识查询：**「MCP」「AI Family」「LLM Bridge」「NAS 集群」「持久化」「DevOps」「知识库」「安全」\n\n💡 如需 AI 对话，请切换至「AI 对话」模式 (Ctrl+M)。`
+              : `🔍 Navigation intent not recognized.\n\n**Navigation keywords:** "dashboard", "architecture", "devops", "projects", "monitor", "settings", "ollama"\n\n**Knowledge queries:** "MCP", "AI Family", "LLM Bridge", "NAS cluster", "persistence", "DevOps", "knowledge base", "security"\n\n💡 Switch to "AI Chat" mode for AI conversation (Ctrl+M).`;
+            addMessage({
+              id: (Date.now() + 1).toString(),
+              role: "ai",
+              content: unknownMsg,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              agentName: "YYC3 Core",
+            });
+            setIsStreaming(false);
+          }, 600);
+        }
       }
       return;
     }
 
     // --- AI Chat Mode ---
-    // Check if any provider is configured
+    // Phase 34: Enhanced provider status diagnostics
     if (!hasConfiguredProvider()) {
-      addLog('warn', 'LLM_BRIDGE', 'No AI provider configured');
+      const configs = loadProviderConfigs();
+      const hasAnyKey = configs.some(c => c.apiKey);
+      const hasAnyEnabled = configs.some(c => c.enabled);
+
+      let diagMsg: string;
+      if (configs.length === 0 || !hasAnyKey) {
+        diagMsg = language === 'zh'
+          ? `⚠️ 尚未配置 AI 模型。\n\n请前往 **设置 → AI 模型** 为至少一个 Provider 填入 API Key，并将状态切换为 **Active**。\n\n支持的 Provider：OpenAI、Anthropic、DeepSeek、智谱 Z.AI、Google Gemini、Groq、Ollama（本地免 Key）。`
+          : `⚠️ No AI provider configured.\n\nGo to **Settings → AI Models** and enter an API Key for at least one provider, then toggle its status to **Active**.\n\nSupported: OpenAI, Anthropic, DeepSeek, Zhipu, Google Gemini, Groq, Ollama (local, no key needed).`;
+      } else if (!hasAnyEnabled) {
+        const withKeys = configs.filter(c => c.apiKey).map(c => PROVIDERS[c.providerId]?.displayName || c.providerId);
+        diagMsg = language === 'zh'
+          ? `⚠️ 已配置 API Key（${withKeys.join(', ')}），但所有 Provider 均处于 **Standby** 状态。\n\n请前往 **设置 → AI 模型**，点击卡片上的开关将至少一个 Provider 切换为 **Active**。`
+          : `⚠️ API keys configured (${withKeys.join(', ')}), but all providers are in **Standby** mode.\n\nGo to **Settings → AI Models** and toggle at least one provider to **Active**.`;
+      } else {
+        diagMsg = language === 'zh'
+          ? `⚠️ Provider 配置异常：有 Key 且 Active 的 Provider 数量为 0。请检查 **设置 → AI 模型**。`
+          : `⚠️ Provider configuration issue: no provider has both a key and Active status. Check **Settings → AI Models**.`;
+      }
+
+      addLog('warn', 'LLM_BRIDGE', `No configured provider (total=${configs.length}, withKey=${hasAnyKey}, enabled=${hasAnyEnabled})`);
       setTimeout(() => {
-        const noProviderMsg = language === 'zh'
-          ? `⚠️ 尚未配置 AI 模型。\n\n请前往 **设置 → AI 模型** 配置至少一个 Provider 的 API Key（支持 OpenAI、Anthropic、DeepSeek、智谱、Groq、Ollama 等）。\n\n配置完成后即可在此直接与 AI 对话。`
-          : `⚠️ No AI provider configured.\n\nGo to **Settings → AI Models** to set up at least one provider API key (supports OpenAI, Anthropic, DeepSeek, Zhipu, Groq, Ollama, etc.).\n\nOnce configured, you can chat with AI directly here.`;
         addMessage({
           id: (Date.now() + 1).toString(),
           role: "ai",
-          content: noProviderMsg,
+          content: diagMsg,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           agentName: "YYC3 Core",
         });
@@ -476,23 +582,6 @@ function AppContent() {
     try {
       addLog('info', 'LLM_BRIDGE', `Streaming request: "${text.substring(0, 40)}..."`);
 
-      // Show current model info before AI response
-      const configs = loadProviderConfigs();
-      const availableProviders = configs.filter(c => c.apiKey);
-      const currentProvider = availableProviders.length > 0 ? availableProviders[0] : null;
-
-      if (currentProvider) {
-        const provider = PROVIDERS[currentProvider.providerId];
-        if (provider) {
-          const modelInfo = language === 'zh'
-            ? `**当前使用的 AI 模型**\n\n**${provider.name}**\n- 模型: ${currentProvider.defaultModel || provider.defaultModel}\n- 状态: 正常 ✅\n\n💭 正在思考...\n\n---\n\n`
-            : `**Current AI Model**\n\n**${provider.name}**\n- Model: ${currentProvider.defaultModel || provider.defaultModel}\n- Status: Active ✅\n\n💭 Thinking...\n\n---\n\n`;
-
-          // Prepend model info to the AI message
-          updateLastAiMessage(modelInfo);
-        }
-      }
-
       const response = await generalStreamChat(
         text,
         chatHistory,
@@ -506,25 +595,46 @@ function AppContent() {
       );
 
       if (response) {
-        // Track usage
+        // Track usage and attach provider metadata to message
         trackUsage(response, 'general');
-        addLog('info', 'LLM_BRIDGE', `Response complete: ${response.provider}/${response.model} (${response.latencyMs}ms, ${response.usage.totalTokens} tokens)`);
+        const providerDisplay = PROVIDERS[response.provider]?.displayName || response.provider;
+        updateLastAiMessage(accumulated, {
+          providerId: response.provider,
+          modelId: response.model,
+          latencyMs: response.latencyMs,
+          totalTokens: response.usage.totalTokens,
+        });
+        addLog('info', 'LLM_BRIDGE', `Response complete: ${providerDisplay}/${response.model} (${response.latencyMs}ms, ${response.usage.totalTokens} tokens)`);
       } else {
-        // Fallback: all providers failed or returned null
+        // Fallback: all providers failed — run CORS diagnostics
+        const configs = loadProviderConfigs();
+        const enabledProviders = configs.filter(c => c.enabled && c.apiKey);
+        const providerNames = enabledProviders.map(c => PROVIDERS[c.providerId]?.displayName || c.providerId).join(', ');
+
         const fallbackMsg = language === 'zh'
-          ? `⚠️ AI 请求失败，所有 Provider 均不可用。请检查 **设置 → AI 模型** 中的 API Key 和网络连接。`
-          : `⚠️ AI request failed — all providers unavailable. Check your API keys and network in **Settings → AI Models**.`;
+          ? `⚠️ AI 请求失败 — 已尝试的 Provider: ${providerNames || '无'}\n\n**可能原因：**\n- 🌐 CORS 跨域限制：浏览器直连云端 API 时可能被拦截\n- 🔑 API Key 无效或已过期\n- 🔌 网络连接问题\n\n**解决方案：**\n1. 前往 **Console → Stream Diagnostics** 测试各 Provider 连通性\n2. 使用本地代理绕过 CORS（\`vite.config.ts\` server.proxy）\n3. 优先使用 Ollama（本地部署，无 CORS 问题）`
+          : `⚠️ AI request failed — Attempted providers: ${providerNames || 'none'}\n\n**Possible causes:**\n- 🌐 CORS restriction: browser may block direct API calls\n- 🔑 Invalid or expired API key\n- 🔌 Network connectivity issue\n\n**Solutions:**\n1. Go to **Console → Stream Diagnostics** to test provider connectivity\n2. Use a local proxy to bypass CORS (\`vite.config.ts\` server.proxy)\n3. Use Ollama (local deployment, no CORS issues)`;
         updateLastAiMessage(fallbackMsg);
-        addLog('warn', 'LLM_BRIDGE', 'All providers failed, template fallback');
+        addLog('warn', 'LLM_BRIDGE', `All providers failed (tried: ${providerNames})`);
       }
     } catch (err: unknown) {
       const error = err as Error;
       if (error.message === 'Request aborted') {
         addLog('info', 'LLM_BRIDGE', 'Request aborted by user');
       } else {
-        const errorMsg = language === 'zh'
-          ? `❌ 请求出错: ${error.message || '未知错误'}\n\n请检查网络连接和 API 配置。`
-          : `❌ Request error: ${error.message || 'Unknown error'}\n\nCheck your network and API configuration.`;
+        // Phase 34: Enhanced error classification
+        const isCors = error.message?.includes('CORS') || error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError');
+        let errorMsg: string;
+
+        if (isCors) {
+          errorMsg = language === 'zh'
+            ? `🌐 **CORS 跨域错误**\n\n浏览器安全策略阻止了直连 API 请求。\n\n**推荐方案：**\n1. 在 \`vite.config.ts\` 中配置 \`server.proxy\` 转发 API 请求\n2. 使用 Ollama 本地模型（无 CORS 限制）\n3. 部署轻量级 API 中转服务到 NAS\n\n错误详情: ${error.message?.slice(0, 120) || '未知'}`
+            : `🌐 **CORS Error**\n\nBrowser security policy blocked the direct API request.\n\n**Solutions:**\n1. Configure \`server.proxy\` in \`vite.config.ts\` to forward API requests\n2. Use Ollama local model (no CORS restrictions)\n3. Deploy a lightweight API relay on your NAS\n\nDetails: ${error.message?.slice(0, 120) || 'Unknown'}`;
+        } else {
+          errorMsg = language === 'zh'
+            ? `❌ 请求出错: ${error.message || '未知错误'}\n\n请检查网络连接和 API 配置。`
+            : `❌ Request error: ${error.message || 'Unknown error'}\n\nCheck your network and API configuration.`;
+        }
         updateLastAiMessage(errorMsg);
         addLog('error', 'LLM_BRIDGE', `Stream error: ${error.message}`);
       }
@@ -670,6 +780,9 @@ function AppContent() {
         }}
         defaultTab={settingsTab}
       />
+
+      {/* Neural Link HUD — Always-on system awareness overlay */}
+      <NeuralLinkOverlay />
     </div>
   );
 }

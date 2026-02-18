@@ -38,7 +38,7 @@ export function SettingsModal({ open, onOpenChange, defaultTab = "general" }: Se
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-300 yyc3-overlay-bg" />
         <DialogPrimitive.Content className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-5xl translate-x-[-50%] translate-y-[-50%] border border-border shadow-lg duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-10 sm:rounded-lg md:w-[90vw] h-[85vh] p-0 overflow-hidden yyc3-panel-bg">
-          
+
           <DialogPrimitive.Title className="sr-only">{t('settings.title')}</DialogPrimitive.Title>
           <DialogPrimitive.Description className="sr-only">
             {t('settings.desc')}
@@ -71,7 +71,7 @@ export function SettingsModal({ open, onOpenChange, defaultTab = "general" }: Se
             </div>
 
             {/* Content */}
-            <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-background/50">
+            <div className="flex-1 flex flex-col min-w-0 bg-background/50">
                <div className="h-14 border-b border-border flex items-center justify-between px-8 bg-background/50 backdrop-blur-xl shrink-0">
                   <div>
                     <h3 className="text-sm font-semibold font-mono uppercase animate-in fade-in slide-in-from-left-2">{t(`settings.tab.${activeTab}`)}</h3>
@@ -85,7 +85,7 @@ export function SettingsModal({ open, onOpenChange, defaultTab = "general" }: Se
                   </DialogPrimitive.Close>
                </div>
 
-               <div className="flex-1 min-h-0 overflow-y-auto">
+               <div className="flex-1 overflow-y-auto custom-scrollbar border-r-2 border-border/30 max-h-[calc(85vh-3.5rem)]">
                  <div className="p-8">
                    {activeTab === 'general' && <GeneralSettings language={language} setLanguage={setLanguage} t={t} />}
                    {activeTab === 'models' && <ModelsSettings t={t} />}
@@ -149,8 +149,8 @@ function TabButton({ active, onClick, icon: Icon, label }: TabButtonProps) {
       onClick={onClick}
       className={cn(
         "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all rounded-md font-mono relative overflow-hidden group",
-        active 
-          ? "bg-primary/10 text-primary shadow-[inset_4px_0_0_0_rgba(14,165,233,1)]" 
+        active
+          ? "bg-primary/10 text-primary shadow-[inset_4px_0_0_0_rgba(14,165,233,1)]"
           : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
       )}
     >
@@ -176,13 +176,13 @@ function GeneralSettings({ language, setLanguage, t }: GeneralSettingsProps) {
               <span className="text-xs text-muted-foreground">Select system interface language</span>
            </div>
            <div className="flex items-center gap-2 bg-muted p-1 rounded-lg border border-border">
-              <button 
+              <button
                 onClick={() => setLanguage('en')}
                 className={cn("text-xs font-mono px-3 py-1 rounded transition-all", language === 'en' ? "bg-primary text-primary-foreground shadow-sm" : "hover:text-foreground text-muted-foreground")}
               >
                 EN
               </button>
-              <button 
+              <button
                 onClick={() => setLanguage('zh')}
                 className={cn("text-xs font-mono px-3 py-1 rounded transition-all", language === 'zh' ? "bg-primary text-primary-foreground shadow-sm" : "hover:text-foreground text-muted-foreground")}
               >
@@ -190,7 +190,7 @@ function GeneralSettings({ language, setLanguage, t }: GeneralSettingsProps) {
               </button>
            </div>
         </div>
-        
+
         <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
            <div className="space-y-0.5">
               <label className="text-sm font-medium font-mono block">{t('settings.dev_mode')}</label>
@@ -198,7 +198,7 @@ function GeneralSettings({ language, setLanguage, t }: GeneralSettingsProps) {
            </div>
            <Switch defaultChecked />
         </div>
-        
+
         <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
            <div className="space-y-0.5">
               <label className="text-sm font-medium font-mono block">{t('settings.auto_save')}</label>
@@ -465,7 +465,7 @@ function GitOpsSettings({ t }: TranslationProps) {
              <RepoItem name="yyc3-agent-swarm" branch="feature/new-planner" status="Syncing..." />
           </div>
        </div>
-       
+
        <div className="flex gap-2 pt-4">
           <Button className="flex-1 font-mono text-xs gap-2 hover:scale-[1.02] transition-transform">
              <GitBranch className="w-3 h-3" />
@@ -730,7 +730,7 @@ function SecuritySettings({ t }: TranslationProps) {
                </div>
                <Switch defaultChecked disabled />
             </div>
-            
+
             <div className="flex items-center justify-between p-3 rounded bg-muted/5 border border-border">
                <div className="flex items-center gap-3">
                   <FileWarning className="w-4 h-4 text-primary" />

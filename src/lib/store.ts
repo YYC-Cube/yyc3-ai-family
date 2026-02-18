@@ -13,6 +13,8 @@ import type {
   DAGEdge,
   DAGWorkflow,
 } from './types';
+import { type ProviderConfig } from './llm-bridge';
+import { eventBus } from './event-bus';
 
 // Re-export types for backward compatibility
 // (consumers importing from '@/lib/store' will still work)
@@ -65,6 +67,7 @@ export interface SystemState {
   // === Settings ===
   isSettingsOpen: boolean;
   settingsTab: string;
+  providerConfigs: ProviderConfig[];
 
   // === System Health ===
   status: SystemStatus;
@@ -98,7 +101,7 @@ export interface SystemState {
   setChatMode: (mode: 'navigate' | 'ai') => void;
   toggleChatMode: () => void;
   addMessage: (msg: ChatMessage) => void;
-  updateLastAiMessage: (content: string) => void;
+  updateLastAiMessage: (content: string, meta?: ChatMessage['providerMeta']) => void;
   setMessages: (msgs: ChatMessage[]) => void;
   clearMessages: () => void;
   setIsStreaming: (val: boolean) => void;
@@ -116,6 +119,7 @@ export interface SystemState {
   openSettings: (tab?: string) => void;
   closeSettings: () => void;
   setSettingsTab: (tab: string) => void;
+  setProviderConfigs: (configs: ProviderConfig[]) => void;
 
   // === Navigation Favorites Actions ===
   setNavFavorites: (ids: string[]) => void;
@@ -162,6 +166,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   // Settings
   isSettingsOpen: false,
   settingsTab: 'general',
+  providerConfigs: [],
 
   // System Health
   status: 'optimal',
@@ -182,17 +187,23 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   setConsoleTab: (tab) => set({ consoleTab: tab }),
   setConsoleAgent: (agentId) => set({ consoleAgent: agentId }),
 
-  navigateToAgent: (agentId) => set({
-    activeView: 'console',
-    consoleTab: 'ai',
-    consoleAgent: agentId,
-  }),
+  navigateToAgent: (agentId) => {
+    set({
+      activeView: 'console',
+      consoleTab: 'ai',
+      consoleAgent: agentId,
+    });
+    eventBus.emit({ category: 'orchestrate', type: 'orchestrate.agent_switch', level: 'info', source: 'Store', message: `Switched to agent: ${agentId}`, metadata: { agentId } });
+  },
 
-  navigateToConsoleTab: (tab) => set({
-    activeView: 'console',
-    consoleTab: tab,
-    consoleAgent: null,
-  }),
+  navigateToConsoleTab: (tab) => {
+    set({
+      activeView: 'console',
+      consoleTab: tab,
+      consoleAgent: null,
+    });
+    eventBus.emit({ category: 'ui', type: 'ui.navigate', level: 'info', source: 'Store', message: `Navigated to console/${tab}`, metadata: { tab } });
+  },
 
   // === Layout Actions ===
   setSidebarCollapsed: (val) => set({ sidebarCollapsed: val }),
@@ -212,13 +223,13 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   addMessage: (msg) => set((state) => ({
     messages: [...state.messages, msg],
   })),
-  updateLastAiMessage: (content) => set((state) => {
+  updateLastAiMessage: (content, meta) => set((state) => {
     const lastMessage = state.messages[state.messages.length - 1];
     if (lastMessage && lastMessage.role === 'ai') {
       return {
         messages: [
           ...state.messages.slice(0, -1),
-          { ...lastMessage, content },
+          { ...lastMessage, content, ...(meta ? { providerMeta: meta } : {}) },
         ],
       };
     }
@@ -277,6 +288,8 @@ export const useSystemStore = create<SystemState>((set, get) => ({
 
   setSettingsTab: (tab) => set({ settingsTab: tab }),
 
+  setProviderConfigs: (configs) => set({ providerConfigs: configs }),
+
   // === Navigation Favorites Actions ===
   setNavFavorites: (ids) => set({ navFavorites: ids }),
 
@@ -311,29 +324,36 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   setDbConnected: (connected) => set({ dbConnected: connected }),
 
   // === Composite Actions ===
-  newSession: () => set({
-    activeView: 'terminal',
-    messages: [],
-    isArtifactsOpen: false,
-    activeArtifact: null,
-    isStreaming: false,
-  }),
+  newSession: () => {
+    set({
+      activeView: 'terminal',
+      messages: [],
+      isArtifactsOpen: false,
+      activeArtifact: null,
+      isStreaming: false,
+    });
+    eventBus.emit({ category: 'ui', type: 'ui.new_session', level: 'info', source: 'Store', message: 'New chat session created' });
+  },
 
   runDiagnosis: () => {
     set({ status: 'warning', cpuLoad: 85 });
     get().addLog('warn', 'SYSTEM', 'Starting deep diagnosis scan...');
+    eventBus.system('diagnosis.start', 'Deep system diagnosis initiated', 'warn');
 
     setTimeout(() => {
       get().addLog('info', 'KERNEL', 'Checking memory integrity...');
+      eventBus.system('diagnosis.memory', 'Memory integrity check in progress', 'info');
     }, 1000);
 
     setTimeout(() => {
       get().addLog('info', 'KERNEL', 'Scanning RAID6 integrity...');
+      eventBus.system('diagnosis.storage', 'RAID6 integrity scan in progress', 'info');
     }, 1800);
 
     setTimeout(() => {
       get().addLog('success', 'KERNEL', 'All checks passed. System optimized.');
       set({ status: 'optimal', cpuLoad: 24, latency: 5 });
+      eventBus.system('diagnosis.complete', 'All checks passed — system optimized', 'success');
     }, 2500);
   },
 }));

@@ -1,5 +1,13 @@
 # 🚀 YYC³ AI-Family 部署指南
 
+> ***YanYuCloudCube***
+> 言启象限 | 语枢未来
+> ***Words Initiate Quadrants, Language Serves as Core for the Future***
+> 万象归元于云枢 | 深栈智启新纪元
+> ***All things converge in the cloud pivot; Deep stacks ignite a new era of intelligence***
+
+---
+
 ## 📋 快速部署
 
 ### GitHub Pages 部署（推荐 - 完全免费）

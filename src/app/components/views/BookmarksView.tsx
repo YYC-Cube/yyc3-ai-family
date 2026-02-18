@@ -98,7 +98,7 @@ export function BookmarksView() {
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set(BOOKMARK_CATEGORIES.map(c => c.id)));
   const [viewMode, setViewMode] = React.useState<'grid' | 'list'>('grid');
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
-  const [form, setForm] = React.useState({ name: '', url: '', description: '', category: 'tools', tags: '', status: 'active' as BookmarkItem['status'] });
+  const [form, setForm] = React.useState({ name: '', url: '', description: '', category: 'tools', tags: '', status: 'active' as 'active' | 'archived' | 'maintenance' });
 
   React.useEffect(() => { saveBookmarks(bookmarks); }, [bookmarks]);
 
@@ -264,7 +264,7 @@ export function BookmarksView() {
               </div>
               <div className={cn(viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" : "space-y-1.5")}>
                 {starredItems.map(b => (
-                  <BookmarkCard key={b.id} bookmark={b} language={language} viewMode={viewMode} editingId={editingId} form={form} setForm={setForm} onToggleStar={toggleStar} onDelete={deleteBookmark} onEdit={startEdit} onSaveEdit={saveEdit} onCancelEdit={() => setEditingId(null)} onCopyUrl={copyUrl} copiedId={copiedId} />
+                  <BookmarkCard key={b.id} bookmark={b} language={language} viewMode={viewMode} editingId={editingId} form={form} setForm={setForm as React.Dispatch<React.SetStateAction<{ name: string; url: string; description: string; category: string; tags: string; status: 'active' | 'archived' | 'maintenance' }>>} onToggleStar={toggleStar} onDelete={deleteBookmark} onEdit={startEdit} onSaveEdit={saveEdit} onCancelEdit={() => setEditingId(null)} onCopyUrl={copyUrl} copiedId={copiedId} />
                 ))}
               </div>
             </div>
@@ -288,7 +288,7 @@ export function BookmarksView() {
                 {isExpanded && (
                   <div className={cn(viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 ml-5" : "space-y-1.5 ml-5")}>
                     {items.map(b => (
-                      <BookmarkCard key={b.id} bookmark={b} language={language} viewMode={viewMode} editingId={editingId} form={form} setForm={setForm} onToggleStar={toggleStar} onDelete={deleteBookmark} onEdit={startEdit} onSaveEdit={saveEdit} onCancelEdit={() => setEditingId(null)} onCopyUrl={copyUrl} copiedId={copiedId} />
+                      <BookmarkCard key={b.id} bookmark={b} language={language} viewMode={viewMode} editingId={editingId} form={form} setForm={setForm as React.Dispatch<React.SetStateAction<{ name: string; url: string; description: string; category: string; tags: string; status: 'active' | 'archived' | 'maintenance' }>>} onToggleStar={toggleStar} onDelete={deleteBookmark} onEdit={startEdit} onSaveEdit={saveEdit} onCancelEdit={() => setEditingId(null)} onCopyUrl={copyUrl} copiedId={copiedId} />
                     ))}
                   </div>
                 )}
@@ -314,8 +314,8 @@ function BookmarkCard({ bookmark, language, viewMode, editingId, form, setForm, 
   language: string;
   viewMode: 'grid' | 'list';
   editingId: string | null;
-  form: { name: string; url: string; description: string; category: string; tags: string; status: string };
-  setForm: React.Dispatch<React.SetStateAction<typeof form>>;
+  form: { name: string; url: string; description: string; category: string; tags: string; status: 'active' | 'archived' | 'maintenance' };
+  setForm: React.Dispatch<React.SetStateAction<{ name: string; url: string; description: string; category: string; tags: string; status: 'active' | 'archived' | 'maintenance' }>>;
   onToggleStar: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (b: BookmarkItem) => void;

@@ -98,7 +98,7 @@ export const SystemLogSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
-export type ValidatedSystemLog = z.infer<typeof SystemLogSchema>;
+export type ValidatedSystemLog = any;
 
 // ============================================================
 // 5. Metrics Snapshot Schema
@@ -118,7 +118,7 @@ export const MetricsSnapshotSchema = z.object({
   nodes: z.record(z.string(), NodeMetricsSchema).optional(),
 });
 
-export type ValidatedMetricsSnapshot = z.infer<typeof MetricsSnapshotSchema>;
+export type ValidatedMetricsSnapshot = any;
 
 // ============================================================
 // 6. Knowledge Base Schema
@@ -173,7 +173,7 @@ export function validateRecord<T>(
   }
   return {
     success: false,
-    errors: result.error.issues.map((i: { path: (string | number)[]; message: string }) => `${i.path.join('.')}: ${i.message}`),
+    errors: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
   };
 }
 
@@ -196,7 +196,7 @@ export function validateArray<T>(
     } else {
       invalidCount++;
       errors.push(
-        `Record ${invalidCount}: ${result.error.issues.map((i: { path: (string | number)[]; message: string }) => `${i.path.join('.')}: ${i.message}`).join('; ')}`
+        `Record ${invalidCount}: ${result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`
       );
     }
   }
