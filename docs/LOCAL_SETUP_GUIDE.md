@@ -76,6 +76,7 @@ code --install-extension ms-vscode.vscode-typescript-next # TypeScript Nightly
 ### 2.1 从 Figma Make 导出
 
 在 Figma Make 编辑器中:
+
 1. 点击右上角 **Export** 或 **Download Code**
 2. 选择 **Download as ZIP**
 3. 解压到本地目录
@@ -499,6 +500,7 @@ localStorage key: yyc3_llm_configs
 浏览器直连 API 可能遇到 CORS 限制。解决方案:
 
 **方案 A: 使用支持 CORS 的 Provider (推荐)**
+
 - OpenAI、Groq、DeepSeek 等大部分 Provider 的 API 已支持浏览器直连
 - 智谱 Z.AI 需要配置 CORS 代理
 
@@ -561,6 +563,7 @@ export default defineConfig({
 3. 编辑设备 IP / 主机名 / 端口
 
 或在 Console → **NAS 部署** (NAS Deployment) 中配置:
+
 - NAS IP 地址
 - SQLite API 端口
 - Docker API 端口
@@ -740,6 +743,7 @@ npx vitest run src/lib/__tests__/persist-schemas.test.ts
 ### 10.5 运行 E2E 冒烟测试
 
 在 Console → **烟雾测试** (Smoke Test):
+
 - 23 个测试目标 (5 主视图 + 18 控制台标签页)
 - 测试每个组件的 lazy-load 挂载 + 错误边界
 
@@ -891,6 +895,7 @@ ssh user@NAS_IP 'docker run -d --name yyc3 -p 8080:80 --restart always yyc3-chat
 ## 12. 可选: Express 后端微服务
 
 `src/server/` 目录包含一个独立的 Express 后端，用于:
+
 - PostgreSQL 数据持久化 (替代 localStorage)
 - WebSocket 实时心跳
 - API Key 安全中转 (避免前端暴露)
@@ -966,6 +971,7 @@ resolve: {
 
 **原因**: Tailwind v4 使用 `@tailwindcss/vite` 插件，不再需要 `tailwind.config.js`
 **检查**:
+
 1. `vite.config.ts` 中包含 `tailwindcss()` 插件
 2. `src/styles/tailwind.css` 中有 `@import 'tailwindcss' source(none);`
 3. `src/styles/index.css` 正确导入了 `tailwind.css` 和 `theme.css`

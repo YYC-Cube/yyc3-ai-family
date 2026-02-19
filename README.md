@@ -531,17 +531,17 @@ Family-π³/
 │   ├── yyc3-article-cover-03.png  # GitHub 顶图
 │   └── ...
 ├── src/
-│   ├── app/                   # 应用主目录
-│   │   ├── components/          # React 组件
+│   ├── app/                  # 应用主目录
+│   │   ├── components/       # React 组件
 │   │   │   ├── chat/         # 聊天相关组件
 │   │   │   ├── console/      # 控制台组件
 │   │   │   ├── layout/       # 布局组件
 │   │   │   └── ...
-│   │   ├── store/              # Zustand 状态管理
-│   │   ├── lib/               # 工具库
+│   │   ├── store/            # Zustand 状态管理
+│   │   ├── lib/              # 工具库
 │   │   └── ...
 ├── docs/                     # 文档目录
-│   └── YYC3-AF-原型设计/   # 原型设计文档
+│   └── YYC3-AF-原型设计/      # 原型设计文档
 ├── package.json
 ├── tsconfig.json
 └── vite.config.ts
