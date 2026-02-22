@@ -1,0 +1,272 @@
+/* 
+  YYC3 Design System - Global Tokens & Styles
+  Core Philosophy: Five Highs, Five Standards, Five Modernizations
+  NOTE: @import "tailwindcss" is in tailwind.css — do NOT duplicate here.
+*/
+
+@theme {
+  /* --- 1.1 Color System --- */
+  
+  /* Brand Primitives */
+  --color-brand-900: #1a365d; /* Brand Main */
+  --color-brand-500: #3182ce; /* Interaction/Accent */
+  
+  /* Status Primitives */
+  --color-success-500: #38a169;
+  --color-error-500: #e53e3e;
+  
+  /* Neutral Primitives */
+  --color-gray-900: #171923;
+  --color-gray-800: #2d3748;
+  --color-gray-700: #4a5568;
+  --color-gray-600: #718096; /* Text/Border */
+  --color-gray-500: #a0aec0; /* Text */
+  --color-gray-300: #cbd5e0; /* Border */
+  --color-gray-100: #edf2f7;
+  --color-gray-50: #f7fafc;
+
+  /* Semantic Aliases */
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* --- 1.2 Typography System --- */
+  
+  /* Font Family - System Stack */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* --- 1.3 Spacing System (Extends default Tailwind) --- */
+  /* Using default 4px grid (0.25rem) implicitly */
+}
+
+/* 
+  Theme Implementation - Dark-first for YYC3 Cyberpunk UI
+*/
+:root {
+  /* Dark Mode (Default for YYC3) */
+  --background: #050505;
+  --foreground: #cbd5e0;
+  --card: #111111;
+  --card-foreground: #cbd5e0;
+  --popover: #111111;
+  --popover-foreground: #cbd5e0;
+  --primary: #0EA5E9;
+  --primary-foreground: #ffffff;
+  --secondary: #1a365d;
+  --secondary-foreground: #ffffff;
+  --accent: #1a202c;
+  --accent-foreground: #0EA5E9;
+  --muted: #171923;
+  --muted-foreground: #718096;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffe4e6;
+  --success: #22c55e;
+  --success-foreground: #c6f6d5;
+  --border: #2d3748;
+  --input: #2d3748;
+  --ring: #0EA5E9;
+  
+  --radius: 0.5rem;
+}
+
+.light {
+  /* Light Mode (Optional override) */
+  --background: #f7fafc;
+  --foreground: #1a365d;
+  --card: #ffffff;
+  --card-foreground: #1a365d;
+  --popover: #ffffff;
+  --popover-foreground: #1a365d;
+  --primary: #1a365d;
+  --primary-foreground: #ffffff;
+  --secondary: #3182ce;
+  --secondary-foreground: #ffffff;
+  --accent: #edf2f7;
+  --accent-foreground: #1a365d;
+  --muted: #edf2f7;
+  --muted-foreground: #718096;
+  --destructive: #e53e3e;
+  --destructive-foreground: #ffffff;
+  --success: #38a169;
+  --success-foreground: #ffffff;
+  --border: #cbd5e0;
+  --input: #cbd5e0;
+  --ring: #3182ce;
+}
+
+/* Base Styles & Typography Hierarchy */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    line-height: 1.5; /* Default standard */
+    letter-spacing: 0.02em; /* Balanced default */
+  }
+
+  /* Headings Hierarchy */
+  h1 {
+    @apply text-[32px] font-bold tracking-[0.05em] leading-[1.4];
+    /* Responsive adjustment handled by utility classes if needed, or explicitly here */
+  }
+  
+  h2 {
+    @apply text-[24px] font-semibold tracking-[0.04em] leading-[1.4];
+  }
+  
+  h3 {
+    @apply text-[20px] font-semibold tracking-[0.03em] leading-[1.5];
+  }
+  
+  h4 {
+    @apply text-[18px] font-medium tracking-[0.02em] leading-[1.5];
+  }
+  
+  h5 {
+    @apply text-[16px] font-medium tracking-[0.02em] leading-[1.6];
+  }
+  
+  h6 {
+    @apply text-[14px] font-medium tracking-[0.02em] leading-[1.6];
+  }
+
+  /* Body Text */
+  p {
+    @apply text-[14px] sm:text-[16px] leading-[1.6];
+  }
+  
+  /* Small Text */
+  small {
+    @apply text-[12px] leading-[1.4];
+  }
+
+  /* Language-specific tracking utility (can be applied to body or containers) */
+  :lang(zh) {
+    letter-spacing: 0.05em;
+  }
+  
+  :lang(en) {
+    letter-spacing: 0.01em;
+  }
+}
+
+/* Utility Classes for Spacing Consistency */
+@layer utilities {
+  .section-spacing {
+    @apply py-8 md:py-12; /* 32px - 48px */
+  }
+  
+  .page-container {
+    @apply px-6 md:px-12 mx-auto max-w-7xl; /* 24px - 48px */
+  }
+  
+  .stack-sm {
+    @apply space-y-2; /* 8px */
+  }
+  
+  .stack-md {
+    @apply space-y-4; /* 16px */
+  }
+  
+  .stack-lg {
+    @apply space-y-8; /* 32px */
+  }
+
+  /* YYC3 Cyberpunk Effects */
+  .scanline {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 9999;
+    background: linear-gradient(
+      rgba(18, 16, 16, 0) 50%,
+      rgba(0, 0, 0, 0.03) 50%
+    );
+    background-size: 100% 2px;
+    opacity: 0.15;
+  }
+
+  .glow-text {
+    text-shadow: 0 0 10px rgba(14, 165, 233, 0.5),
+                 0 0 20px rgba(14, 165, 233, 0.3);
+  }
+
+  /* Custom scrollbar — thin visible track for dark themes */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(14, 165, 233, 0.25) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  *::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 3px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(14, 165, 233, 0.25);
+    border-radius: 3px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(14, 165, 233, 0.45);
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-spin-slow {
+    animation: spin 8s linear infinite;
+  }
+
+  /* YYC3 Dynamic Overlay / Panel opacity (driven by --yyc3-overlay-opacity CSS var) */
+  .yyc3-overlay-bg {
+    background-color: rgba(0, 0, 0, var(--yyc3-overlay-opacity, 0.8));
+  }
+
+  .yyc3-panel-bg {
+    background-color: rgba(17, 17, 17, var(--yyc3-overlay-opacity, 0.95));
+  }
+}
+
+/* Shimmer animation for skeleton loading */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

@@ -1,0 +1,61 @@
+# GitHub Repository Topics
+
+Recommended topics for the YanYuCloudCube/Family-π³ repository.
+
+## Core Topics
+- ai
+- artificial-intelligence
+- chatbot
+- devops
+- typescript
+- react
+
+## Architecture & Design
+- cyberpunk
+- multi-agent
+- mcp
+- model-context-protocol
+- websocket
+- real-time
+
+## Development & Tools
+- ci-cd
+- automation
+- open-source
+- family-ai
+- vite
+- tailwindcss
+
+## Features
+- llm
+- large-language-models
+- openai
+- anthropic
+- deepseek
+- ollama
+
+## Deployment
+- docker
+- kubernetes
+- github-actions
+- github-pages
+
+## Usage
+- developer-tools
+- productivity
+- collaboration
+- intelligent-assistant
+
+## How to Add Topics to GitHub
+
+1. Go to your repository on GitHub
+2. Click on the "Settings" tab
+3. Scroll down to the "Topics" section
+4. Click "Add topic"
+5. Add the topics listed above
+
+Alternatively, you can use the GitHub CLI:
+
+```bash
+gh repo edit YanYuCloudCube/Family-π³ --add-topic ai,artificial-intelligence,chatbot,devops,typescript,react,cyberpunk,multi-agent,mcp,model-context-protocol,websocket,real-time,ci-cd,automation,open-source,family-ai,vite,tailwindcss,llm,large-language-models,openai,anthropic,deepseek,ollama,docker,kubernetes,github-actions,github-pages,developer-tools,productivity,collaboration,intelligent-assistant
+```
