@@ -1,17 +1,17 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { useSystemStore } from "@/lib/store";
-import { useTranslation } from "@/lib/i18n";
 import {
-  Cpu, MemoryStick, Thermometer, HardDrive,
-  Wifi, Activity, Zap, Server, Monitor,
-  BarChart3, Clock, ArrowUpRight, ArrowDownRight,
-  Database, GitBranch, Box, RefreshCw, AlertTriangle
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { eventBus } from "@/lib/event-bus";
+  Cpu, Thermometer, HardDrive,
+  Wifi, Activity, Zap, Clock, ArrowUpRight, ArrowDownRight,
+  Database, GitBranch, Box, RefreshCw,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { eventBus } from '@/lib/event-bus';
+import { useTranslation } from '@/lib/i18n';
+import { useSystemStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // HardwareMonitor — M4 Max 56-Core Telemetry Dashboard
@@ -40,18 +40,18 @@ interface CoreCellProps {
 function CoreCell({ index, type, load, label }: CoreCellProps) {
   const color = load > 90 ? 'bg-red-500' : load > 70 ? 'bg-amber-500' : load > 40 ? 'bg-sky-500' : load > 10 ? 'bg-emerald-500' : 'bg-zinc-700';
   const glowColor = load > 90 ? 'shadow-red-500/30' : load > 70 ? 'shadow-amber-500/20' : load > 40 ? 'shadow-sky-500/10' : 'shadow-transparent';
-  
+
   return (
     <div
       className={cn(
-        "relative rounded-[2px] transition-all duration-500 group cursor-default",
+        'relative rounded-[2px] transition-all duration-500 group cursor-default',
         type === 'P' ? 'w-5 h-5' : 'w-3 h-3',
-        load > 70 && "shadow-[0_0_4px]",
-        glowColor
+        load > 70 && 'shadow-[0_0_4px]',
+        glowColor,
       )}
       title={`${type} Core ${index}: ${load.toFixed(0)}%`}
     >
-      <div className={cn("w-full h-full rounded-[2px] transition-all duration-500", color)} style={{ opacity: Math.max(0.15, load / 100) }} />
+      <div className={cn('w-full h-full rounded-[2px] transition-all duration-500', color)} style={{ opacity: Math.max(0.15, load / 100) }} />
       {/* Active indicator */}
       {load > 50 && (
         <div className="absolute inset-0 rounded-[2px] animate-pulse opacity-30" style={{ background: load > 90 ? '#ef4444' : load > 70 ? '#f59e0b' : '#0ea5e9' }} />
@@ -66,9 +66,9 @@ function RingGauge({ value, max, label, unit, color, size = 80 }: { value: numbe
   const radius = (size - 8) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (pct / 100) * circumference;
-  
+
   const strokeColor = pct > 90 ? '#ef4444' : pct > 75 ? '#f59e0b' : color;
-  
+
   return (
     <div className="flex flex-col items-center gap-1">
       <div className="relative" style={{ width: size, height: size }}>
@@ -109,7 +109,7 @@ function StatCard({ icon: Icon, label, value, unit, trend, color }: {
   return (
     <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-lg p-3 hover:border-zinc-700/50 transition-colors group">
       <div className="flex items-center gap-2 mb-2">
-        <div className={cn("w-6 h-6 rounded flex items-center justify-center bg-zinc-800/80 border border-zinc-700/50", color)}>
+        <div className={cn('w-6 h-6 rounded flex items-center justify-center bg-zinc-800/80 border border-zinc-700/50', color)}>
           <Icon className="w-3.5 h-3.5" />
         </div>
         <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">{label}</span>
@@ -135,8 +135,8 @@ function ProcessItem({ name, cpu, mem, pid }: { name: string; cpu: number; mem: 
     <div className="flex items-center gap-3 py-1.5 px-2 hover:bg-zinc-800/30 rounded text-[10px] font-mono transition-colors">
       <span className="text-zinc-600 w-10 text-right">{pid}</span>
       <span className="text-zinc-300 flex-1 truncate">{name}</span>
-      <span className={cn("w-12 text-right", cpu > 50 ? "text-amber-400" : "text-zinc-500")}>{cpu.toFixed(1)}%</span>
-      <span className={cn("w-12 text-right", mem > 1000 ? "text-sky-400" : "text-zinc-500")}>{mem > 1024 ? `${(mem / 1024).toFixed(1)}G` : `${mem}M`}</span>
+      <span className={cn('w-12 text-right', cpu > 50 ? 'text-amber-400' : 'text-zinc-500')}>{cpu.toFixed(1)}%</span>
+      <span className={cn('w-12 text-right', mem > 1000 ? 'text-sky-400' : 'text-zinc-500')}>{mem > 1024 ? `${(mem / 1024).toFixed(1)}G` : `${mem}M`}</span>
     </div>
   );
 }
@@ -145,10 +145,10 @@ function ProcessItem({ name, cpu, mem, pid }: { name: string; cpu: number; mem: 
 export function HardwareMonitor() {
   const { language } = useTranslation();
   const zh = language === 'zh';
-  const clusterMetrics = useSystemStore((s) => s.clusterMetrics);
-  const cpuLoad = useSystemStore((s) => s.cpuLoad);
-  const dbConnected = useSystemStore((s) => s.dbConnected);
-  const addLog = useSystemStore((s) => s.addLog);
+  const clusterMetrics = useSystemStore(s => s.clusterMetrics);
+  const cpuLoad = useSystemStore(s => s.cpuLoad);
+  const dbConnected = useSystemStore(s => s.dbConnected);
+  const addLog = useSystemStore(s => s.addLog);
 
   // Simulated per-core loads (P-cores + GPU cores)
   const [coreTick, setCoreTick] = React.useState(0);
@@ -161,18 +161,22 @@ export function HardwareMonitor() {
   React.useEffect(() => {
     const timer = setInterval(() => {
       const baseCpu = cpuLoad || 20;
+
       coreLoadsRef.current = {
         pCores: coreLoadsRef.current.pCores.map((prev, i) => {
           const target = baseCpu + (Math.random() - 0.5) * 40 + (i < 4 ? 15 : 0);
+
           return Math.max(1, Math.min(100, prev * 0.7 + target * 0.3 + (Math.random() - 0.5) * 10));
         }),
-        gpuCores: coreLoadsRef.current.gpuCores.map((prev) => {
+        gpuCores: coreLoadsRef.current.gpuCores.map(prev => {
           const target = baseCpu * 0.4 + Math.random() * 25;
+
           return Math.max(0, Math.min(100, prev * 0.75 + target * 0.25 + (Math.random() - 0.5) * 8));
         }),
       };
       setCoreTick(t => t + 1);
     }, 2000);
+
     return () => clearInterval(timer);
   }, [cpuLoad]);
 
@@ -191,6 +195,7 @@ export function HardwareMonitor() {
   const uptimeStr = React.useMemo(() => {
     const h = Math.floor(uptime / 3600);
     const m = Math.floor((uptime % 3600) / 60);
+
     return h > 24 ? `${Math.floor(h / 24)}d ${h % 24}h` : `${h}h ${m}m`;
   }, [uptime]);
 
@@ -208,8 +213,10 @@ export function HardwareMonitor() {
 
   // --- Phase 36.1: Thermal Alert Auto-Detection via EventBus ---
   const lastThermalAlertRef = React.useRef<number>(0);
+
   React.useEffect(() => {
     const now = Date.now();
+
     // Throttle: at most one alert every 30 seconds
     if (now - lastThermalAlertRef.current < 30000) return;
 
@@ -250,6 +257,7 @@ export function HardwareMonitor() {
   // --- Phase 36.1: Emit mount event ---
   React.useEffect(() => {
     eventBus.system('hw_monitor.mounted', 'Hardware Monitor panel opened');
+
     return () => { eventBus.system('hw_monitor.unmounted', 'Hardware Monitor panel closed'); };
   }, []);
 
@@ -288,10 +296,10 @@ export function HardwareMonitor() {
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className={cn(
-            "text-[9px] font-mono gap-1",
+            'text-[9px] font-mono gap-1',
             dbConnected
-              ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/5"
-              : "border-zinc-700 text-zinc-500"
+              ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/5'
+              : 'border-zinc-700 text-zinc-500',
           )}>
             <Database className="w-3 h-3" />
             PG15:{dbConnected ? 'CONNECTED' : 'OFFLINE'}
@@ -373,8 +381,8 @@ export function HardwareMonitor() {
           <Card className="bg-zinc-900/30 border-zinc-800/50 flex flex-col items-center p-4">
             <RingGauge value={temp} max={110} label={zh ? '温度' : 'TEMP'} unit="C" color="#f59e0b" size={80} />
             <span className={cn(
-              "text-[8px] font-mono mt-1",
-              temp > 85 ? "text-red-400" : temp > 70 ? "text-amber-400" : "text-zinc-600"
+              'text-[8px] font-mono mt-1',
+              temp > 85 ? 'text-red-400' : temp > 70 ? 'text-amber-400' : 'text-zinc-600',
             )}>
               {temp > 85 ? (zh ? '过热!' : 'HOT!') : temp > 70 ? (zh ? '偏高' : 'WARM') : (zh ? '正常' : 'NORMAL')}
             </span>
@@ -444,8 +452,8 @@ export function HardwareMonitor() {
                   { name: 'telemetry', desc: zh ? '硬件遥测数据' : 'Hardware telemetry', color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
                 ].map(schema => (
                   <div key={schema.name} className="flex items-center gap-2 px-2 py-1.5 rounded bg-zinc-800/30">
-                    <div className={cn("w-1.5 h-1.5 rounded-full", schema.bg.replace('/10', ''))} />
-                    <span className={cn("text-[10px] font-mono", schema.color)}>{schema.name}</span>
+                    <div className={cn('w-1.5 h-1.5 rounded-full', schema.bg.replace('/10', ''))} />
+                    <span className={cn('text-[10px] font-mono', schema.color)}>{schema.name}</span>
                     <span className="text-[9px] text-zinc-600 ml-auto">{schema.desc}</span>
                   </div>
                 ))}
@@ -532,18 +540,18 @@ export function HardwareMonitor() {
                     <div className="flex items-center gap-1.5">
                       <div className="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden">
                         <div
-                          className={cn("h-full rounded-full transition-all duration-700",
-                            z.temp > z.limit * 0.85 ? "bg-red-500" :
-                            z.temp > z.limit * 0.7 ? "bg-amber-500" :
-                            "bg-emerald-500"
+                          className={cn('h-full rounded-full transition-all duration-700',
+                            z.temp > z.limit * 0.85 ? 'bg-red-500' :
+                            z.temp > z.limit * 0.7 ? 'bg-amber-500' :
+                            'bg-emerald-500',
                           )}
                           style={{ width: `${(z.temp / z.limit) * 100}%` }}
                         />
                       </div>
                       <span className={cn(
-                        z.temp > z.limit * 0.85 ? "text-red-400" :
-                        z.temp > z.limit * 0.7 ? "text-amber-400" :
-                        "text-zinc-400"
+                        z.temp > z.limit * 0.85 ? 'text-red-400' :
+                        z.temp > z.limit * 0.7 ? 'text-amber-400' :
+                        'text-zinc-400',
                       )}>
                         {z.temp}C
                       </span>

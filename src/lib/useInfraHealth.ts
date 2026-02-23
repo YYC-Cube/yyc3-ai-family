@@ -1,13 +1,14 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { useSystemStore } from './store';
+import { useState, useCallback, useRef } from 'react';
+
 import { eventBus } from './event-bus';
-import { loadDeviceConfigs, type DeviceConfig } from './nas-client';
 import { loadProviderConfigs } from './llm-bridge';
+import { loadDeviceConfigs, type DeviceConfig } from './nas-client';
 import {
   getPgTelemetryConfig, getPgTelemetryState, writeLatencyEntry,
   migrateLatencyToPostgres, readLatencyHistory as pgReadLatency,
 } from './pg-telemetry-client';
 import type { PgLatencyRecord, MigrationResult } from './pg-telemetry-client';
+import { useSystemStore } from './store';
 
 // ============================================================
 // YYC3 — Infrastructure Health Check Engine
@@ -79,8 +80,10 @@ const LATENCY_HISTORY_LS_KEY = 'yyc3_latency_history';
 function loadPersistedLatencyHistory(): void {
   try {
     const raw = localStorage.getItem(LATENCY_HISTORY_LS_KEY);
+
     if (raw) {
       const parsed = JSON.parse(raw) as Record<string, LatencyHistoryEntry[]>;
+
       for (const [key, entries] of Object.entries(parsed)) {
         if (Array.isArray(entries)) {
           _latencyHistory.set(key, entries.slice(-MAX_HISTORY_ENTRIES));
@@ -93,6 +96,7 @@ function loadPersistedLatencyHistory(): void {
 function persistLatencyHistory(): void {
   try {
     const data: Record<string, LatencyHistoryEntry[]> = {};
+
     _latencyHistory.forEach((entries, id) => {
       data[id] = entries;
     });
@@ -107,6 +111,7 @@ export function recordLatency(checkId: string, latencyMs: number | undefined, st
   if (latencyMs === undefined) return;
   const history = _latencyHistory.get(checkId) || [];
   const entry: LatencyHistoryEntry = { timestamp: Date.now(), latencyMs, status };
+
   history.push(entry);
   if (history.length > MAX_HISTORY_ENTRIES) {
     history.splice(0, history.length - MAX_HISTORY_ENTRIES);
@@ -116,6 +121,7 @@ export function recordLatency(checkId: string, latencyMs: number | undefined, st
   persistLatencyHistory();
   // Phase 43: Dual-write to PG telemetry schema if enabled
   const pgConfig = getPgTelemetryConfig();
+
   if (pgConfig.enabled) {
     writeLatencyEntry(checkId, entry).catch(() => {
       // Silent fail — localStorage is the primary store
@@ -125,14 +131,17 @@ export function recordLatency(checkId: string, latencyMs: number | undefined, st
 
 export function getLatencyHistory(checkId?: string): Map<string, LatencyHistoryEntry[]> | LatencyHistoryEntry[] {
   if (checkId) return _latencyHistory.get(checkId) || [];
+
   return new Map(_latencyHistory);
 }
 
 export function getAllLatencyHistories(): Record<string, LatencyHistoryEntry[]> {
   const result: Record<string, LatencyHistoryEntry[]> = {};
+
   _latencyHistory.forEach((entries, id) => {
     result[id] = [...entries];
   });
+
   return result;
 }
 
@@ -145,17 +154,20 @@ export function clearLatencyHistory(): void {
 // Phase 42: Import latency history from JSON
 export function importLatencyHistory(data: Record<string, LatencyHistoryEntry[]>): number {
   let imported = 0;
+
   for (const [key, entries] of Object.entries(data)) {
     if (Array.isArray(entries)) {
       const existing = _latencyHistory.get(key) || [];
       const merged = [...existing, ...entries]
         .sort((a, b) => a.timestamp - b.timestamp)
         .slice(-MAX_HISTORY_ENTRIES);
+
       _latencyHistory.set(key, merged);
       imported += entries.length;
     }
   }
   persistLatencyHistory();
+
   return imported;
 }
 
@@ -163,6 +175,7 @@ export function importLatencyHistory(data: Record<string, LatencyHistoryEntry[]>
 export function exportLatencyHistory(): { exportedAt: string; checkCount: number; totalEntries: number; data: Record<string, LatencyHistoryEntry[]> } {
   const data = getAllLatencyHistories();
   const totalEntries = Object.values(data).reduce((sum, entries) => sum + entries.length, 0);
+
   return {
     exportedAt: new Date().toISOString(),
     checkCount: Object.keys(data).length,
@@ -182,6 +195,7 @@ export function exportLatencyHistory(): { exportedAt: string; checkCount: number
  */
 export async function syncLatencyToPg(): Promise<MigrationResult> {
   const localData = getAllLatencyHistories();
+
   return migrateLatencyToPostgres(localData);
 }
 
@@ -201,12 +215,14 @@ export async function queryPgLatencyHistory(
   // Try PG first if enabled and connected
   if (pgConfig.enabled && (pgState.status === 'connected' || pgState.status === 'unknown')) {
     const pgResult = await pgReadLatency(checkId, fromTimestamp, toTimestamp, limit);
+
     if (pgResult.ok && pgResult.data.length > 0) {
       const mapped: LatencyHistoryEntry[] = pgResult.data.map((r: PgLatencyRecord) => ({
         timestamp: r.timestamp,
         latencyMs: r.latency_ms,
         status: r.status as InfraStatus,
       }));
+
       return { source: 'pg', data: mapped, checkId };
     }
   }
@@ -215,22 +231,27 @@ export async function queryPgLatencyHistory(
   if (checkId) {
     const entries = _latencyHistory.get(checkId) || [];
     let filtered = entries;
+
     if (fromTimestamp) filtered = filtered.filter(e => e.timestamp >= fromTimestamp);
     if (toTimestamp) filtered = filtered.filter(e => e.timestamp <= toTimestamp);
     if (limit) filtered = filtered.slice(-limit);
+
     return { source: 'localStorage', data: filtered, checkId };
   }
 
   // Return all entries merged
   const allEntries: LatencyHistoryEntry[] = [];
-  _latencyHistory.forEach((entries) => {
+
+  _latencyHistory.forEach(entries => {
     let filtered = entries;
+
     if (fromTimestamp) filtered = filtered.filter(e => e.timestamp >= fromTimestamp);
     if (toTimestamp) filtered = filtered.filter(e => e.timestamp <= toTimestamp);
     allEntries.push(...filtered);
   });
   allEntries.sort((a, b) => a.timestamp - b.timestamp);
   if (limit) return { source: 'localStorage', data: allEntries.slice(-limit) };
+
   return { source: 'localStorage', data: allEntries };
 }
 
@@ -238,26 +259,32 @@ export async function queryPgLatencyHistory(
 
 async function probeHTTP(url: string, timeoutMs = 3000): Promise<{ ok: boolean; latencyMs: number; detail?: string }> {
   const start = performance.now();
+
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
-    const res = await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
+    await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
+
     clearTimeout(timeout);
     const latency = Math.round(performance.now() - start);
+
     return { ok: true, latencyMs: latency, detail: `${latency}ms` };
   } catch {
     const latency = Math.round(performance.now() - start);
+
     return { ok: false, latencyMs: latency, detail: latency > timeoutMs - 200 ? 'Timeout' : 'Unreachable' };
   }
 }
 
 async function checkDevice(device: DeviceConfig): Promise<Partial<InfraCheck>> {
   const httpSvc = device.services.find(s => s.enabled && (s.protocol === 'http' || s.protocol === 'https'));
+
   if (!httpSvc) {
     return { status: 'unknown', detail: 'No HTTP service' };
   }
   const url = `${httpSvc.protocol}://${device.ip}:${httpSvc.port}${httpSvc.path || '/'}`;
   const result = await probeHTTP(url);
+
   return {
     status: result.ok ? 'online' : 'offline',
     latencyMs: result.latencyMs,
@@ -269,6 +296,7 @@ async function checkDevice(device: DeviceConfig): Promise<Partial<InfraCheck>> {
 async function checkDockerAPI(): Promise<Partial<InfraCheck>> {
   const url = 'http://192.168.3.45:2375/v1.41/_ping';
   const result = await probeHTTP(url, 4000);
+
   return {
     status: result.ok ? 'online' : 'offline',
     latencyMs: result.latencyMs,
@@ -280,6 +308,7 @@ async function checkDockerAPI(): Promise<Partial<InfraCheck>> {
 async function checkSQLiteProxy(): Promise<Partial<InfraCheck>> {
   const url = 'http://192.168.3.45:8484/api/db/query';
   const result = await probeHTTP(url, 4000);
+
   return {
     status: result.ok ? 'online' : 'offline',
     latencyMs: result.latencyMs,
@@ -292,16 +321,20 @@ async function checkOllama(): Promise<Partial<InfraCheck>> {
   // Ollama listens on localhost:11434 on the M4 Max
   const url = 'http://192.168.3.22:11434/api/tags';
   const start = performance.now();
+
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 4000);
     const res = await fetch(url, { signal: controller.signal });
+
     clearTimeout(timeout);
     const latency = Math.round(performance.now() - start);
+
     if (res.ok) {
       try {
-        const data = await res.json() as { models?: Array<{ name: string }> };
+        const data = await res.json() as { models?: { name: string }[] };
         const modelCount = data.models?.length ?? 0;
+
         return {
           status: 'online',
           latencyMs: latency,
@@ -312,10 +345,12 @@ async function checkOllama(): Promise<Partial<InfraCheck>> {
         return { status: 'online', latencyMs: latency, detail: `Ollama OK (${latency}ms)`, endpoint: url };
       }
     }
+
     return { status: 'degraded', latencyMs: latency, detail: `HTTP ${res.status}`, endpoint: url };
   } catch {
     // Try no-cors fallback
     const fallback = await probeHTTP('http://192.168.3.22:11434/', 3000);
+
     return {
       status: fallback.ok ? 'online' : 'offline',
       latencyMs: fallback.latencyMs,
@@ -329,12 +364,15 @@ async function checkPG15(): Promise<Partial<InfraCheck>> {
   // Browser can't do raw TCP to PG, so we probe the port via HTTP (will get refused but latency measured)
   const url = 'http://192.168.3.22:5433/';
   const start = performance.now();
+
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
+
     await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
     clearTimeout(timeout);
     const latency = Math.round(performance.now() - start);
+
     // No-cors opaque response means something is listening on the port
     return {
       status: 'online',
@@ -344,10 +382,12 @@ async function checkPG15(): Promise<Partial<InfraCheck>> {
     };
   } catch {
     const latency = Math.round(performance.now() - start);
+
     // Short latency = connection refused (port closed), long = timeout (host down)
     if (latency < 500) {
       return { status: 'degraded', latencyMs: latency, detail: 'Port responded (connection refused)', endpoint: '192.168.3.22:5433' };
     }
+
     return { status: 'offline', latencyMs: latency, detail: latency > 2500 ? 'Timeout' : 'Unreachable', endpoint: '192.168.3.22:5433' };
   }
 }
@@ -355,7 +395,8 @@ async function checkPG15(): Promise<Partial<InfraCheck>> {
 async function checkTelemetryWS(): Promise<Partial<InfraCheck>> {
   const url = 'ws://192.168.3.22:3001/telemetry';
   const start = performance.now();
-  return new Promise<Partial<InfraCheck>>((resolve) => {
+
+  return new Promise<Partial<InfraCheck>>(resolve => {
     try {
       const ws = new WebSocket(url);
       const timeout = setTimeout(() => {
@@ -371,6 +412,7 @@ async function checkTelemetryWS(): Promise<Partial<InfraCheck>> {
       ws.onopen = () => {
         clearTimeout(timeout);
         const latency = Math.round(performance.now() - start);
+
         ws.close();
         resolve({ status: 'online', latencyMs: latency, detail: `WS connected (${latency}ms)`, endpoint: url });
       };
@@ -378,6 +420,7 @@ async function checkTelemetryWS(): Promise<Partial<InfraCheck>> {
       ws.onerror = () => {
         clearTimeout(timeout);
         const latency = Math.round(performance.now() - start);
+
         resolve({
           status: 'offline',
           latencyMs: latency,
@@ -395,9 +438,11 @@ function checkWebCrypto(): Partial<InfraCheck> {
   try {
     const hasSubtle = typeof crypto !== 'undefined' && crypto.subtle;
     const hasGetRandom = typeof crypto !== 'undefined' && crypto.getRandomValues;
+
     if (hasSubtle && hasGetRandom) {
       return { status: 'online', detail: 'AES-GCM + getRandomValues OK' };
     }
+
     return { status: 'degraded', detail: hasGetRandom ? 'No SubtleCrypto' : 'Limited Crypto' };
   } catch {
     return { status: 'offline', detail: 'Web Crypto unavailable' };
@@ -408,14 +453,17 @@ function checkLocalStorage(): Partial<InfraCheck> {
   try {
     let yyc3Keys = 0;
     let totalSize = 0;
+
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
+
       if (key?.startsWith('yyc3')) {
         yyc3Keys++;
         totalSize += (localStorage.getItem(key) || '').length;
       }
     }
     const sizeKB = (totalSize / 1024).toFixed(1);
+
     return { status: 'online', detail: `${yyc3Keys} keys, ${sizeKB}KB` };
   } catch {
     return { status: 'offline', detail: 'localStorage blocked' };
@@ -426,9 +474,11 @@ function checkProviders(): Partial<InfraCheck> {
   try {
     const configs = loadProviderConfigs();
     const enabled = configs.filter(c => c.enabled && c.apiKey);
+
     if (enabled.length === 0) {
       return { status: 'degraded', detail: 'No providers configured' };
     }
+
     return { status: 'online', detail: `${enabled.length} provider(s) active` };
   } catch {
     return { status: 'offline', detail: 'Provider config error' };
@@ -446,6 +496,7 @@ function checkEventBus(): Partial<InfraCheck> {
 
 function buildInitialChecks(): InfraCheck[] {
   const devices = loadDeviceConfigs();
+
   return [
     // Devices
     ...devices.map(d => ({
@@ -476,7 +527,7 @@ function buildInitialChecks(): InfraCheck[] {
 // ============================================================
 
 export function useInfraHealth() {
-  const addLog = useSystemStore((s) => s.addLog);
+  const addLog = useSystemStore(s => s.addLog);
   const [checks, setChecks] = useState<InfraCheck[]>(() => buildInitialChecks());
   const [runStatus, setRunStatus] = useState<'idle' | 'running' | 'done'>('idle');
   const [startedAt, setStartedAt] = useState(0);
@@ -492,6 +543,7 @@ export function useInfraHealth() {
     runningRef.current = true;
 
     const start = Date.now();
+
     setStartedAt(start);
     setRunStatus('running');
 
@@ -510,7 +562,7 @@ export function useInfraHealth() {
     const devices = loadDeviceConfigs();
 
     // Run all checks concurrently
-    const checkTasks: Array<{ id: string; runner: () => Promise<Partial<InfraCheck>> | Partial<InfraCheck> }> = [
+    const checkTasks: { id: string; runner: () => Promise<Partial<InfraCheck>> | Partial<InfraCheck> }[] = [
       // Device checks
       ...devices.map(d => ({
         id: `device-${d.id}`,
@@ -533,6 +585,7 @@ export function useInfraHealth() {
       checkTasks.map(async ({ id, runner }) => {
         try {
           const result = await runner();
+
           updateCheck(id, result);
           // Phase 41: Record latency history for trending
           recordLatency(id, result.latencyMs, result.status || 'unknown');
@@ -540,16 +593,18 @@ export function useInfraHealth() {
           updateCheck(id, { status: 'offline', detail: 'Check failed' });
           recordLatency(id, undefined, 'offline');
         }
-      })
+      }),
     );
 
     const elapsed = Date.now() - start;
+
     setCompletedAt(Date.now());
     setRunStatus('done');
     runningRef.current = false;
 
     // Compute summary for log
     const finalChecks = checkTasks.length;
+
     addLog('success', 'INFRA_HEALTH', `Health check complete in ${elapsed}ms (${finalChecks} checks)`);
     eventBus.emit({
       category: 'system',
@@ -584,9 +639,11 @@ export function useInfraHealth() {
     }
 
     const runner = runners[checkId];
+
     if (runner) {
       try {
         const result = await runner();
+
         updateCheck(checkId, result);
       } catch {
         updateCheck(checkId, { status: 'offline', detail: 'Recheck failed' });

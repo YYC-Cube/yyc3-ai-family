@@ -1,0 +1,495 @@
+{
+  "meta": {
+    "version": "2.0.0",
+    "updated": "2026-02-23",
+    "project": "YYC³ AI Family",
+    "description": "YYC³ AI Family 项目全量变量配置文件"
+  },
+  "brand": {
+    "name": "YanYuCloudCube",
+    "name_cn": "言启象限",
+    "slogan": "语枢未来",
+    "slogan_en": "Words Initiate Quadrants, Language Serves as Core for the Future",
+    "philosophy": "万象归元于云枢 | 深栈智启新纪元",
+    "tagline": "亦师亦友亦伯乐；一言一语一协同"
+  },
+  "authorization": {
+    "company": "洛阳沫言酒店管理有限公司",
+    "code": "202411283053152737",
+    "validity": "永久有效",
+    "certificate_path": "/Users/yanyu/YYC3-Mac-Max/智谱授权书"
+  },
+  "cluster": {
+    "network": "192.168.3.0/24",
+    "domain": "0379.world",
+    "nodes": {
+      "m4_max": {
+        "name": "M4-Max",
+        "hostname": "yyc3-22",
+        "ip": "localhost",
+        "lan_ip": "192.168.3.22",
+        "node_type": "orchestrator",
+        "role": "编排器（主力）",
+        "os_type": "macOS Sequoia",
+        "cpu": "M4 Max (16P+40E)",
+        "memory": "128GB",
+        "storage": "4TB SSD",
+        "wireguard_pubkey": "0ZhFoF5slo8MJliIciEKK9zzQwV/awwdsR5XLtL573o=",
+        "services": ["PostgreSQL 15", "Redis", "Ollama", "AI Family"]
+      },
+      "imac_m4": {
+        "name": "iMac-M4",
+        "hostname": "yyc3-77",
+        "ip": "192.168.3.77",
+        "node_type": "visualization",
+        "role": "可视化/辅助",
+        "os_type": "macOS Sequoia",
+        "cpu": "M4 (10P+10E)",
+        "memory": "32GB",
+        "storage": "2TB SSD",
+        "wireguard_pubkey": "bkEgB/qENp9gZ7a5H0JMWjQ6bsDPwgQBdEU32ZVJp0Y=",
+        "services": ["Ollama"]
+      },
+      "nas": {
+        "name": "YanYuCloud",
+        "hostname": "TNAS-F4-423",
+        "ip": "192.168.3.45",
+        "node_type": "data_center",
+        "role": "数据中心",
+        "os_type": "TOS 7.0",
+        "cpu": "Intel Quad Core",
+        "memory": "32GB",
+        "storage": {
+          "volume1": "32TB HDD RAID6 (4x8T WD-HA340)",
+          "volume2": "4TB SSD RAID1 (2x2T SN850X)"
+        },
+        "ssh_port": 9557,
+        "web_port": 9898,
+        "services": ["PostgreSQL 14", "Redis", "MinIO", "Docker"]
+      },
+      "matebook": {
+        "name": "MateBook",
+        "hostname": "yyc3-159",
+        "ip": "192.168.3.159",
+        "node_type": "edge",
+        "role": "边缘/测试（备用）",
+        "os_type": "Windows 11",
+        "cpu": "Intel 12th Gen",
+        "memory": "32GB",
+        "storage": "1TB SSD",
+        "services": []
+      }
+    }
+  },
+  "database": {
+    "primary": {
+      "name": "yyc3_aify",
+      "host": "localhost",
+      "port": 5433,
+      "version": "15",
+      "user": "yyc3_aify",
+      "password": "Yyc3_Aify_2026_Secure!",
+      "charset": "UTF8",
+      "timezone": "Asia/Shanghai",
+      "pool_max": 20,
+      "idle_timeout": 30000,
+      "connection_timeout": 5000,
+      "description": "AI Family 主数据库"
+    },
+    "schemas": ["core", "telemetry", "analytics"],
+    "tables": {
+      "core": [
+        "models",
+        "agents",
+        "conversations",
+        "messages",
+        "inference_logs",
+        "authorizations",
+        "user_preferences",
+        "system_config"
+      ],
+      "telemetry": ["node_metrics", "service_latency"],
+      "analytics": ["usage_stats"]
+    },
+    "nas_backup": {
+      "name": "yyc3_archive",
+      "host": "192.168.3.45",
+      "port": 5432,
+      "version": "14",
+      "description": "NAS 归档数据库"
+    }
+  },
+  "cache": {
+    "redis": {
+      "host": "localhost",
+      "port": 6379,
+      "password": "",
+      "db": 0,
+      "max_connections": 100,
+      "idle_timeout": 10000,
+      "cache_prefix": "yyc3:",
+      "session_prefix": "yyc3:session:",
+      "cache_ttl": 3600,
+      "session_ttl": 604800
+    }
+  },
+  "services": {
+    "frontend": {
+      "name": "AI Family Frontend",
+      "host": "localhost",
+      "port": 3200,
+      "protocol": "http",
+      "description": "主前端应用"
+    },
+    "backend": {
+      "name": "AI Family Backend",
+      "host": "localhost",
+      "port": 3001,
+      "protocol": "http",
+      "description": "后端API服务"
+    },
+    "websocket": {
+      "name": "WebSocket Server",
+      "host": "localhost",
+      "port": 3001,
+      "protocol": "ws",
+      "description": "实时通信服务"
+    },
+    "ollama": {
+      "name": "Ollama",
+      "host": "localhost",
+      "port": 11434,
+      "protocol": "http",
+      "description": "本地模型推理"
+    },
+    "nas_web": {
+      "name": "NAS Web",
+      "host": "192.168.3.45",
+      "port": 9898,
+      "protocol": "http",
+      "description": "NAS管理界面"
+    }
+  },
+  "models": {
+    "local": [
+      {
+        "id": "qwen2.5:7b",
+        "name": "Qwen 2.5 7B (本地)",
+        "provider": "ollama",
+        "tier": "local",
+        "context_window": 32768,
+        "max_output": 8192,
+        "nodes": ["m4_max", "imac_m4"],
+        "categories": ["chat", "code", "chinese"]
+      },
+      {
+        "id": "glm4:9b",
+        "name": "GLM-4 9B (本地)",
+        "provider": "ollama",
+        "tier": "local",
+        "context_window": 8192,
+        "max_output": 4096,
+        "nodes": ["imac_m4"],
+        "categories": ["chat", "chinese"]
+      },
+      {
+        "id": "codegeex4:latest",
+        "name": "CodeGeeX4 (本地)",
+        "provider": "ollama",
+        "tier": "local",
+        "context_window": 8192,
+        "max_output": 4096,
+        "nodes": ["m4_max", "imac_m4"],
+        "categories": ["code", "chinese"]
+      },
+      {
+        "id": "phi3:mini",
+        "name": "Phi-3 Mini 3.8B (本地)",
+        "provider": "ollama",
+        "tier": "local",
+        "context_window": 4096,
+        "max_output": 2048,
+        "nodes": ["imac_m4"],
+        "categories": ["chat", "lightweight"]
+      }
+    ],
+    "authorized": [
+      {
+        "id": "CodeGeeX4-all-9b",
+        "name": "CodeGeeX4 (授权)",
+        "provider": "zhipu",
+        "tier": "authorized",
+        "context_window": 8192,
+        "max_output": 4096,
+        "categories": ["code", "chinese"],
+        "auth_company": "洛阳沫言酒店管理有限公司",
+        "auth_code": "202411283053152737",
+        "auth_validity": "永久有效"
+      },
+      {
+        "id": "ChatGLM3-6B",
+        "name": "ChatGLM3-6B (授权)",
+        "provider": "zhipu",
+        "tier": "authorized",
+        "context_window": 8192,
+        "max_output": 4096,
+        "categories": ["chat", "chinese"],
+        "auth_company": "洛阳沫言酒店管理有限公司",
+        "auth_code": "202411283053152737",
+        "auth_validity": "永久有效",
+        "note": "NAS ollama/目录下有全量文件，使用Qwen 2.5 7B替代定位"
+      },
+      {
+        "id": "CogAgent-9B",
+        "name": "CogAgent (授权)",
+        "provider": "zhipu",
+        "tier": "authorized",
+        "context_window": 8192,
+        "max_output": 4096,
+        "categories": ["gui", "automation"],
+        "auth_company": "洛阳沫言酒店管理有限公司",
+        "auth_code": "202411283053152737",
+        "auth_validity": "永久有效"
+      },
+      {
+        "id": "CogVideoX-5B",
+        "name": "CogVideoX (授权)",
+        "provider": "zhipu",
+        "tier": "authorized",
+        "context_window": 8192,
+        "max_output": 4096,
+        "categories": ["video", "generation"],
+        "auth_company": "洛阳沫言酒店管理有限公司",
+        "auth_code": "202411283053152737",
+        "auth_validity": "永久有效"
+      }
+    ],
+    "cloud": [
+      {
+        "id": "GLM-4.7",
+        "name": "GLM-4.7 (云端)",
+        "provider": "zhipu",
+        "tier": "cloud-paid",
+        "endpoint": "https://open.bigmodel.cn",
+        "context_window": 128000,
+        "max_output": 4096,
+        "categories": ["chat", "reasoning", "chinese"]
+      },
+      {
+        "id": "GLM-4.7-Flash",
+        "name": "GLM-4.7-Flash (云端)",
+        "provider": "zhipu",
+        "tier": "cloud-free",
+        "endpoint": "https://open.bigmodel.cn",
+        "context_window": 128000,
+        "max_output": 4096,
+        "categories": ["chat", "chinese"]
+      },
+      {
+        "id": "deepseek-chat",
+        "name": "DeepSeek V3",
+        "provider": "deepseek",
+        "tier": "cloud-paid",
+        "endpoint": "https://api.deepseek.com",
+        "context_window": 64000,
+        "max_output": 8192,
+        "categories": ["chat", "code", "reasoning"]
+      },
+      {
+        "id": "claude-sonnet-4-20250514",
+        "name": "Claude Sonnet 4",
+        "provider": "anthropic",
+        "tier": "cloud-paid",
+        "endpoint": "https://api.anthropic.com",
+        "context_window": 200000,
+        "max_output": 8192,
+        "categories": ["chat", "reasoning", "code"]
+      },
+      {
+        "id": "gpt-4.1",
+        "name": "GPT-4.1",
+        "provider": "openai",
+        "tier": "cloud-paid",
+        "endpoint": "https://api.openai.com",
+        "context_window": 128000,
+        "max_output": 16384,
+        "categories": ["chat", "reasoning", "multimodal"]
+      },
+      {
+        "id": "gpt-4o",
+        "name": "GPT-4o",
+        "provider": "openai",
+        "tier": "cloud-paid",
+        "endpoint": "https://api.openai.com",
+        "context_window": 128000,
+        "max_output": 16384,
+        "categories": ["chat", "multimodal", "vision"]
+      },
+      {
+        "id": "gemini-2.5-pro",
+        "name": "Gemini 2.5 Pro",
+        "provider": "google",
+        "tier": "cloud-paid",
+        "endpoint": "https://generativelanguage.googleapis.com",
+        "context_window": 1000000,
+        "max_output": 8192,
+        "categories": ["chat", "multimodal", "reasoning"]
+      }
+    ]
+  },
+  "agents": [
+    {
+      "id": "navigator",
+      "name": "Navigator",
+      "name_cn": "智愈·领航员",
+      "role": "Commander",
+      "description": "全域资源调度与路径规划",
+      "primary_use_case": "全域资源调度与路径规划",
+      "local_priority": ["qwen2.5:7b"],
+      "authorized_priority": ["CodeGeeX4-all-9b"],
+      "cloud_priority": ["GLM-4.7", "claude-sonnet-4-20250514", "deepseek-chat"],
+      "fallback_chain": ["qwen2.5:7b", "GLM-4.7-Flash", "GLM-4.7"],
+      "temperature": 0.3,
+      "max_tokens": 4096,
+      "capabilities": ["scheduling", "routing", "coordination"]
+    },
+    {
+      "id": "thinker",
+      "name": "Thinker",
+      "name_cn": "洞见·思想家",
+      "role": "Strategist",
+      "description": "深度逻辑推理与决策分析",
+      "primary_use_case": "深度逻辑推理与决策分析",
+      "local_priority": ["qwen2.5:7b"],
+      "authorized_priority": ["CodeGeeX4-all-9b"],
+      "cloud_priority": ["claude-sonnet-4-20250514", "GLM-4.7", "deepseek-chat"],
+      "fallback_chain": ["qwen2.5:7b", "GLM-4.7-Flash", "claude-sonnet-4-20250514"],
+      "temperature": 0.5,
+      "max_tokens": 8192,
+      "capabilities": ["reasoning", "analysis", "strategy"]
+    },
+    {
+      "id": "prophet",
+      "name": "Prophet",
+      "name_cn": "预见·先知",
+      "role": "Predictor",
+      "description": "趋势预测与风险前置",
+      "primary_use_case": "趋势预测与风险前置",
+      "local_priority": ["qwen2.5:7b"],
+      "authorized_priority": ["CodeGeeX4-all-9b"],
+      "cloud_priority": ["GLM-4.7", "deepseek-chat", "claude-sonnet-4-20250514"],
+      "fallback_chain": ["qwen2.5:7b", "GLM-4.7-Flash", "GLM-4.7"],
+      "temperature": 0.4,
+      "max_tokens": 4096,
+      "capabilities": ["prediction", "forecasting", "risk_analysis"]
+    },
+    {
+      "id": "bole",
+      "name": "Bole",
+      "name_cn": "知遇·伯乐",
+      "role": "Evaluator",
+      "description": "模型评估与优选匹配",
+      "primary_use_case": "模型评估与优选匹配",
+      "local_priority": ["qwen2.5:7b"],
+      "authorized_priority": ["CodeGeeX4-all-9b"],
+      "cloud_priority": ["GLM-4.7", "deepseek-chat", "claude-sonnet-4-20250514"],
+      "fallback_chain": ["qwen2.5:7b", "GLM-4.7-Flash", "GLM-4.7"],
+      "temperature": 0.3,
+      "max_tokens": 2048,
+      "capabilities": ["evaluation", "matching", "recommendation"]
+    },
+    {
+      "id": "pivot",
+      "name": "Pivot",
+      "name_cn": "元启·天枢",
+      "role": "Coordinator",
+      "description": "核心状态管理与上下文",
+      "primary_use_case": "核心状态管理与上下文",
+      "local_priority": ["qwen2.5:7b"],
+      "authorized_priority": ["CodeGeeX4-all-9b"],
+      "cloud_priority": ["GLM-4.7-Flash", "GLM-4.7", "deepseek-chat"],
+      "fallback_chain": ["qwen2.5:7b", "GLM-4.7-Flash", "GLM-4.7"],
+      "temperature": 0.2,
+      "max_tokens": 2048,
+      "capabilities": ["coordination", "state_management", "context"]
+    },
+    {
+      "id": "sentinel",
+      "name": "Sentinel",
+      "name_cn": "卫安·哨兵",
+      "role": "Guardian",
+      "description": "安全边界防护与审计",
+      "primary_use_case": "安全边界防护与审计",
+      "local_priority": ["qwen2.5:7b"],
+      "authorized_priority": ["CodeGeeX4-all-9b"],
+      "cloud_priority": ["GLM-4.7", "claude-sonnet-4-20250514", "deepseek-chat"],
+      "fallback_chain": ["qwen2.5:7b", "GLM-4.7-Flash", "GLM-4.7"],
+      "temperature": 0.1,
+      "max_tokens": 2048,
+      "capabilities": ["security", "audit", "protection"]
+    },
+    {
+      "id": "grandmaster",
+      "name": "Grandmaster",
+      "name_cn": "格物·宗师",
+      "role": "Scholar",
+      "description": "知识库构建与本体论",
+      "primary_use_case": "知识库构建与本体论",
+      "local_priority": ["qwen2.5:7b"],
+      "authorized_priority": ["CodeGeeX4-all-9b"],
+      "cloud_priority": ["GLM-4.7", "claude-sonnet-4-20250514", "deepseek-chat"],
+      "fallback_chain": ["qwen2.5:7b", "GLM-4.7-Flash", "GLM-4.7"],
+      "temperature": 0.4,
+      "max_tokens": 4096,
+      "capabilities": ["knowledge", "ontology", "learning"]
+    }
+  ],
+  "api": {
+    "base_url": "http://localhost:3001/api/v1",
+    "endpoints": {
+      "health": "/db/health",
+      "models": "/db/models",
+      "agents": "/db/agents",
+      "conversations": "/db/conversations",
+      "messages": "/db/conversations/:id/messages",
+      "inference_logs": "/db/inference-logs",
+      "config": "/db/config",
+      "stats": "/db/stats/overview"
+    }
+  },
+  "security": {
+    "jwt_secret": "Yyc3_Jwt_Secret_Key_2026_Very_Secure_At_Least_32_Chars",
+    "jwt_expires_in": "7d",
+    "cors_origin": "*",
+    "rate_limit": {
+      "window_ms": 900000,
+      "max_requests": 100
+    }
+  },
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "output": ["console", "file"],
+    "file_path": "/var/log/yyc3/aify",
+    "retention_days": 30
+  },
+  "features": {
+    "ai_chat": true,
+    "knowledge_base": true,
+    "analytics": true,
+    "user_management": true,
+    "api_docs": true,
+    "admin_panel": true,
+    "rate_limit": true,
+    "cache": true,
+    "monitoring": true
+  },
+  "paths": {
+    "project_root": "/Users/yanyu/YYC3-Mac-Max/Family-π³",
+    "backend": "/Users/yanyu/YYC3-Mac-Max/Family-π³/backend",
+    "frontend": "/Users/yanyu/YYC3-Mac-Max/Family-π³/frontend",
+    "database": "/Users/yanyu/YYC3-Mac-Max/Family-π³/database",
+    "docs": "/Users/yanyu/YYC3-Mac-Max/Family-π³/docs",
+    "nas_ollama": "/Volumes/YanYuCloud/ollama"
+  }
+}

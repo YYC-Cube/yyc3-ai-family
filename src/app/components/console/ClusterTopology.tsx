@@ -1,8 +1,8 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Laptop, Server, Smartphone, Monitor, Database, HardDrive, Cpu, Wifi, Activity, Zap } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
+import { Laptop, Monitor, Database, HardDrive, Cpu, Activity } from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 const DEVICES = [
   {
@@ -16,7 +16,7 @@ const DEVICES = [
     temp: 45,
     color: 'text-amber-500',
     border: 'border-amber-500/20',
-    bg: 'bg-amber-500/5'
+    bg: 'bg-amber-500/5',
   },
   {
     id: 'imac-m4',
@@ -29,7 +29,7 @@ const DEVICES = [
     temp: 42,
     color: 'text-blue-500',
     border: 'border-blue-500/20',
-    bg: 'bg-blue-500/5'
+    bg: 'bg-blue-500/5',
   },
   {
     id: 'nas-yyc',
@@ -42,7 +42,7 @@ const DEVICES = [
     temp: 51,
     color: 'text-purple-500',
     border: 'border-purple-500/20',
-    bg: 'bg-purple-500/5'
+    bg: 'bg-purple-500/5',
   },
   {
     id: 'huawei-x-pro',
@@ -55,38 +55,38 @@ const DEVICES = [
     temp: 35,
     color: 'text-zinc-400',
     border: 'border-zinc-500/20',
-    bg: 'bg-zinc-500/5'
-  }
+    bg: 'bg-zinc-500/5',
+  },
 ];
 
 export function ClusterTopology() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in zoom-in-95 duration-500">
-      {DEVICES.map((dev) => (
-        <div 
-          key={dev.id} 
+      {DEVICES.map(dev => (
+        <div
+          key={dev.id}
           className={cn(
-            "relative overflow-hidden rounded-xl border p-4 transition-all hover:scale-[1.02]",
-            "bg-zinc-900/40 hover:bg-zinc-900/60",
-            dev.border
+            'relative overflow-hidden rounded-xl border p-4 transition-all hover:scale-[1.02]',
+            'bg-zinc-900/40 hover:bg-zinc-900/60',
+            dev.border,
           )}
         >
           {/* Background Pulse */}
           {dev.status === 'online' && (
-             <div className={cn("absolute -right-12 -top-12 w-32 h-32 rounded-full blur-3xl opacity-10 animate-pulse", dev.color.replace('text', 'bg'))} />
+            <div className={cn('absolute -right-12 -top-12 w-32 h-32 rounded-full blur-3xl opacity-10 animate-pulse', dev.color.replace('text', 'bg'))} />
           )}
 
           <div className="flex justify-between items-start mb-4 relative z-10">
             <div className="flex items-center gap-3">
-              <div className={cn("p-2 rounded-lg border", dev.bg, dev.border)}>
-                <dev.icon className={cn("w-5 h-5", dev.color)} />
+              <div className={cn('p-2 rounded-lg border', dev.bg, dev.border)}>
+                <dev.icon className={cn('w-5 h-5', dev.color)} />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-zinc-100">{dev.name}</h3>
                 <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{dev.role}</p>
               </div>
             </div>
-            <Badge variant="outline" className={cn("text-[10px] uppercase", dev.status === 'online' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-zinc-500/10 text-zinc-500')}>
+            <Badge variant="outline" className={cn('text-[10px] uppercase', dev.status === 'online' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-zinc-500/10 text-zinc-500')}>
               {dev.status}
             </Badge>
           </div>
@@ -94,32 +94,32 @@ export function ClusterTopology() {
           <div className="space-y-3 relative z-10">
             {/* Specs Grid */}
             <div className="grid grid-cols-2 gap-2 text-[10px] font-mono text-zinc-400">
-                <div className="flex items-center gap-1.5 bg-black/20 p-1.5 rounded">
-                    <Cpu className="w-3 h-3 opacity-70" />
-                    <span>{dev.specs.cpu}</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-black/20 p-1.5 rounded">
-                    <Activity className="w-3 h-3 opacity-70" />
-                    <span>RAM: {dev.specs.ram}</span>
-                </div>
-                <div className="col-span-2 flex items-center gap-1.5 bg-black/20 p-1.5 rounded">
-                    <HardDrive className="w-3 h-3 opacity-70" />
-                    <span>{dev.specs.storage}</span>
-                </div>
+              <div className="flex items-center gap-1.5 bg-black/20 p-1.5 rounded">
+                <Cpu className="w-3 h-3 opacity-70" />
+                <span>{dev.specs.cpu}</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-black/20 p-1.5 rounded">
+                <Activity className="w-3 h-3 opacity-70" />
+                <span>RAM: {dev.specs.ram}</span>
+              </div>
+              <div className="col-span-2 flex items-center gap-1.5 bg-black/20 p-1.5 rounded">
+                <HardDrive className="w-3 h-3 opacity-70" />
+                <span>{dev.specs.storage}</span>
+              </div>
             </div>
 
             {/* Live Metrics */}
             <div className="pt-2 border-t border-white/5">
-                <div className="flex justify-between items-center mb-1 text-[10px] text-zinc-500">
-                    <span>System Load</span>
-                    <span className={dev.color}>{dev.load}%</span>
-                </div>
-                <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
-                    <div 
-                        className={cn("h-full transition-all duration-1000", dev.color.replace('text', 'bg'))} 
-                        style={{ width: `${dev.load}%` }}
-                    />
-                </div>
+              <div className="flex justify-between items-center mb-1 text-[10px] text-zinc-500">
+                <span>System Load</span>
+                <span className={dev.color}>{dev.load}%</span>
+              </div>
+              <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+                <div
+                  className={cn('h-full transition-all duration-1000', dev.color.replace('text', 'bg'))}
+                  style={{ width: `${dev.load}%` }}
+                />
+              </div>
             </div>
           </div>
         </div>

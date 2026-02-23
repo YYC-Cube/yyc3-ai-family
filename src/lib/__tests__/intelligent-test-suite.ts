@@ -63,6 +63,7 @@ async function testConnection(url: string, timeout = 3000): Promise<boolean> {
     });
 
     clearTimeout(timeoutId);
+
     return response.ok || response.status < 500;
   } catch {
     return false;
@@ -92,14 +93,15 @@ async function testOllamaModel(endpoint: string, model: string): Promise<TestRes
         message: `推理正常 (${latency}ms)`,
         latency,
       };
-    } else {
-      return {
-        name: `Model: ${model}`,
-        status: 'fail',
-        message: `推理失败: ${response.status}`,
-        latency,
-      };
     }
+
+    return {
+      name: `Model: ${model}`,
+      status: 'fail',
+      message: `推理失败: ${response.status}`,
+      latency,
+    };
+
   } catch (error) {
     return {
       name: `Model: ${model}`,
@@ -200,6 +202,7 @@ export async function testOllamaServices(): Promise<TestCategory> {
 
   for (const endpoint of ollamaEndpoints) {
     const start = Date.now();
+
     try {
       const response = await fetch(`${endpoint.url}/api/version`, {
         signal: AbortSignal.timeout(3000),
@@ -208,6 +211,7 @@ export async function testOllamaServices(): Promise<TestCategory> {
 
       if (response.ok) {
         const data = await response.json();
+
         results.push({
           name: endpoint.name,
           status: 'pass',
@@ -282,6 +286,7 @@ export async function testLLMBridge(): Promise<TestCategory> {
 
   try {
     const configs = loadProviderConfigs();
+
     results.push({
       name: 'Provider 配置加载',
       status: configs.length > 0 ? 'pass' : 'warn',
@@ -290,6 +295,7 @@ export async function testLLMBridge(): Promise<TestCategory> {
     });
 
     const hasProvider = hasConfiguredProvider();
+
     results.push({
       name: 'Provider 可用性',
       status: hasProvider ? 'pass' : 'warn',
@@ -297,6 +303,7 @@ export async function testLLMBridge(): Promise<TestCategory> {
     });
 
     const router = getRouter();
+
     results.push({
       name: 'LLM Router 初始化',
       status: 'pass',
@@ -419,6 +426,7 @@ export async function runComprehensiveTest(): Promise<TestReport> {
   const overallHealth = Math.round((totalPass / total) * 100);
 
   let grade: 'A' | 'B' | 'C' | 'D' | 'F';
+
   if (overallHealth >= 90) grade = 'A';
   else if (overallHealth >= 80) grade = 'B';
   else if (overallHealth >= 70) grade = 'C';

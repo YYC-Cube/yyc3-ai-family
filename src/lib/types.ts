@@ -40,9 +40,9 @@ export interface AgentInfo {
   role: string;
   desc: string;
   descEn: string;
-  icon: string;      // lucide icon name
-  color: string;     // Tailwind text color
-  bgColor: string;   // Tailwind bg color
+  icon: string; // lucide icon name
+  color: string; // Tailwind text color
+  bgColor: string; // Tailwind bg color
   borderColor: string;
 }
 
@@ -74,7 +74,7 @@ export interface ChatMessage {
     modelId: string;
     latencyMs: number;
     totalTokens: number;
-    errorCode?: string;       // set when request failed
+    errorCode?: string; // set when request failed
   };
 }
 
@@ -97,9 +97,9 @@ export interface FileAttachment {
   id: string;
   name: string;
   size: number;
-  type: string;        // MIME type
-  dataUrl?: string;    // for preview
-  content?: string;    // text content
+  type: string; // MIME type
+  dataUrl?: string; // for preview
+  content?: string; // text content
 }
 
 // ============================================================
@@ -152,17 +152,17 @@ export type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
 // ============================================================
 
 export interface OllamaModelInfo {
-  name: string;              // e.g., "qwen2.5:72b"
+  name: string; // e.g., "qwen2.5:72b"
   model: string;
   modified_at: string;
-  size: number;              // bytes
+  size: number; // bytes
   digest: string;
   details: {
     parent_model: string;
     format: string;
     family: string;
     families: string[];
-    parameter_size: string;  // e.g., "72B"
+    parameter_size: string; // e.g., "72B"
     quantization_level: string;
   };
 }
@@ -309,7 +309,7 @@ export interface ApiResponse {
 
 export interface PromptTemplate {
   id: string;
-  icon: string;       // emoji
+  icon: string; // emoji
   label: string;
   labelEn: string;
   prompt: string;
@@ -404,10 +404,10 @@ export interface CollaborationTask {
   intent: string;
   mode: CollaborationMode;
   status: 'pending' | 'executing' | 'consensus' | 'completed' | 'failed';
-  agents: Array<{
+  agents: {
     agentId: string;
     status: 'idle' | 'thinking' | 'executing' | 'done';
-  }>;
+  }[];
   results: AgentResult[];
   finalOutput?: string;
   totalLatencyMs: number;

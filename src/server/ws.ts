@@ -9,9 +9,10 @@
 // - Server → Client: { type: 'heartbeat', timestamp: number }
 // ============================================================
 
-import { WebSocketServer, WebSocket } from 'ws';
-import { Pool } from 'pg';
 import http from 'http';
+
+import { Pool } from 'pg';
+import { WebSocketServer, WebSocket } from 'ws';
 
 interface WsClient {
   ws: WebSocket;
@@ -21,7 +22,7 @@ interface WsClient {
 
 export function createWebSocketServer(server: http.Server, pool: Pool): WebSocketServer {
   const wss = new WebSocketServer({ server, path: '/ws' });
-  const clients: Map<string, WsClient> = new Map();
+  const clients = new Map<string, WsClient>();
   let clientIdCounter = 0;
 
   // === Connection Handler ===
@@ -32,6 +33,7 @@ export function createWebSocketServer(server: http.Server, pool: Pool): WebSocke
       subscriptions: new Set(['metrics', 'logs', 'heartbeat']),
       lastPing: Date.now(),
     };
+
     clients.set(clientId, client);
 
     console.log(`[WS] Client connected: ${clientId} (total: ${clients.size})`);
@@ -48,6 +50,7 @@ export function createWebSocketServer(server: http.Server, pool: Pool): WebSocke
     ws.on('message', (raw: Buffer) => {
       try {
         const msg = JSON.parse(raw.toString());
+
         switch (msg.type) {
           case 'subscribe':
             if (Array.isArray(msg.channels)) {
@@ -84,6 +87,7 @@ export function createWebSocketServer(server: http.Server, pool: Pool): WebSocke
   // === Broadcast Utility ===
   function broadcast(channel: string, data: unknown): void {
     const payload = JSON.stringify({ type: channel, data, timestamp: Date.now() });
+
     for (const [, client] of clients) {
       if (client.ws.readyState === WebSocket.OPEN && client.subscriptions.has(channel)) {
         client.ws.send(payload);
@@ -108,6 +112,7 @@ export function createWebSocketServer(server: http.Server, pool: Pool): WebSocke
 
       // Build cluster metrics object
       const clusterMetrics: Record<string, Record<string, number>> = {};
+
       for (const row of rows) {
         if (!clusterMetrics[row.node_id]) clusterMetrics[row.node_id] = {};
         clusterMetrics[row.node_id][row.metric_type] = row.value;
@@ -125,6 +130,7 @@ export function createWebSocketServer(server: http.Server, pool: Pool): WebSocke
 
     // Prune stale connections
     const now = Date.now();
+
     for (const [id, client] of clients) {
       if (now - client.lastPing > 60000) {
         client.ws.terminate();
@@ -141,5 +147,6 @@ export function createWebSocketServer(server: http.Server, pool: Pool): WebSocke
   (globalThis as Record<string, unknown>).__yyc3_broadcast = broadcast;
 
   console.log('[WS] WebSocket server initialized');
+
   return wss;
 }

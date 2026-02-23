@@ -22,9 +22,9 @@
 
 | 📊 项目状态 | 🛠️ 技术栈 | 📈 质量指标 |
 |:---:|:---:|:---:|
-| [![Version](https://img.shields.io/badge/version-0.33.0-blue.svg)](https://github.com/YanYuCloudCube/Family-π³) | [![TypeScript](https://img.shields.io/badge/TypeScript-5.7.0-blue.svg)](https://www.typescriptlang.org/) | [![Lines of Code](https://img.shields.io/badge/Code-25%2Bk-brightgreen.svg)](https://github.com/YanYuCloudCube/Family-π³) |
-| [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/YanYuCloudCube/Family-π³/blob/main/LICENSE) | [![React](https://img.shields.io/badge/React-18.3.1-cyan.svg)](https://reactjs.org/) | [![Components](https://img.shields.io/badge/Components-50%2B-orange.svg)](https://github.com/YanYuCloudCube/Family-π³) |
-| [![GitHub Stars](https://img.shields.io/github/stars/YanYuCloudCube/Family-π³?style=social)](https://github.com/YanYuCloudCube/Family-π³/stargazers) | [![Vite](https://img.shields.io/badge/Vite-6.3.5-purple.svg)](https://vitejs.dev/) | [![Tests](https://img.shields.io/badge/Tests-62%20Passed-brightgreen.svg)](https://github.com/YanYuCloudCube/Family-π³) |
+| [![Version](https://img.shields.io/badge/version-0.33.1-blue.svg)](https://github.com/YanYuCloudCube/Family-π³) | [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://www.typescriptlang.org/) | [![Lines of Code](https://img.shields.io/badge/Code-25%2Bk-brightgreen.svg)](https://github.com/YanYuCloudCube/Family-π³) |
+| [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/YanYuCloudCube/Family-π³/blob/main/LICENSE) | [![React](https://img.shields.io/badge/React-18.3.1-cyan.svg)](https://reactjs.org/) | [![Components](https://img.shields.io/badge/Components-93%2B-orange.svg)](https://github.com/YanYuCloudCube/Family-π³) |
+| [![GitHub Stars](https://img.shields.io/github/stars/YanYuCloudCube/Family-π³?style=social)](https://github.com/YanYuCloudCube/Family-π³/stargazers) | [![Vite](https://img.shields.io/badge/Vite-6.3.5-purple.svg)](https://vitejs.dev/) | [![Tests](https://img.shields.io/badge/Tests-249%20Passed-brightgreen.svg)](https://github.com/YanYuCloudCube/Family-π³) |
 | [![GitHub Forks](https://img.shields.io/github/forks/YanYuCloudCube/Family-π³?style=social)](https://github.com/YanYuCloudCube/Family-π³/network/members) | [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1.12-38B2AC.svg)](https://tailwindcss.com/) | [![Coverage](https://img.shields.io/badge/Coverage-85%25-brightgreen.svg)](https://github.com/YanYuCloudCube/Family-π³) |
 | [![GitHub Issues](https://img.shields.io/github/issues/YanYuCloudCube/Family-π³)](https://github.com/YanYuCloudCube/Family-π³/issues) | [![Zustand](https://img.shields.io/badge/Zustand-5.0.11-orange.svg)](https://github.com/pmndrs/zustand) | [![Architecture](https://img.shields.io/badge/Layers-L01--L09-blue.svg)](https://github.com/YanYuCloudCube/Family-π³) |
 | [![GitHub PRs](https://img.shields.io/github/issues-pr/YanYuCloudCube/Family-π³)](https://github.com/YanYuCloudCube/Family-π³/pulls) | [![MCP](https://img.shields.io/badge/MCP-Supported-9cf.svg)](https://modelcontextprotocol.io/) | [![AI Agents](https://img.shields.io/badge/Agents-7%20Family-purple.svg)](https://github.com/YanYuCloudCube/Family-π³) |
@@ -135,7 +135,7 @@
 
 | 指标 | 数值 | 说明 |
 |-------|------|------|
-| **组件数量** | 50+ React 组件（35+ 控制台标签页） | 模块化 UI 体系 |
+| **组件数量** | 93+ React 组件（35+ 控制台标签页） | 模块化 UI 体系 |
 | **代码量** | 25,000+ 行代码（TypeScript/TSX） | 类型安全开发 |
 | **AI 智能体** | 7 个个性化智能体，双身份系统 | Family AI 成员 |
 | **LLM 提供商** | 8 个集成（OpenAI、Anthropic、DeepSeek、智谱、Google、Groq、Ollama、LM Studio） | 多模型支持 |

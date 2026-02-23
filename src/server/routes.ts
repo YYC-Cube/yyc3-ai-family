@@ -5,21 +5,23 @@
 
 import { Express, Request, Response, NextFunction } from 'express';
 import { Pool } from 'pg';
-import { v4 as uuid } from 'uuid';
 
 // === Parameter Validation Middleware ===
 
 function validate(schema: Record<string, 'string' | 'number' | 'boolean' | 'array'>) {
   return (req: Request, res: Response, next: NextFunction) => {
     const body = req.body;
+
     for (const [key, type] of Object.entries(schema)) {
       if (body[key] === undefined) continue;
       if (type === 'array' && !Array.isArray(body[key])) {
         res.status(400).json({ error: `Field "${key}" must be an array` });
+
         return;
       }
       if (type !== 'array' && typeof body[key] !== type) {
         res.status(400).json({ error: `Field "${key}" must be ${type}, got ${typeof body[key]}` });
+
         return;
       }
     }
@@ -32,6 +34,7 @@ function requireFields(...fields: string[]) {
     for (const field of fields) {
       if (req.body[field] === undefined || req.body[field] === null) {
         res.status(400).json({ error: `Missing required field: "${field}"` });
+
         return;
       }
     }
@@ -51,8 +54,9 @@ export function createRoutes(app: Express, pool: Pool): void {
   app.get('/api/v1/sessions', async (_req: Request, res: Response) => {
     try {
       const { rows } = await pool.query(
-        'SELECT * FROM yyc3_sessions ORDER BY created_at DESC LIMIT 100'
+        'SELECT * FROM yyc3_sessions ORDER BY created_at DESC LIMIT 100',
       );
+
       res.json(rows);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
@@ -68,13 +72,14 @@ export function createRoutes(app: Express, pool: Pool): void {
         const { title } = req.body;
         const { rows } = await pool.query(
           'INSERT INTO yyc3_sessions (title) VALUES ($1) RETURNING *',
-          [title]
+          [title],
         );
+
         res.status(201).json(rows[0]);
       } catch (err) {
         res.status(500).json({ error: (err as Error).message });
       }
-    }
+    },
   );
 
   // PATCH /sessions/:id/archive — Archive a session
@@ -82,10 +87,12 @@ export function createRoutes(app: Express, pool: Pool): void {
     try {
       const { rows } = await pool.query(
         'UPDATE yyc3_sessions SET is_archived = true WHERE id = $1 RETURNING *',
-        [req.params.id]
+        [req.params.id],
       );
+
       if (rows.length === 0) {
         res.status(404).json({ error: 'Session not found' });
+
         return;
       }
       res.json(rows[0]);
@@ -103,8 +110,9 @@ export function createRoutes(app: Express, pool: Pool): void {
     try {
       const { rows } = await pool.query(
         'SELECT * FROM yyc3_messages WHERE session_id = $1 ORDER BY timestamp ASC',
-        [req.params.id]
+        [req.params.id],
       );
+
       res.json(rows);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
@@ -121,13 +129,14 @@ export function createRoutes(app: Express, pool: Pool): void {
         const { rows } = await pool.query(
           `INSERT INTO yyc3_messages (session_id, role, content, agent_name, agent_role, timestamp)
            VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-          [req.params.id, role, content, agent_name || null, agent_role || null, timestamp || new Date()]
+          [req.params.id, role, content, agent_name || null, agent_role || null, timestamp || new Date()],
         );
+
         res.status(201).json(rows[0]);
       } catch (err) {
         res.status(500).json({ error: (err as Error).message });
       }
-    }
+    },
   );
 
   // ────────────────────────────────
@@ -143,19 +152,21 @@ export function createRoutes(app: Express, pool: Pool): void {
       // Try to find existing active session
       const existing = await pool.query(
         'SELECT * FROM yyc3_agent_sessions WHERE agent_id = $1 AND is_active = true ORDER BY updated_at DESC LIMIT 1',
-        [agentId]
+        [agentId],
       );
 
       if (existing.rows.length > 0) {
         res.json(existing.rows[0]);
+
         return;
       }
 
       // Create new session
       const { rows } = await pool.query(
         'INSERT INTO yyc3_agent_sessions (agent_id, agent_name) VALUES ($1, $2) RETURNING *',
-        [agentId, agent_name || agentId]
+        [agentId, agent_name || agentId],
       );
+
       res.status(201).json(rows[0]);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
@@ -167,7 +178,7 @@ export function createRoutes(app: Express, pool: Pool): void {
     try {
       await pool.query(
         'UPDATE yyc3_agent_sessions SET is_active = false WHERE agent_id = $1 AND is_active = true',
-        [req.params.agentId]
+        [req.params.agentId],
       );
       res.json({ success: true });
     } catch (err) {
@@ -183,8 +194,9 @@ export function createRoutes(app: Express, pool: Pool): void {
          JOIN yyc3_agent_sessions s ON m.session_id = s.id
          WHERE s.agent_id = $1 AND s.is_active = true
          ORDER BY m.timestamp ASC`,
-        [req.params.agentId]
+        [req.params.agentId],
       );
+
       res.json(rows);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
@@ -202,11 +214,12 @@ export function createRoutes(app: Express, pool: Pool): void {
         // Get active session
         const session = await pool.query(
           'SELECT id FROM yyc3_agent_sessions WHERE agent_id = $1 AND is_active = true ORDER BY updated_at DESC LIMIT 1',
-          [agentId]
+          [agentId],
         );
 
         if (session.rows.length === 0) {
           res.status(404).json({ error: 'No active session for this agent' });
+
           return;
         }
 
@@ -214,20 +227,20 @@ export function createRoutes(app: Express, pool: Pool): void {
         const { rows } = await pool.query(
           `INSERT INTO yyc3_agent_messages (session_id, agent_id, role, content, timestamp)
            VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-          [sessionId, agentId, role, content, timestamp || new Date()]
+          [sessionId, agentId, role, content, timestamp || new Date()],
         );
 
         // Update session counters
         await pool.query(
           'UPDATE yyc3_agent_sessions SET turn_count = turn_count + 1 WHERE id = $1',
-          [sessionId]
+          [sessionId],
         );
 
         res.status(201).json(rows[0]);
       } catch (err) {
         res.status(500).json({ error: (err as Error).message });
       }
-    }
+    },
   );
 
   // ────────────────────────────────
@@ -241,15 +254,16 @@ export function createRoutes(app: Express, pool: Pool): void {
     async (req: Request, res: Response) => {
       try {
         const { node_id, metric_type, value, unit } = req.body;
+
         await pool.query(
           'INSERT INTO yyc3_metrics (node_id, metric_type, value, unit) VALUES ($1, $2, $3, $4)',
-          [node_id, metric_type, value, unit || '%']
+          [node_id, metric_type, value, unit || '%'],
         );
         res.status(201).json({ success: true });
       } catch (err) {
         res.status(500).json({ error: (err as Error).message });
       }
-    }
+    },
   );
 
   // GET /metrics — Query metrics
@@ -262,8 +276,9 @@ export function createRoutes(app: Express, pool: Pool): void {
         `SELECT * FROM yyc3_metrics
          WHERE node_id = $1 AND metric_type = $2
          ORDER BY recorded_at DESC LIMIT $3`,
-        [node_id, metric_type, limitVal]
+        [node_id, metric_type, limitVal],
       );
+
       res.json(rows.reverse());
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
@@ -292,6 +307,7 @@ export function createRoutes(app: Express, pool: Pool): void {
       params.push(limitVal);
 
       const { rows } = await pool.query(query, params);
+
       res.json(rows);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
@@ -306,13 +322,14 @@ export function createRoutes(app: Express, pool: Pool): void {
         const { level, source, message } = req.body;
         const { rows } = await pool.query(
           'INSERT INTO yyc3_logs (level, source, message) VALUES ($1, $2, $3) RETURNING *',
-          [level, source, message]
+          [level, source, message],
         );
+
         res.status(201).json(rows[0]);
       } catch (err) {
         res.status(500).json({ error: (err as Error).message });
       }
-    }
+    },
   );
 
   // ────────────────────────────────
@@ -323,6 +340,7 @@ export function createRoutes(app: Express, pool: Pool): void {
   app.get('/api/v1/projects', async (_req: Request, res: Response) => {
     try {
       const { rows } = await pool.query('SELECT * FROM yyc3_projects ORDER BY created_at DESC');
+
       res.json(rows);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
@@ -333,8 +351,10 @@ export function createRoutes(app: Express, pool: Pool): void {
   app.get('/api/v1/projects/:id', async (req: Request, res: Response) => {
     try {
       const { rows } = await pool.query('SELECT * FROM yyc3_projects WHERE id = $1', [req.params.id]);
+
       if (rows.length === 0) {
         res.status(404).json({ error: 'Project not found' });
+
         return;
       }
       res.json(rows[0]);
@@ -353,13 +373,14 @@ export function createRoutes(app: Express, pool: Pool): void {
         const { rows } = await pool.query(
           `INSERT INTO yyc3_projects (name, description, project_type, language, language_color, branch, status)
            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-          [name, description || '', project_type, language, language_color || 'bg-blue-500', branch || 'main', status || 'development']
+          [name, description || '', project_type, language, language_color || 'bg-blue-500', branch || 'main', status || 'development'],
         );
+
         res.status(201).json(rows[0]);
       } catch (err) {
         res.status(500).json({ error: (err as Error).message });
       }
-    }
+    },
   );
 
   // PUT /projects/:id — Update project
@@ -377,25 +398,29 @@ export function createRoutes(app: Express, pool: Pool): void {
             branch = COALESCE($6, branch),
             stars = COALESCE($7, stars)
            WHERE id = $1 RETURNING *`,
-          [req.params.id, name, description, status, health, branch, stars]
+          [req.params.id, name, description, status, health, branch, stars],
         );
+
         if (rows.length === 0) {
           res.status(404).json({ error: 'Project not found' });
+
           return;
         }
         res.json(rows[0]);
       } catch (err) {
         res.status(500).json({ error: (err as Error).message });
       }
-    }
+    },
   );
 
   // DELETE /projects/:id — Delete project
   app.delete('/api/v1/projects/:id', async (req: Request, res: Response) => {
     try {
       const { rowCount } = await pool.query('DELETE FROM yyc3_projects WHERE id = $1', [req.params.id]);
+
       if (rowCount === 0) {
         res.status(404).json({ error: 'Project not found' });
+
         return;
       }
       res.json({ success: true });
@@ -425,6 +450,7 @@ export function createRoutes(app: Express, pool: Pool): void {
 
       query += ' ORDER BY created_at DESC';
       const { rows } = await pool.query(query, params);
+
       res.json(rows);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
@@ -435,8 +461,10 @@ export function createRoutes(app: Express, pool: Pool): void {
   app.get('/api/v1/artifacts/:id', async (req: Request, res: Response) => {
     try {
       const { rows } = await pool.query('SELECT * FROM yyc3_artifacts WHERE id = $1', [req.params.id]);
+
       if (rows.length === 0) {
         res.status(404).json({ error: 'Artifact not found' });
+
         return;
       }
       res.json(rows[0]);
@@ -456,13 +484,14 @@ export function createRoutes(app: Express, pool: Pool): void {
         const { rows } = await pool.query(
           `INSERT INTO yyc3_artifacts (title, artifact_type, language, content, size_bytes, generated_by, agent_id, tags, version)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-          [title, artifact_type, language, content, size_bytes, generated_by || null, agent_id || null, tags || [], version || 'v1.0']
+          [title, artifact_type, language, content, size_bytes, generated_by || null, agent_id || null, tags || [], version || 'v1.0'],
         );
+
         res.status(201).json(rows[0]);
       } catch (err) {
         res.status(500).json({ error: (err as Error).message });
       }
-    }
+    },
   );
 
   // PUT /artifacts/:id — Update artifact
@@ -479,10 +508,12 @@ export function createRoutes(app: Express, pool: Pool): void {
           version = COALESCE($6, version),
           is_starred = COALESCE($7, is_starred)
          WHERE id = $1 RETURNING *`,
-        [req.params.id, title, content, size_bytes, tags, version, is_starred]
+        [req.params.id, title, content, size_bytes, tags, version, is_starred],
       );
+
       if (rows.length === 0) {
         res.status(404).json({ error: 'Artifact not found' });
+
         return;
       }
       res.json(rows[0]);
@@ -495,8 +526,10 @@ export function createRoutes(app: Express, pool: Pool): void {
   app.delete('/api/v1/artifacts/:id', async (req: Request, res: Response) => {
     try {
       const { rowCount } = await pool.query('DELETE FROM yyc3_artifacts WHERE id = $1', [req.params.id]);
+
       if (rowCount === 0) {
         res.status(404).json({ error: 'Artifact not found' });
+
         return;
       }
       res.json({ success: true });
@@ -510,10 +543,12 @@ export function createRoutes(app: Express, pool: Pool): void {
     try {
       const { rows } = await pool.query(
         'UPDATE yyc3_artifacts SET is_starred = NOT is_starred WHERE id = $1 RETURNING *',
-        [req.params.id]
+        [req.params.id],
       );
+
       if (rows.length === 0) {
         res.status(404).json({ error: 'Artifact not found' });
+
         return;
       }
       res.json(rows[0]);
@@ -529,8 +564,10 @@ export function createRoutes(app: Express, pool: Pool): void {
   app.get('/api/v1/preferences/:key', async (req: Request, res: Response) => {
     try {
       const { rows } = await pool.query('SELECT value FROM yyc3_preferences WHERE key = $1', [req.params.key]);
+
       if (rows.length === 0) {
         res.status(404).json({ error: 'Preference not found' });
+
         return;
       }
       res.json(rows[0]);
@@ -546,13 +583,13 @@ export function createRoutes(app: Express, pool: Pool): void {
         await pool.query(
           `INSERT INTO yyc3_preferences (key, value) VALUES ($1, $2)
            ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW()`,
-          [req.params.key, JSON.stringify(req.body.value)]
+          [req.params.key, JSON.stringify(req.body.value)],
         );
         res.json({ success: true });
       } catch (err) {
         res.status(500).json({ error: (err as Error).message });
       }
-    }
+    },
   );
 
   // ────────────────────────────────
@@ -562,6 +599,7 @@ export function createRoutes(app: Express, pool: Pool): void {
   app.get('/api/v1/nodes', async (_req: Request, res: Response) => {
     try {
       const { rows } = await pool.query('SELECT * FROM yyc3_nodes ORDER BY display_name');
+
       res.json(rows);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
@@ -573,7 +611,7 @@ export function createRoutes(app: Express, pool: Pool): void {
     try {
       await pool.query(
         'UPDATE yyc3_nodes SET last_heartbeat = NOW(), status = $2 WHERE id = $1',
-        [req.params.id, req.body.status || 'online']
+        [req.params.id, req.body.status || 'online'],
       );
       res.json({ success: true });
     } catch (err) {

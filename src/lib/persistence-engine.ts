@@ -109,6 +109,7 @@ export class LocalStorageAdapter implements StorageAdapter {
   async read(domain: PersistDomain): Promise<unknown[]> {
     try {
       const raw = localStorage.getItem(`${LS_PREFIX}${domain}`);
+
       return raw ? JSON.parse(raw) : [];
     } catch { return []; }
   }
@@ -123,19 +124,23 @@ export class LocalStorageAdapter implements StorageAdapter {
 
   async append(domain: PersistDomain, record: unknown): Promise<void> {
     const existing = await this.read(domain);
+
     existing.push(record);
     // Keep reasonable limits
     const maxRecords = domain.includes('metrics') ? 500 : domain.includes('log') ? 1000 : 200;
     const trimmed = existing.slice(-maxRecords);
+
     await this.write(domain, trimmed);
   }
 
   async remove(domain: PersistDomain, id: string): Promise<void> {
     const existing = await this.read(domain);
-    const filtered = existing.filter((r) => {
+    const filtered = existing.filter(r => {
       const rec = r as Record<string, unknown>;
+
       return rec.id !== id;
     });
+
     await this.write(domain, filtered);
   }
 
@@ -154,9 +159,11 @@ export class LocalStorageAdapter implements StorageAdapter {
 
     for (const domain of domains) {
       const raw = localStorage.getItem(`${LS_PREFIX}${domain}`) || '[]';
+
       totalSize += raw.length * 2; // approximate bytes (UTF-16)
       try {
         const arr = JSON.parse(raw);
+
         domainCounts[domain] = Array.isArray(arr) ? arr.length : 1;
         totalRecords += domainCounts[domain];
       } catch {
@@ -179,6 +186,7 @@ export class LocalStorageAdapter implements StorageAdapter {
     try {
       localStorage.setItem('__ping__', '1');
       localStorage.removeItem('__ping__');
+
       return true;
     } catch { return false; }
   }
@@ -204,14 +212,17 @@ export class NasSQLiteAdapter implements StorageAdapter {
       const result = await querySQLite(
         `SELECT data FROM yyc3_persist WHERE domain = ? ORDER BY updated_at DESC`,
         [domain],
-        this.config
+        this.config,
       );
+
       return result.rows.map((row: unknown[]) => {
         const data = row[0] as string;
+
         try { return JSON.parse(data); } catch { return data; }
       });
     } catch {
       this._isOnline = false;
+
       return [];
     }
   }
@@ -224,10 +235,11 @@ export class NasSQLiteAdapter implements StorageAdapter {
         const rec = item as Record<string, unknown>;
         const id = (typeof rec.id === 'string' ? rec.id : null) || crypto.randomUUID();
         const json = JSON.stringify(item);
+
         await querySQLite(
           `INSERT INTO yyc3_persist (id, domain, data, version, synced) VALUES (?, ?, ?, 1, 1)`,
           [id, domain, json],
-          this.config
+          this.config,
         );
       }
     } catch {
@@ -240,10 +252,11 @@ export class NasSQLiteAdapter implements StorageAdapter {
       const rec = record as Record<string, unknown>;
       const id = (typeof rec.id === 'string' ? rec.id : null) || crypto.randomUUID();
       const json = JSON.stringify(record);
+
       await querySQLite(
         `INSERT OR REPLACE INTO yyc3_persist (id, domain, data, version, synced) VALUES (?, ?, ?, 1, 1)`,
         [id, domain, json],
-        this.config
+        this.config,
       );
     } catch {
       this._isOnline = false;
@@ -255,7 +268,7 @@ export class NasSQLiteAdapter implements StorageAdapter {
       await querySQLite(
         `DELETE FROM yyc3_persist WHERE domain = ? AND id = ?`,
         [domain, id],
-        this.config
+        this.config,
       );
     } catch {
       this._isOnline = false;
@@ -275,14 +288,16 @@ export class NasSQLiteAdapter implements StorageAdapter {
       const result = await querySQLite(
         `SELECT domain, COUNT(*) as cnt FROM yyc3_persist GROUP BY domain`,
         [],
-        this.config
+        this.config,
       );
       const domainCounts: Record<string, number> = {};
       let totalRecords = 0;
+
       for (const row of result.rows) {
         domainCounts[row[0] as string] = row[1] as number;
         totalRecords += row[1] as number;
       }
+
       return {
         adapter: this.name,
         totalRecords,
@@ -294,6 +309,7 @@ export class NasSQLiteAdapter implements StorageAdapter {
       };
     } catch {
       this._isOnline = false;
+
       return {
         adapter: this.name,
         totalRecords: 0,
@@ -309,10 +325,13 @@ export class NasSQLiteAdapter implements StorageAdapter {
   async ping(): Promise<boolean> {
     try {
       const result = await testSQLiteConnection(this.config);
+
       this._isOnline = result.success;
+
       return result.success;
     } catch {
       this._isOnline = false;
+
       return false;
     }
   }
@@ -328,22 +347,22 @@ export type SyncStrategy = 'local-only' | 'nas-primary' | 'dual-write' | 'auto';
 const MAX_SYNC_QUEUE_SIZE = 1000;
 
 // Exponential backoff configuration for NAS retry
-const BACKOFF_BASE_MS = 1000;     // 1 second initial delay
-const BACKOFF_MAX_MS = 60000;     // 60 seconds max delay
-const BACKOFF_MULTIPLIER = 2;     // double each attempt
+const BACKOFF_BASE_MS = 1000; // 1 second initial delay
+const BACKOFF_MAX_MS = 60000; // 60 seconds max delay
+const BACKOFF_MULTIPLIER = 2; // double each attempt
 
 export interface PersistenceEngineConfig {
   strategy: SyncStrategy;
-  autoSaveInterval: number;  // ms, 0 = disabled
+  autoSaveInterval: number; // ms, 0 = disabled
   maxRetries: number;
-  snapshotInterval: number;  // ms, 0 = disabled
+  snapshotInterval: number; // ms, 0 = disabled
 }
 
 const ENGINE_CONFIG_KEY = 'yyc3-persistence-config';
 
 const DEFAULT_ENGINE_CONFIG: PersistenceEngineConfig = {
   strategy: 'auto',
-  autoSaveInterval: 30000,   // 30 seconds
+  autoSaveInterval: 30000, // 30 seconds
   maxRetries: 3,
   snapshotInterval: 3600000, // 1 hour
 };
@@ -351,8 +370,10 @@ const DEFAULT_ENGINE_CONFIG: PersistenceEngineConfig = {
 export function loadEngineConfig(): PersistenceEngineConfig {
   try {
     const raw = localStorage.getItem(ENGINE_CONFIG_KEY);
+
     if (raw) return { ...DEFAULT_ENGINE_CONFIG, ...JSON.parse(raw) };
   } catch { /* ignore */ }
+
   return { ...DEFAULT_ENGINE_CONFIG };
 }
 
@@ -367,12 +388,12 @@ class PersistenceEngine {
   private nasAdapter: NasSQLiteAdapter;
   private config: PersistenceEngineConfig;
   private _nasAvailable = false;
-  private _syncQueue: Array<{ domain: PersistDomain; action: string; data?: unknown }> = [];
+  private _syncQueue: { domain: PersistDomain; action: string; data?: unknown }[] = [];
   private _lastSync = 0;
-  private _listeners: Array<(event: PersistEvent) => void> = [];
-  private _retryAttempt = 0;           // Phase 50: exponential backoff counter
+  private _listeners: ((event: PersistEvent) => void)[] = [];
+  private _retryAttempt = 0; // Phase 50: exponential backoff counter
   private _retryTimer: ReturnType<typeof setTimeout> | null = null;
-  private _queueOverflowCount = 0;     // Phase 50: track how many items were evicted
+  private _queueOverflowCount = 0; // Phase 50: track how many items were evicted
 
   constructor() {
     this.localStorage = new LocalStorageAdapter();
@@ -390,6 +411,7 @@ class PersistenceEngine {
   // --- Event System ---
   on(listener: (event: PersistEvent) => void) {
     this._listeners.push(listener);
+
     return () => {
       this._listeners = this._listeners.filter(l => l !== listener);
     };
@@ -457,6 +479,7 @@ class PersistenceEngine {
 
   async checkNasHealth(): Promise<boolean> {
     this._nasAvailable = await this.nasAdapter.ping();
+
     return this._nasAvailable;
   }
 
@@ -480,6 +503,7 @@ class PersistenceEngine {
     this._syncQueue.push(item);
     if (this._syncQueue.length > MAX_SYNC_QUEUE_SIZE) {
       const evicted = this._syncQueue.length - MAX_SYNC_QUEUE_SIZE;
+
       this._syncQueue = this._syncQueue.slice(-MAX_SYNC_QUEUE_SIZE);
       this._queueOverflowCount += evicted;
       this.emit({ type: 'queue-overflow', evicted, currentSize: this._syncQueue.length });
@@ -499,15 +523,17 @@ class PersistenceEngine {
 
     const delay = Math.min(
       BACKOFF_BASE_MS * Math.pow(BACKOFF_MULTIPLIER, this._retryAttempt),
-      BACKOFF_MAX_MS
+      BACKOFF_MAX_MS,
     );
 
     this._retryTimer = setTimeout(async () => {
       this._retryTimer = null;
       // Re-check NAS availability before flush
       const online = await this.checkNasHealth();
+
       if (online && this._syncQueue.length > 0) {
         const result = await this.flushSyncQueue();
+
         if (result.failed > 0) {
           // Increase backoff for next attempt
           this._retryAttempt = Math.min(this._retryAttempt + 1, 10);
@@ -535,10 +561,11 @@ class PersistenceEngine {
     nextRetryMs: number;
     overflowCount: number;
     strategy: SyncStrategy;
-  } {
+    } {
     const nextRetryMs = this._retryTimer
       ? Math.min(BACKOFF_BASE_MS * Math.pow(BACKOFF_MULTIPLIER, this._retryAttempt), BACKOFF_MAX_MS)
       : 0;
+
     return {
       nasOnline: this._nasAvailable,
       pendingCount: this._syncQueue.length,
@@ -578,6 +605,7 @@ class PersistenceEngine {
     this._syncQueue = remaining;
     if (success > 0) this._lastSync = Date.now();
     this.emit({ type: 'queue-flush', success, failed });
+
     return { success, failed };
   }
 
@@ -596,6 +624,7 @@ class PersistenceEngine {
 
     for (const domain of allDomains) {
       const records = await this.read(domain);
+
       data[domain] = records;
       totalRecords += records.length;
       totalSize += JSON.stringify(records).length;
@@ -615,6 +644,7 @@ class PersistenceEngine {
 
     // Store snapshot in localStorage
     const snapshots = this.getSnapshots();
+
     snapshots.unshift(snapshot);
     // Keep last 10 snapshots
     try {
@@ -622,6 +652,7 @@ class PersistenceEngine {
     } catch { /* ignore */ }
 
     this.emit({ type: 'snapshot-created', snapshotId: snapshot.id });
+
     return snapshot;
   }
 
@@ -634,6 +665,7 @@ class PersistenceEngine {
   async restoreSnapshot(snapshot: PersistSnapshot): Promise<void> {
     for (const domain of snapshot.domains) {
       const records = snapshot.data[domain];
+
       if (records) {
         await this.write(domain, records);
       }
@@ -648,6 +680,7 @@ class PersistenceEngine {
       .filter(k => k.startsWith('yyc3'));
 
     const exportData: Record<string, unknown> = {};
+
     for (const key of allKeys) {
       try {
         exportData[key] = JSON.parse(localStorage.getItem(key) || '""');
@@ -743,6 +776,7 @@ export function getPersistenceEngine(): PersistenceEngine {
   if (!_instance) {
     _instance = new PersistenceEngine();
   }
+
   return _instance;
 }
 
@@ -766,7 +800,8 @@ export async function persistChatSession(session: {
 }): Promise<void> {
   const engine = getPersistenceEngine();
   const sessions = (await engine.read('chat_sessions')) as Record<string, unknown>[];
-  const idx = sessions.findIndex((s) => s.id === session.id);
+  const idx = sessions.findIndex(s => s.id === session.id);
+
   if (idx >= 0) {
     sessions[idx] = { ...sessions[idx], ...session, updatedAt: new Date().toISOString() };
   } else {
@@ -778,7 +813,8 @@ export async function persistChatSession(session: {
 export async function persistAgentHistory(agentId: string, messages: unknown[]): Promise<void> {
   const engine = getPersistenceEngine();
   const histories = (await engine.read('agent_messages')) as Record<string, unknown>[];
-  const existing = histories.find((h) => h.agentId === agentId);
+  const existing = histories.find(h => h.agentId === agentId);
+
   if (existing) {
     existing.messages = messages;
     existing.updatedAt = new Date().toISOString();
@@ -790,6 +826,7 @@ export async function persistAgentHistory(agentId: string, messages: unknown[]):
 
 export async function persistMetricsSnapshot(snapshot: unknown): Promise<void> {
   const engine = getPersistenceEngine();
+
   await engine.append('metrics_snapshots', {
     id: `m-${Date.now()}`,
     ...snapshot as object,
@@ -807,6 +844,7 @@ export async function persistMetricsSnapshot(snapshot: unknown): Promise<void> {
  */
 export async function readKnowledgeEntries(): Promise<unknown[]> {
   const engine = getPersistenceEngine();
+
   return engine.read('knowledge_base');
 }
 
@@ -816,6 +854,7 @@ export async function readKnowledgeEntries(): Promise<unknown[]> {
  */
 export async function writeKnowledgeEntries(entries: unknown[]): Promise<void> {
   const engine = getPersistenceEngine();
+
   await engine.write('knowledge_base', entries);
 }
 
@@ -827,7 +866,8 @@ export async function upsertKnowledgeEntry(entry: unknown): Promise<void> {
   const entries = (await engine.read('knowledge_base')) as Record<string, unknown>[];
   const rec = entry as Record<string, unknown>;
   const id = rec.id;
-  const idx = entries.findIndex((e) => e.id === id);
+  const idx = entries.findIndex(e => e.id === id);
+
   if (idx >= 0) {
     entries[idx] = entry as Record<string, unknown>;
   } else {
@@ -841,6 +881,7 @@ export async function upsertKnowledgeEntry(entry: unknown): Promise<void> {
  */
 export async function deleteKnowledgeEntry(id: string): Promise<void> {
   const engine = getPersistenceEngine();
+
   await engine.remove('knowledge_base', id);
 }
 
@@ -853,6 +894,7 @@ export async function deleteKnowledgeEntry(id: string): Promise<void> {
  */
 export async function readAgentProfiles(): Promise<unknown[]> {
   const engine = getPersistenceEngine();
+
   return engine.read('agent_profiles');
 }
 
@@ -861,6 +903,7 @@ export async function readAgentProfiles(): Promise<unknown[]> {
  */
 export async function writeAgentProfiles(profiles: unknown[]): Promise<void> {
   const engine = getPersistenceEngine();
+
   await engine.write('agent_profiles', profiles);
 }
 

@@ -17,9 +17,9 @@
 
 export interface DeviceConfig {
   id: string;
-  hostName: string;       // editable
-  displayName: string;    // editable
-  ip: string;             // editable
+  hostName: string; // editable
+  displayName: string; // editable
+  ip: string; // editable
   // --- auto-detected / read-only ---
   chip: string;
   cores: string;
@@ -27,8 +27,8 @@ export interface DeviceConfig {
   storage: string;
   os: string;
   role: string;
-  icon: string;           // emoji/code
-  color: string;          // tailwind color
+  icon: string; // emoji/code
+  color: string; // tailwind color
   // --- status ---
   status: 'online' | 'offline' | 'standby' | 'unknown';
   lastPing: number;
@@ -152,11 +152,14 @@ export const DEFAULT_DEVICES: DeviceConfig[] = [
 export function loadDeviceConfigs(): DeviceConfig[] {
   try {
     const raw = localStorage.getItem(DEVICE_STORAGE_KEY);
+
     if (raw) {
       const saved = JSON.parse(raw) as DeviceConfig[];
+
       // Merge with defaults to ensure new fields are present
       return DEFAULT_DEVICES.map(def => {
         const saved_dev = saved.find(s => s.id === def.id);
+
         if (saved_dev) {
           return {
             ...def,
@@ -171,10 +174,12 @@ export function loadDeviceConfigs(): DeviceConfig[] {
             })),
           };
         }
+
         return def;
       });
     }
   } catch { /* ignore */ }
+
   return [...DEFAULT_DEVICES];
 }
 
@@ -193,11 +198,13 @@ export async function pingDevice(device: DeviceConfig): Promise<{
   latencyMs: number;
 }> {
   const start = performance.now();
+
   try {
     // Try to reach any HTTP service on the device
     const httpService = device.services.find(
-      s => s.enabled && (s.protocol === 'http' || s.protocol === 'https')
+      s => s.enabled && (s.protocol === 'http' || s.protocol === 'https'),
     );
+
     if (!httpService) {
       return { reachable: false, latencyMs: 0 };
     }
@@ -211,9 +218,11 @@ export async function pingDevice(device: DeviceConfig): Promise<{
       mode: 'no-cors', // Will succeed as opaque response if reachable
       signal: controller.signal,
     });
+
     clearTimeout(timeout);
 
     const latencyMs = Math.round(performance.now() - start);
+
     return { reachable: true, latencyMs };
   } catch {
     return { reachable: false, latencyMs: Math.round(performance.now() - start) };
@@ -222,6 +231,7 @@ export async function pingDevice(device: DeviceConfig): Promise<{
 
 export async function pingService(device: DeviceConfig, serviceId: string): Promise<boolean> {
   const svc = device.services.find(s => s.id === serviceId);
+
   if (!svc || !svc.enabled) return false;
 
   if (svc.protocol === 'ssh' || svc.protocol === 'tcp') {
@@ -233,8 +243,10 @@ export async function pingService(device: DeviceConfig, serviceId: string): Prom
     const url = `${svc.protocol}://${device.ip}:${svc.port}${svc.path || '/'}`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
+
     await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
     clearTimeout(timeout);
+
     return true;
   } catch {
     return false;
@@ -248,7 +260,7 @@ export async function pingService(device: DeviceConfig, serviceId: string): Prom
 export interface NasSQLiteConfig {
   host: string;
   port: number;
-  dbPath: string;  // e.g., /Volume2/yyc3/data.db
+  dbPath: string; // e.g., /Volume2/yyc3/data.db
 }
 
 const DEFAULT_SQLITE_CONFIG: NasSQLiteConfig = {
@@ -262,8 +274,10 @@ const SQLITE_CONFIG_KEY = 'yyc3-nas-sqlite-config';
 export function loadSQLiteConfig(): NasSQLiteConfig {
   try {
     const raw = localStorage.getItem(SQLITE_CONFIG_KEY);
+
     if (raw) return { ...DEFAULT_SQLITE_CONFIG, ...JSON.parse(raw) };
   } catch { /* ignore */ }
+
   return { ...DEFAULT_SQLITE_CONFIG };
 }
 
@@ -290,7 +304,7 @@ export interface SQLiteQueryResult {
 export async function querySQLite(
   sql: string,
   params: unknown[] = [],
-  config?: NasSQLiteConfig
+  config?: NasSQLiteConfig,
 ): Promise<SQLiteQueryResult> {
   const cfg = config || loadSQLiteConfig();
   const url = `http://${cfg.host}:${cfg.port}/api/db/query`;
@@ -309,6 +323,7 @@ export async function querySQLite(
       }),
       signal: controller.signal,
     });
+
     clearTimeout(timeout);
 
     if (!res.ok) {
@@ -318,6 +333,7 @@ export async function querySQLite(
     return await res.json() as SQLiteQueryResult;
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
+
     throw new Error(`NAS SQLite unreachable: ${message}`);
   }
 }
@@ -332,14 +348,17 @@ export async function testSQLiteConnection(config?: NasSQLiteConfig): Promise<{
   version?: string;
 }> {
   const start = performance.now();
+
   try {
     const result = await querySQLite('SELECT sqlite_version() as version', [], config);
     const latency = Math.round(performance.now() - start);
     const version = result.rows?.[0]?.[0] as string;
+
     return { success: true, latencyMs: latency, version };
   } catch (err) {
     const latency = Math.round(performance.now() - start);
     const message = err instanceof Error ? err.message : 'Unknown error';
+
     return { success: false, latencyMs: latency, error: message };
   }
 }
@@ -365,8 +384,10 @@ const DOCKER_CONFIG_KEY = 'yyc3-docker-config';
 export function loadDockerConfig(): DockerConfig {
   try {
     const raw = localStorage.getItem(DOCKER_CONFIG_KEY);
+
     if (raw) return { ...DEFAULT_DOCKER_CONFIG, ...JSON.parse(raw) };
   } catch { /* ignore */ }
+
   return { ...DEFAULT_DOCKER_CONFIG };
 }
 
@@ -378,6 +399,7 @@ export function saveDockerConfig(config: DockerConfig): void {
 
 function dockerUrl(path: string, config?: DockerConfig): string {
   const cfg = config || loadDockerConfig();
+
   return `http://${cfg.host}:${cfg.port}/${cfg.apiVersion}${path}`;
 }
 
@@ -395,6 +417,7 @@ async function dockerFetch<T>(path: string, options: RequestInit = {}): Promise<
       },
       signal: controller.signal,
     });
+
     clearTimeout(timeout);
 
     if (!res.ok) {
@@ -405,6 +428,7 @@ async function dockerFetch<T>(path: string, options: RequestInit = {}): Promise<
   } catch (err) {
     clearTimeout(timeout);
     const message = err instanceof Error ? err.message : 'Unknown error';
+
     throw new Error(`Docker API error: ${message}`);
   }
 }
@@ -419,12 +443,12 @@ export interface DockerContainer {
   Created: number;
   State: string;
   Status: string;
-  Ports: Array<{
+  Ports: {
     IP?: string;
     PrivatePort: number;
     PublicPort?: number;
     Type: string;
-  }>;
+  }[];
   Labels: Record<string, string>;
   SizeRw?: number;
   SizeRootFs?: number;
@@ -466,7 +490,9 @@ export const docker = {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 3000);
       const res = await fetch(url, { signal: controller.signal });
+
       clearTimeout(timeout);
+
       return res.ok;
     } catch {
       return false;
@@ -498,12 +524,16 @@ export const docker = {
       const url = dockerUrl(`/containers/${id}/logs?stdout=true&stderr=true&tail=${tail}`);
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
+
       try {
         const res = await fetch(url, { signal: controller.signal });
+
         clearTimeout(timeout);
+
         return await res.text();
       } catch {
         clearTimeout(timeout);
+
         return '[Error fetching logs]';
       }
     },
@@ -518,109 +548,107 @@ export const docker = {
 
 // ============================================================
 // 6. Mock Data (Fallback when NAS unreachable)
+// Updated: 2026-02-23 based on NAS真实审计报告
 // ============================================================
 
 export const MOCK_DOCKER_CONTAINERS: DockerContainer[] = [
   {
     Id: 'a1b2c3d4e5f6',
-    Names: ['/yyc3-postgres'],
-    Image: 'postgres:16-alpine',
-    ImageID: 'sha256:abc123',
-    Command: 'docker-entrypoint.sh postgres',
+    Names: ['/ollama'],
+    Image: 'ollama/ollama:latest',
+    ImageID: 'sha256:ollama123',
+    Command: '/bin/ollama serve',
     Created: Date.now() / 1000 - 86400 * 7,
     State: 'running',
     Status: 'Up 7 days',
-    Ports: [{ IP: '0.0.0.0', PrivatePort: 5432, PublicPort: 5432, Type: 'tcp' }],
-    Labels: { 'com.yyc3.service': 'database' },
+    Ports: [{ IP: '0.0.0.0', PrivatePort: 11434, PublicPort: 11434, Type: 'tcp' }],
+    Labels: { 'com.yyc3.service': 'llm-inference' },
   },
   {
     Id: 'b2c3d4e5f6a1',
-    Names: ['/yyc3-redis'],
-    Image: 'redis:7-alpine',
-    ImageID: 'sha256:def456',
-    Command: 'redis-server',
-    Created: Date.now() / 1000 - 86400 * 7,
+    Names: ['/postgres14'],
+    Image: 'postgres:14-alpine',
+    ImageID: 'sha256:pg14abc',
+    Command: 'docker-entrypoint.sh postgres',
+    Created: Date.now() / 1000 - 86400 * 30,
     State: 'running',
-    Status: 'Up 7 days',
+    Status: 'Up 30 days',
+    Ports: [{ IP: '0.0.0.0', PrivatePort: 5432, PublicPort: 5432, Type: 'tcp' }],
+    Labels: { 'com.yyc3.service': 'database', 'com.yyc3.db': 'yyc3_dev,yyc3_vpn,yyc3_aify' },
+  },
+  {
+    Id: 'c3d4e5f6a1b2',
+    Names: ['/pgvector'],
+    Image: 'pgvector/pgvector:pg14',
+    ImageID: 'sha256:pgvector456',
+    Command: 'docker-entrypoint.sh postgres',
+    Created: Date.now() / 1000 - 86400 * 14,
+    State: 'running',
+    Status: 'Up 14 days',
+    Ports: [{ IP: '0.0.0.0', PrivatePort: 5434, PublicPort: 5434, Type: 'tcp' }],
+    Labels: { 'com.yyc3.service': 'vector-db' },
+  },
+  {
+    Id: 'd4e5f6a1b2c3',
+    Names: ['/redis'],
+    Image: 'redis:7-alpine',
+    ImageID: 'sha256:redis789',
+    Command: 'redis-server',
+    Created: Date.now() / 1000 - 86400 * 5,
+    State: 'running',
+    Status: 'Up 5 days',
     Ports: [{ IP: '0.0.0.0', PrivatePort: 6379, PublicPort: 6379, Type: 'tcp' }],
     Labels: { 'com.yyc3.service': 'cache' },
   },
   {
-    Id: 'c3d4e5f6a1b2',
-    Names: ['/yyc3-sqlite-proxy'],
-    Image: 'yyc3/sqlite-http:latest',
-    ImageID: 'sha256:ghi789',
-    Command: './sqlite-http-server',
+    Id: 'e5f6a1b2c3d4',
+    Names: ['/yyc3-heartbeat'],
+    Image: 'yyc3-heartbeat:latest',
+    ImageID: 'sha256:heartbeat012',
+    Command: 'node heartbeat.js',
     Created: Date.now() / 1000 - 86400 * 3,
     State: 'running',
     Status: 'Up 3 days',
-    Ports: [{ IP: '0.0.0.0', PrivatePort: 8484, PublicPort: 8484, Type: 'tcp' }],
-    Labels: { 'com.yyc3.service': 'sqlite-proxy' },
-  },
-  {
-    Id: 'd4e5f6a1b2c3',
-    Names: ['/yyc3-ws-relay'],
-    Image: 'yyc3/ws-relay:latest',
-    ImageID: 'sha256:jkl012',
-    Command: 'node server.js',
-    Created: Date.now() / 1000 - 86400 * 5,
-    State: 'running',
-    Status: 'Up 5 days',
-    Ports: [{ IP: '0.0.0.0', PrivatePort: 3001, PublicPort: 3001, Type: 'tcp' }],
-    Labels: { 'com.yyc3.service': 'websocket' },
-  },
-  {
-    Id: 'e5f6a1b2c3d4',
-    Names: ['/portainer'],
-    Image: 'portainer/portainer-ce:latest',
-    ImageID: 'sha256:mno345',
-    Command: '/portainer',
-    Created: Date.now() / 1000 - 86400 * 30,
-    State: 'running',
-    Status: 'Up 30 days',
-    Ports: [{ IP: '0.0.0.0', PrivatePort: 9000, PublicPort: 9000, Type: 'tcp' }],
-    Labels: {},
+    Ports: [{ IP: '0.0.0.0', PrivatePort: 9090, PublicPort: 9090, Type: 'tcp' }],
+    Labels: { 'com.yyc3.service': 'heartbeat' },
   },
   {
     Id: 'f6a1b2c3d4e5',
-    Names: ['/yyc3-mcp-server'],
-    Image: 'yyc3/mcp-server:latest',
-    ImageID: 'sha256:pqr678',
+    Names: ['/baiduaapp'],
+    Image: 'baiduaapp:1.0.0',
+    ImageID: 'sha256:baidu345',
     Command: 'python main.py',
-    Created: Date.now() / 1000 - 86400 * 2,
-    State: 'exited',
-    Status: 'Exited (0) 2 hours ago',
-    Ports: [{ PrivatePort: 8080, Type: 'tcp' }],
-    Labels: { 'com.yyc3.service': 'mcp' },
+    Created: Date.now() / 1000 - 86400 * 10,
+    State: 'running',
+    Status: 'Up 10 days',
+    Ports: [{ IP: '0.0.0.0', PrivatePort: 8080, PublicPort: 8080, Type: 'tcp' }],
+    Labels: { 'com.yyc3.service': 'baidu-app' },
   },
   {
     Id: 'a7b8c9d0e1f2',
-    Names: ['/elasticsearch'],
-    Image: 'elasticsearch:8.12',
-    ImageID: 'sha256:stu901',
-    Command: '/bin/tini -- /usr/local/bin/docker-entrypoint.sh',
-    Created: Date.now() / 1000 - 86400 * 14,
+    Names: ['/baiduaapp-ui'],
+    Image: 'baiduaapp-ui:1.0.0',
+    ImageID: 'sha256:baiduui678',
+    Command: 'nginx -g daemon off;',
+    Created: Date.now() / 1000 - 86400 * 10,
     State: 'running',
-    Status: 'Up 14 days',
-    Ports: [
-      { IP: '0.0.0.0', PrivatePort: 9200, PublicPort: 9200, Type: 'tcp' },
-      { IP: '0.0.0.0', PrivatePort: 9300, PublicPort: 9300, Type: 'tcp' },
-    ],
-    Labels: { 'com.yyc3.service': 'search' },
+    Status: 'Up 10 days',
+    Ports: [{ IP: '0.0.0.0', PrivatePort: 3000, PublicPort: 3000, Type: 'tcp' }],
+    Labels: { 'com.yyc3.service': 'baidu-ui' },
   },
 ];
 
 export const MOCK_DOCKER_INFO: DockerSystemInfo = {
   Containers: 7,
-  ContainersRunning: 6,
+  ContainersRunning: 7,
   ContainersPaused: 0,
-  ContainersStopped: 1,
-  Images: 12,
+  ContainersStopped: 0,
+  Images: 7,
   Driver: 'overlay2',
-  MemTotal: 34359738368, // 32GB
+  MemTotal: 34359738368,
   NCPU: 4,
-  OperatingSystem: 'TOS (Linux)',
-  KernelVersion: '5.15.0-tos',
+  OperatingSystem: 'TOS 7.0 (Beta)',
+  KernelVersion: '6.12.41+',
   Architecture: 'x86_64',
   ServerVersion: '24.0.7',
   Name: 'YanYuCloud',

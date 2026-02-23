@@ -14,7 +14,7 @@
 // 3. DeepSeek (DeepSeek-V3, DeepSeek-R1)
 // 4. 智谱 Z.AI (GLM-5, GLM-4.7, GLM-4.6, GLM-4.6V)
 // 5. Google (Gemini 2.5 Pro)
-// 6. Groq (Llama-3, Mixtral) 
+// 6. Groq (Llama-3, Mixtral)
 // 7. Local (Ollama, LM Studio)
 // ============================================================
 
@@ -23,9 +23,9 @@ export type ApiFormat = 'openai' | 'anthropic';
 export interface ProviderModel {
   id: string;
   name: string;
-  contextWindow: number;   // tokens
-  maxOutput: number;        // tokens
-  costPer1kInput?: number;  // USD
+  contextWindow: number; // tokens
+  maxOutput: number; // tokens
+  costPer1kInput?: number; // USD
   costPer1kOutput?: number; // USD
   supportsStreaming: boolean;
   supportsVision?: boolean;
@@ -39,12 +39,12 @@ export interface ProviderDefinition {
   displayName: string;
   apiFormat: ApiFormat;
   defaultEndpoint: string;
-  authHeaderKey: string;     // e.g., "Authorization" or "x-api-key"
-  authPrefix: string;        // e.g., "Bearer " or ""
+  authHeaderKey: string; // e.g., "Authorization" or "x-api-key"
+  authPrefix: string; // e.g., "Bearer " or ""
   models: ProviderModel[];
   defaultModel: string;
-  color: string;             // Tailwind color for UI
-  icon: string;              // emoji or short code
+  color: string; // Tailwind color for UI
+  icon: string; // emoji or short code
   notes?: string;
 }
 
@@ -115,12 +115,15 @@ export const PROVIDERS: Record<string, ProviderDefinition> = {
     defaultEndpoint: 'https://open.bigmodel.cn/api/paas/v4',
     authHeaderKey: 'Authorization',
     authPrefix: 'Bearer ',
-    defaultModel: 'glm-4.7',
+    defaultModel: 'codegeex4',
     color: 'text-violet-400',
     icon: 'ZP',
-    notes: 'GLM Coding Plan 使用专属端点: https://open.bigmodel.cn/api/coding/paas/v4',
+    notes: '终身商业授权模型: CodeGeeX4, CogAgent, CogVideo, GLM-3-6B',
     models: [
-      { id: 'GLM-5', name: 'GLM-5 (旗舰)', contextWindow: 200000, maxOutput: 128000, supportsStreaming: true, supportsTools: true },
+      { id: 'CodeGeeX4', name: 'CodeGeeX4 (代码生成-授权)', contextWindow: 128000, maxOutput: 8192, supportsStreaming: true, supportsTools: true },
+      { id: 'CogAgent', name: 'CogAgent (GUI智能体-授权)', contextWindow: 32000, maxOutput: 4096, supportsStreaming: true, supportsVision: true, supportsTools: true },
+      { id: 'CogVideo', name: 'CogVideo (视频生成-授权)', contextWindow: 8192, maxOutput: 2048, supportsStreaming: true },
+      { id: 'GLM-3-6B', name: 'GLM-3-6B (开源-授权)', contextWindow: 8192, maxOutput: 2048, supportsStreaming: true, free: true },
       { id: 'GLM-4.7', name: 'GLM-4.7', contextWindow: 200000, maxOutput: 128000, supportsStreaming: true, supportsTools: true },
       { id: 'GLM-4.7-FlashX', name: 'GLM-4.7 FlashX (轻量)', contextWindow: 200000, maxOutput: 128000, supportsStreaming: true },
       { id: 'GLM-4.6', name: 'GLM-4.6', contextWindow: 200000, maxOutput: 128000, supportsStreaming: true, supportsTools: true },
@@ -209,8 +212,8 @@ export const PROVIDERS: Record<string, ProviderDefinition> = {
 
 export interface AgentModelRoute {
   agentId: string;
-  preferredProviders: string[];   // provider IDs in priority order
-  preferredModels: string[];      // model IDs in priority order
+  preferredProviders: string[]; // provider IDs in priority order
+  preferredModels: string[]; // model IDs in priority order
   systemPrompt: string;
   temperature: number;
   maxTokens: number;
@@ -557,9 +560,10 @@ export function findModel(providerId: string, modelId: string): ProviderModel | 
  */
 export function resolveAgentRoute(
   agentId: string,
-  availableProviders: string[] // provider IDs with configured API keys
+  availableProviders: string[], // provider IDs with configured API keys
 ): { providerId: string; modelId: string } | null {
   const route = AGENT_ROUTES[agentId];
+
   if (!route) return null;
 
   // 按优先级查找有 API Key 的 Provider
@@ -567,10 +571,11 @@ export function resolveAgentRoute(
     if (availableProviders.includes(prefProvider)) {
       // 找到该 Provider 对应的推荐模型
       const provider = PROVIDERS[prefProvider];
+
       if (!provider) continue;
 
       const prefModel = route.preferredModels.find(
-        mid => provider.models.some(m => m.id === mid)
+        mid => provider.models.some(m => m.id === mid),
       );
 
       return {
@@ -582,6 +587,7 @@ export function resolveAgentRoute(
 
   // 检查是否有本地 Provider (不需要 API Key)
   const localProviders = ['ollama', 'lmstudio'];
+
   for (const lp of localProviders) {
     if (availableProviders.includes(lp)) {
       return {

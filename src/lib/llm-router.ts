@@ -28,10 +28,10 @@ import type { LLMErrorCode } from './llm-bridge';
 export type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
 
 export interface CircuitBreakerConfig {
-  failureThreshold: number;     // errors before OPEN (default: 3)
-  recoveryTimeMs: number;       // cooldown in OPEN before HALF_OPEN (default: 30s)
-  successThreshold: number;     // successes in HALF_OPEN before CLOSED (default: 1)
-  monitorWindowMs: number;      // sliding window for failure counting (default: 60s)
+  failureThreshold: number; // errors before OPEN (default: 3)
+  recoveryTimeMs: number; // cooldown in OPEN before HALF_OPEN (default: 30s)
+  successThreshold: number; // successes in HALF_OPEN before CLOSED (default: 1)
+  monitorWindowMs: number; // sliding window for failure counting (default: 60s)
 }
 
 const DEFAULT_CB_CONFIG: CircuitBreakerConfig = {
@@ -44,7 +44,7 @@ const DEFAULT_CB_CONFIG: CircuitBreakerConfig = {
 interface CircuitBreakerState {
   state: CircuitState;
   failureCount: number;
-  successCount: number;         // for HALF_OPEN testing
+  successCount: number; // for HALF_OPEN testing
   lastFailureTime: number;
   lastStateChange: number;
   recentErrors: { time: number; code: LLMErrorCode }[];
@@ -56,10 +56,10 @@ interface CircuitBreakerState {
 
 export interface ProviderHealthScore {
   providerId: string;
-  score: number;                // 0-100
+  score: number; // 0-100
   circuitState: CircuitState;
   avgLatencyMs: number;
-  successRate: number;          // 0.0-1.0
+  successRate: number; // 0.0-1.0
   totalRequests: number;
   recentErrors: number;
   activeConcurrency: number;
@@ -78,14 +78,14 @@ interface LatencySample {
 // ============================================================
 
 const ROUTER_STATE_KEY = 'yyc3-llm-router-state';
-const MAX_SAMPLES = 50;         // per-provider latency window
-const MAX_CONCURRENCY = 3;      // per-provider concurrent limit
+const MAX_SAMPLES = 50; // per-provider latency window
+const MAX_CONCURRENCY = 3; // per-provider concurrent limit
 const SCORE_DECAY_MS = 300_000; // health score error decay: 5 min
 
 export class LLMRouter {
-  private circuits: Map<string, CircuitBreakerState> = new Map();
-  private samples: Map<string, LatencySample[]> = new Map();
-  private concurrency: Map<string, number> = new Map();
+  private circuits = new Map<string, CircuitBreakerState>();
+  private samples = new Map<string, LatencySample[]>();
+  private concurrency = new Map<string, number>();
   private config: CircuitBreakerConfig;
 
   constructor(config?: Partial<CircuitBreakerConfig>) {
@@ -108,6 +108,7 @@ export class LLMRouter {
         recentErrors: [],
       });
     }
+
     return this.circuits.get(providerId)!;
   }
 
@@ -125,13 +126,16 @@ export class LLMRouter {
       case 'OPEN': {
         // Check if recovery time has passed
         const elapsed = now - cb.lastStateChange;
+
         if (elapsed >= this.config.recoveryTimeMs) {
           cb.state = 'HALF_OPEN';
           cb.lastStateChange = now;
           cb.successCount = 0;
           this.saveState();
+
           return true; // Allow one test request
         }
+
         return false;
       }
 
@@ -156,7 +160,7 @@ export class LLMRouter {
 
     // Clean old errors outside window
     cb.recentErrors = cb.recentErrors.filter(
-      e => now - e.time < this.config.monitorWindowMs
+      e => now - e.time < this.config.monitorWindowMs,
     );
 
     switch (cb.state) {
@@ -197,7 +201,7 @@ export class LLMRouter {
     // Track error
     cb.recentErrors.push({ time: now, code: errorCode });
     cb.recentErrors = cb.recentErrors.filter(
-      e => now - e.time < this.config.monitorWindowMs
+      e => now - e.time < this.config.monitorWindowMs,
     );
 
     cb.lastFailureTime = now;
@@ -209,6 +213,7 @@ export class LLMRouter {
         const threshold = (errorCode === 'AUTH_FAILED' || errorCode === 'MODEL_NOT_FOUND')
           ? 1
           : this.config.failureThreshold;
+
         if (cb.failureCount >= threshold) {
           cb.state = 'OPEN';
           cb.lastStateChange = now;
@@ -235,13 +240,16 @@ export class LLMRouter {
 
   acquireSlot(providerId: string): boolean {
     const current = this.concurrency.get(providerId) || 0;
+
     if (current >= MAX_CONCURRENCY) return false;
     this.concurrency.set(providerId, current + 1);
+
     return true;
   }
 
   releaseSlot(providerId: string): void {
     const current = this.concurrency.get(providerId) || 0;
+
     this.concurrency.set(providerId, Math.max(0, current - 1));
   }
 
@@ -282,13 +290,15 @@ export class LLMRouter {
 
     // Concurrency pressure
     const concurrency = this.concurrency.get(providerId) || 0;
+
     if (concurrency >= MAX_CONCURRENCY) score -= 15;
     else if (concurrency > 0) score -= concurrency * 3;
 
     // Recent errors boost penalty
     const recentErrors = cb.recentErrors.filter(
-      e => now - e.time < this.config.monitorWindowMs
+      e => now - e.time < this.config.monitorWindowMs,
     );
+
     score -= recentErrors.length * 5;
 
     // Clamp
@@ -312,6 +322,7 @@ export class LLMRouter {
    */
   getAllHealthScores(): ProviderHealthScore[] {
     const allProviders = new Set<string>();
+
     this.circuits.forEach((_, k) => allProviders.add(k));
     this.samples.forEach((_, k) => allProviders.add(k));
 
@@ -419,6 +430,7 @@ export class LLMRouter {
       this.samples.set(providerId, []);
     }
     const arr = this.samples.get(providerId)!;
+
     arr.push(sample);
 
     // Trim to max
@@ -452,6 +464,7 @@ export class LLMRouter {
   private loadState(): void {
     try {
       const raw = localStorage.getItem(ROUTER_STATE_KEY);
+
       if (!raw) return;
 
       const data = JSON.parse(raw) as Record<string, {
@@ -465,6 +478,7 @@ export class LLMRouter {
         // If circuit was OPEN and enough time has passed, reset to HALF_OPEN
         if (entry.circuit.state === 'OPEN') {
           const elapsed = now - entry.circuit.lastStateChange;
+
           if (elapsed >= this.config.recoveryTimeMs) {
             entry.circuit.state = 'HALF_OPEN';
             entry.circuit.lastStateChange = now;
@@ -492,7 +506,7 @@ export interface RouterSummary {
   healthyCount: number;
   degradedCount: number;
   brokenCount: number;
-  overallHealth: number;       // 0-100
+  overallHealth: number; // 0-100
   providers: ProviderHealthScore[];
 }
 
@@ -514,6 +528,7 @@ export function getRouter(): LLMRouter {
   if (!_routerInstance) {
     _routerInstance = new LLMRouter();
   }
+
   return _routerInstance;
 }
 

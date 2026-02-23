@@ -19,10 +19,10 @@ export type PresenceStatus = 'online' | 'idle' | 'busy' | 'away' | 'offline';
 export type MoodState = 'focused' | 'creative' | 'calm' | 'alert' | 'resting';
 
 export interface AgentIdentity {
-  title: string;           // 身份名称
-  subtitle: string;        // 身份简述
-  description: string;     // 详细描述
-  expertise: string[];     // 专长标签
+  title: string; // 身份名称
+  subtitle: string; // 身份简述
+  description: string; // 详细描述
+  expertise: string[]; // 专长标签
   mood: MoodState;
 }
 
@@ -35,10 +35,10 @@ export interface AgentProfile {
   tertiary?: AgentIdentity;
   // 在线状态
   presence: PresenceStatus;
-  lastSeen: string;        // ISO timestamp
-  heartbeatCount: number;  // 累计心跳次数
+  lastSeen: string; // ISO timestamp
+  heartbeatCount: number; // 累计心跳次数
   // 陪伴信号
-  signalMessage: string;   // "信号代表我们都在" — 自定义状态消息
+  signalMessage: string; // "信号代表我们都在" — 自定义状态消息
   // 元数据
   activeIdentity: 'primary' | 'secondary' | 'tertiary';
   createdAt: string;
@@ -48,8 +48,8 @@ export interface AgentProfile {
 // 设备端口的家庭成员身份
 export interface DeviceMemberProfile {
   deviceId: string;
-  nickname: string;        // 家庭昵称
-  role: string;            // 家庭角色
+  nickname: string; // 家庭昵称
+  role: string; // 家庭角色
   signalMessage: string;
   presence: PresenceStatus;
   lastSeen: string;
@@ -61,21 +61,21 @@ export interface DeviceMemberProfile {
 // ============================================================
 
 const MOOD_COLORS: Record<MoodState, { color: string; bg: string; label: string; labelZh: string }> = {
-  focused:  { color: 'text-blue-400',   bg: 'bg-blue-500/10',   label: 'Focused',  labelZh: '专注' },
+  focused: { color: 'text-blue-400', bg: 'bg-blue-500/10', label: 'Focused', labelZh: '专注' },
   creative: { color: 'text-purple-400', bg: 'bg-purple-500/10', label: 'Creative', labelZh: '灵感' },
-  calm:     { color: 'text-green-400',  bg: 'bg-green-500/10',  label: 'Calm',     labelZh: '平静' },
-  alert:    { color: 'text-amber-400',  bg: 'bg-amber-500/10',  label: 'Alert',    labelZh: '警觉' },
-  resting:  { color: 'text-zinc-400',   bg: 'bg-zinc-500/10',   label: 'Resting',  labelZh: '休憩' },
+  calm: { color: 'text-green-400', bg: 'bg-green-500/10', label: 'Calm', labelZh: '平静' },
+  alert: { color: 'text-amber-400', bg: 'bg-amber-500/10', label: 'Alert', labelZh: '警觉' },
+  resting: { color: 'text-zinc-400', bg: 'bg-zinc-500/10', label: 'Resting', labelZh: '休憩' },
 };
 
 export { MOOD_COLORS };
 
 export const PRESENCE_META: Record<PresenceStatus, { color: string; bg: string; dot: string; label: string; labelZh: string }> = {
-  online:  { color: 'text-green-400',  bg: 'bg-green-500/10',  dot: 'bg-green-500',  label: 'Online',  labelZh: '在线' },
-  idle:    { color: 'text-amber-400',  bg: 'bg-amber-500/10',  dot: 'bg-amber-500',  label: 'Idle',    labelZh: '空闲' },
-  busy:    { color: 'text-red-400',    bg: 'bg-red-500/10',    dot: 'bg-red-500',    label: 'Busy',    labelZh: '忙碌' },
-  away:    { color: 'text-zinc-400',   bg: 'bg-zinc-500/10',   dot: 'bg-zinc-500',   label: 'Away',    labelZh: '离开' },
-  offline: { color: 'text-zinc-600',   bg: 'bg-zinc-800/50',   dot: 'bg-zinc-700',   label: 'Offline', labelZh: '离线' },
+  online: { color: 'text-green-400', bg: 'bg-green-500/10', dot: 'bg-green-500', label: 'Online', labelZh: '在线' },
+  idle: { color: 'text-amber-400', bg: 'bg-amber-500/10', dot: 'bg-amber-500', label: 'Idle', labelZh: '空闲' },
+  busy: { color: 'text-red-400', bg: 'bg-red-500/10', dot: 'bg-red-500', label: 'Busy', labelZh: '忙碌' },
+  away: { color: 'text-zinc-400', bg: 'bg-zinc-500/10', dot: 'bg-zinc-500', label: 'Away', labelZh: '离开' },
+  offline: { color: 'text-zinc-600', bg: 'bg-zinc-800/50', dot: 'bg-zinc-700', label: 'Offline', labelZh: '离线' },
 };
 
 export const DEFAULT_AGENT_PROFILES: Record<string, AgentProfile> = {
@@ -302,12 +302,15 @@ const DEVICE_MEMBERS_KEY = 'yyc3-device-members';
 export function loadAgentProfiles(): Record<string, AgentProfile> {
   try {
     const raw = localStorage.getItem(AGENT_PROFILES_KEY);
+
     if (raw) {
       const parsed = JSON.parse(raw);
+
       // Merge with defaults (in case new agents added)
       return { ...DEFAULT_AGENT_PROFILES, ...parsed };
     }
   } catch { /* ignore */ }
+
   return { ...DEFAULT_AGENT_PROFILES };
 }
 
@@ -323,10 +326,12 @@ export function saveAgentProfiles(profiles: Record<string, AgentProfile>): void 
 export function loadDeviceMembers(): Record<string, DeviceMemberProfile> {
   try {
     const raw = localStorage.getItem(DEVICE_MEMBERS_KEY);
+
     if (raw) {
       return { ...DEFAULT_DEVICE_MEMBERS, ...JSON.parse(raw) };
     }
   } catch { /* ignore */ }
+
   return { ...DEFAULT_DEVICE_MEMBERS };
 }
 
@@ -340,15 +345,15 @@ export function saveDeviceMembers(members: Record<string, DeviceMemberProfile>):
 // 5. Knowledge Base Types
 // ============================================================
 
-export type KnowledgeCategory = 
-  | 'architecture'    // 架构知识
-  | 'devops'          // 运维知识
-  | 'security'        // 安全知识
-  | 'ai-ml'           // AI/ML 知识
-  | 'best-practice'   // 最佳实践
+export type KnowledgeCategory =
+  | 'architecture' // 架构知识
+  | 'devops' // 运维知识
+  | 'security' // 安全知识
+  | 'ai-ml' // AI/ML 知识
+  | 'best-practice' // 最佳实践
   | 'troubleshooting' // 故障排查
-  | 'family'          // 家庭/生活知识
-  | 'general';        // 通用知识
+  | 'family' // 家庭/生活知识
+  | 'general'; // 通用知识
 
 export interface KnowledgeEntry {
   id: string;
@@ -357,8 +362,8 @@ export interface KnowledgeEntry {
   summary: string;
   category: KnowledgeCategory;
   tags: string[];
-  linkedAgents: string[];    // which agents contributed/own this knowledge
-  source: string;            // origin (agent output, manual input, import)
+  linkedAgents: string[]; // which agents contributed/own this knowledge
+  source: string; // origin (agent output, manual input, import)
   importance: 'low' | 'medium' | 'high' | 'critical';
   createdAt: string;
   updatedAt: string;
@@ -372,14 +377,14 @@ export const KNOWLEDGE_CATEGORY_META: Record<KnowledgeCategory, {
   bg: string;
   icon: string;
 }> = {
-  architecture:    { label: 'Architecture',    labelZh: '架构知识',   color: 'text-cyan-400',    bg: 'bg-cyan-500/10',    icon: 'Layers' },
-  devops:          { label: 'DevOps',          labelZh: '运维知识',   color: 'text-amber-400',   bg: 'bg-amber-500/10',   icon: 'Terminal' },
-  security:        { label: 'Security',        labelZh: '安全知识',   color: 'text-red-400',     bg: 'bg-red-500/10',     icon: 'Shield' },
-  'ai-ml':         { label: 'AI & ML',         labelZh: 'AI/ML 知识', color: 'text-purple-400',  bg: 'bg-purple-500/10',  icon: 'Brain' },
-  'best-practice': { label: 'Best Practice',   labelZh: '最佳实践',   color: 'text-green-400',   bg: 'bg-green-500/10',   icon: 'Award' },
-  troubleshooting: { label: 'Troubleshoot',    labelZh: '故障排查',   color: 'text-orange-400',  bg: 'bg-orange-500/10',  icon: 'Bug' },
-  family:          { label: 'Family',          labelZh: '家庭生活',   color: 'text-pink-400',    bg: 'bg-pink-500/10',    icon: 'Heart' },
-  general:         { label: 'General',         labelZh: '通用知识',   color: 'text-zinc-400',    bg: 'bg-zinc-500/10',    icon: 'BookOpen' },
+  architecture: { label: 'Architecture', labelZh: '架构知识', color: 'text-cyan-400', bg: 'bg-cyan-500/10', icon: 'Layers' },
+  devops: { label: 'DevOps', labelZh: '运维知识', color: 'text-amber-400', bg: 'bg-amber-500/10', icon: 'Terminal' },
+  security: { label: 'Security', labelZh: '安全知识', color: 'text-red-400', bg: 'bg-red-500/10', icon: 'Shield' },
+  'ai-ml': { label: 'AI & ML', labelZh: 'AI/ML 知识', color: 'text-purple-400', bg: 'bg-purple-500/10', icon: 'Brain' },
+  'best-practice': { label: 'Best Practice', labelZh: '最佳实践', color: 'text-green-400', bg: 'bg-green-500/10', icon: 'Award' },
+  troubleshooting: { label: 'Troubleshoot', labelZh: '故障排查', color: 'text-orange-400', bg: 'bg-orange-500/10', icon: 'Bug' },
+  family: { label: 'Family', labelZh: '家庭生活', color: 'text-pink-400', bg: 'bg-pink-500/10', icon: 'Heart' },
+  general: { label: 'General', labelZh: '通用知识', color: 'text-zinc-400', bg: 'bg-zinc-500/10', icon: 'BookOpen' },
 };
 
 const KNOWLEDGE_KEY = 'yyc3-knowledge-base';
@@ -387,6 +392,7 @@ const KNOWLEDGE_KEY = 'yyc3-knowledge-base';
 export function loadKnowledgeBase(): KnowledgeEntry[] {
   try {
     const raw = localStorage.getItem(KNOWLEDGE_KEY);
+
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 }
@@ -416,6 +422,7 @@ export function simulateHeartbeats(
   // Agents: random presence changes
   for (const [id, profile] of Object.entries(updatedProfiles)) {
     const rand = Math.random();
+
     updatedProfiles[id] = {
       ...profile,
       lastSeen: now,
@@ -427,6 +434,7 @@ export function simulateHeartbeats(
   // Devices: based on cluster metrics or random
   for (const [id, member] of Object.entries(updatedDevices)) {
     const rand = Math.random();
+
     updatedDevices[id] = {
       ...member,
       lastSeen: now,

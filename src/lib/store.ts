@@ -1,4 +1,7 @@
 import { create } from 'zustand';
+
+import { eventBus } from './event-bus';
+import { type ProviderConfig } from './llm-bridge';
 import type {
   SystemStatus,
   ViewMode,
@@ -13,8 +16,6 @@ import type {
   DAGEdge,
   DAGWorkflow,
 } from './types';
-import { type ProviderConfig } from './llm-bridge';
-import { eventBus } from './event-bus';
 
 // Re-export types for backward compatibility
 // (consumers importing from '@/lib/store' will still work)
@@ -183,11 +184,11 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   dbConnected: false,
 
   // === Navigation Actions ===
-  setActiveView: (view) => set({ activeView: view }),
-  setConsoleTab: (tab) => set({ consoleTab: tab }),
-  setConsoleAgent: (agentId) => set({ consoleAgent: agentId }),
+  setActiveView: view => set({ activeView: view }),
+  setConsoleTab: tab => set({ consoleTab: tab }),
+  setConsoleAgent: agentId => set({ consoleAgent: agentId }),
 
-  navigateToAgent: (agentId) => {
+  navigateToAgent: agentId => {
     set({
       activeView: 'console',
       consoleTab: 'ai',
@@ -196,7 +197,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     eventBus.emit({ category: 'orchestrate', type: 'orchestrate.agent_switch', level: 'info', source: 'Store', message: `Switched to agent: ${agentId}`, metadata: { agentId } });
   },
 
-  navigateToConsoleTab: (tab) => {
+  navigateToConsoleTab: tab => {
     set({
       activeView: 'console',
       consoleTab: tab,
@@ -206,25 +207,26 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   },
 
   // === Layout Actions ===
-  setSidebarCollapsed: (val) => set({ sidebarCollapsed: val }),
-  setSidebarPinned: (val) => set({ sidebarPinned: val }),
-  toggleSidebarPin: () => set((state) => ({
+  setSidebarCollapsed: val => set({ sidebarCollapsed: val }),
+  setSidebarPinned: val => set({ sidebarPinned: val }),
+  toggleSidebarPin: () => set(state => ({
     sidebarPinned: !state.sidebarPinned,
     sidebarCollapsed: state.sidebarPinned, // if unpinning, collapse
   })),
-  setIsMobile: (val) => set({ isMobile: val }),
-  setIsTablet: (val) => set({ isTablet: val }),
+  setIsMobile: val => set({ isMobile: val }),
+  setIsTablet: val => set({ isTablet: val }),
 
   // === Chat Actions ===
-  setChatMode: (mode) => set({ chatMode: mode }),
-  toggleChatMode: () => set((state) => ({
+  setChatMode: mode => set({ chatMode: mode }),
+  toggleChatMode: () => set(state => ({
     chatMode: state.chatMode === 'navigate' ? 'ai' : 'navigate',
   })),
-  addMessage: (msg) => set((state) => ({
+  addMessage: msg => set(state => ({
     messages: [...state.messages, msg],
   })),
-  updateLastAiMessage: (content, meta) => set((state) => {
+  updateLastAiMessage: (content, meta) => set(state => {
     const lastMessage = state.messages[state.messages.length - 1];
+
     if (lastMessage && lastMessage.role === 'ai') {
       return {
         messages: [
@@ -233,45 +235,46 @@ export const useSystemStore = create<SystemState>((set, get) => ({
         ],
       };
     }
+
     return state;
   }),
-  setMessages: (msgs) => set({ messages: msgs }),
+  setMessages: msgs => set({ messages: msgs }),
 
   clearMessages: () => set({ messages: [] }),
 
-  setIsStreaming: (val) => set({ isStreaming: val }),
+  setIsStreaming: val => set({ isStreaming: val }),
 
-  setIsArtifactsOpen: (val) => set({ isArtifactsOpen: val }),
+  setIsArtifactsOpen: val => set({ isArtifactsOpen: val }),
 
-  toggleArtifactsPanel: () => set((state) => ({
+  toggleArtifactsPanel: () => set(state => ({
     isArtifactsOpen: !state.isArtifactsOpen,
   })),
 
-  setActiveArtifact: (artifact) => set({
+  setActiveArtifact: artifact => set({
     activeArtifact: artifact,
     isArtifactsOpen: artifact !== null,
   }),
 
   // === Agent Chat Actions ===
-  getAgentHistory: (agentId) => {
+  getAgentHistory: agentId => {
     return get().agentChatHistories[agentId] ?? [];
   },
 
-  setAgentHistory: (agentId, messages) => set((state) => ({
+  setAgentHistory: (agentId, messages) => set(state => ({
     agentChatHistories: {
       ...state.agentChatHistories,
       [agentId]: messages,
     },
   })),
 
-  addAgentMessage: (agentId, msg) => set((state) => ({
+  addAgentMessage: (agentId, msg) => set(state => ({
     agentChatHistories: {
       ...state.agentChatHistories,
       [agentId]: [...(state.agentChatHistories[agentId] ?? []), msg],
     },
   })),
 
-  clearAgentHistory: (agentId) => set((state) => ({
+  clearAgentHistory: agentId => set(state => ({
     agentChatHistories: {
       ...state.agentChatHistories,
       [agentId]: [],
@@ -286,23 +289,23 @@ export const useSystemStore = create<SystemState>((set, get) => ({
 
   closeSettings: () => set({ isSettingsOpen: false }),
 
-  setSettingsTab: (tab) => set({ settingsTab: tab }),
+  setSettingsTab: tab => set({ settingsTab: tab }),
 
-  setProviderConfigs: (configs) => set({ providerConfigs: configs }),
+  setProviderConfigs: configs => set({ providerConfigs: configs }),
 
   // === Navigation Favorites Actions ===
-  setNavFavorites: (ids) => set({ navFavorites: ids }),
+  setNavFavorites: ids => set({ navFavorites: ids }),
 
-  toggleNavFavorite: (id) => set((state) => ({
+  toggleNavFavorite: id => set(state => ({
     navFavorites: state.navFavorites.includes(id)
-      ? state.navFavorites.filter((favId) => favId !== id)
+      ? state.navFavorites.filter(favId => favId !== id)
       : [...state.navFavorites, id],
   })),
 
   // === System Actions ===
-  setStatus: (status) => set({ status }),
+  setStatus: status => set({ status }),
 
-  addLog: (level, source, message) => set((state) => ({
+  addLog: (level, source, message) => set(state => ({
     logs: [
       {
         id: Math.random().toString(36).substring(7),
@@ -315,13 +318,13 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     ],
   })),
 
-  updateMetrics: (metrics) => set({
+  updateMetrics: metrics => set({
     clusterMetrics: metrics,
     cpuLoad: Math.round(metrics['m4-max'].cpu),
     latency: Math.max(1, Math.round(5 + Math.random() * 3)),
   }),
 
-  setDbConnected: (connected) => set({ dbConnected: connected }),
+  setDbConnected: connected => set({ dbConnected: connected }),
 
   // === Composite Actions ===
   newSession: () => {

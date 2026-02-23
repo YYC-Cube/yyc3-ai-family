@@ -165,15 +165,17 @@ export type ValidatedLLMProviderConfig = z.infer<typeof LLMProviderConfigSchema>
  */
 export function validateRecord<T>(
   schema: z.ZodType<T>,
-  data: unknown
+  data: unknown,
 ): { success: true; data: T } | { success: false; errors: string[] } {
   const result = schema.safeParse(data);
+
   if (result.success) {
     return { success: true, data: result.data as T };
   }
+
   return {
     success: false,
-    errors: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
+    errors: result.error.issues.map(i => `${i.path.join('.')}: ${i.message}`),
   };
 }
 
@@ -183,7 +185,7 @@ export function validateRecord<T>(
  */
 export function validateArray<T>(
   schema: z.ZodType<T>,
-  data: unknown[]
+  data: unknown[],
 ): { valid: T[]; invalidCount: number; errors: string[] } {
   const valid: T[] = [];
   const errors: string[] = [];
@@ -191,12 +193,13 @@ export function validateArray<T>(
 
   for (const item of data) {
     const result = schema.safeParse(item);
+
     if (result.success) {
       valid.push(result.data as T);
     } else {
       invalidCount++;
       errors.push(
-        `Record ${invalidCount}: ${result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`
+        `Record ${invalidCount}: ${result.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ')}`,
       );
     }
   }

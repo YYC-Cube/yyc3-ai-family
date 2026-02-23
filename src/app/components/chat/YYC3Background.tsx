@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from 'react';
 
 export function YYC3Background() {
   const [bgImageUrl, setBgImageUrl] = React.useState('');
@@ -9,10 +9,13 @@ export function YYC3Background() {
   const syncFromStorage = React.useCallback(() => {
     try {
       const img = localStorage.getItem('yyc3-bg-image');
+
       setBgImageUrl(img || '');
       const raw = localStorage.getItem('yyc3-appearance-config');
+
       if (raw) {
         const cfg = JSON.parse(raw);
+
         if (typeof cfg.bgBrightness === 'number') setBgBrightness(cfg.bgBrightness);
         if (typeof cfg.bgBlurPx === 'number') setBgBlurPx(cfg.bgBlurPx);
       }
@@ -26,6 +29,7 @@ export function YYC3Background() {
     window.addEventListener('storage', syncFromStorage);
     // Listen for same-tab custom event from settings
     window.addEventListener('yyc3-bg-update', syncFromStorage);
+
     return () => {
       window.removeEventListener('storage', syncFromStorage);
       window.removeEventListener('yyc3-bg-update', syncFromStorage);

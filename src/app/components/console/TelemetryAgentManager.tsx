@@ -1,37 +1,38 @@
-import { Badge } from "@/app/components/ui/badge";
-import { Button } from "@/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { eventBus } from "@/lib/event-bus";
-import { useTranslation } from "@/lib/i18n";
-import { useSystemStore } from "@/lib/store";
-import { checkRunnerHealth, getRunnerHealth, onRunnerHealthChange } from "@/lib/useDAGExecutor";
-import { cn } from "@/lib/utils";
 import {
-    Activity,
-    AlertTriangle,
-    Check,
-    CheckCircle2,
-    ChevronDown, ChevronRight,
-    Clock,
-    Copy,
-    Cpu,
-    FileText,
-    Globe,
-    HardDrive,
-    Loader2,
-    Play,
-    Radio,
-    RefreshCw,
-    Server,
-    Settings,
-    Terminal,
-    ToggleLeft, ToggleRight,
-    Wifi, WifiOff,
-    XCircle,
-    Zap
-} from "lucide-react";
-import * as React from "react";
+  Activity,
+  AlertTriangle,
+  Check,
+  CheckCircle2,
+  ChevronDown, ChevronRight,
+  Clock,
+  Copy,
+  Cpu,
+  FileText,
+  Globe,
+  HardDrive,
+  Loader2,
+  Play,
+  Radio,
+  RefreshCw,
+  Server,
+  Settings,
+  Terminal,
+  ToggleLeft, ToggleRight,
+  Wifi, WifiOff,
+  XCircle,
+  Zap,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { eventBus } from '@/lib/event-bus';
+import { useTranslation } from '@/lib/i18n';
+import { useSystemStore } from '@/lib/store';
+import { checkRunnerHealth, getRunnerHealth, onRunnerHealthChange } from '@/lib/useDAGExecutor';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // TelemetryAgentManager — yyc3-telemetry-agent Deployment Manager
@@ -70,13 +71,13 @@ interface ConnectionStatus {
   lastTested?: number;
 }
 
-type DeployStep = {
+interface DeployStep {
   id: string;
   label: string;
   labelZh: string;
   status: 'pending' | 'pass' | 'fail' | 'skip';
   detail?: string;
-};
+}
 
 const DEFAULT_CONFIG: AgentConfig = {
   host: '192.168.3.22',
@@ -95,8 +96,10 @@ const LS_KEY = 'yyc3_telemetry_agent_config';
 function loadAgentConfig(): AgentConfig {
   try {
     const raw = localStorage.getItem(LS_KEY);
+
     if (raw) return { ...DEFAULT_CONFIG, ...JSON.parse(raw) };
   } catch { /* ignore */ }
+
   return { ...DEFAULT_CONFIG };
 }
 
@@ -114,6 +117,7 @@ function CopyButton({ text, label }: { text: string; label?: string }) {
       setTimeout(() => setCopied(false), 2000);
     } catch {
       const ta = document.createElement('textarea');
+
       ta.value = text;
       document.body.appendChild(ta);
       ta.select();
@@ -123,11 +127,12 @@ function CopyButton({ text, label }: { text: string; label?: string }) {
       setTimeout(() => setCopied(false), 2000);
     }
   }, [text]);
+
   return (
     <Button
       variant="ghost"
       size="sm"
-      className={cn("h-6 text-[9px] font-mono gap-1 px-2", copied ? "text-emerald-400" : "text-zinc-500")}
+      className={cn('h-6 text-[9px] font-mono gap-1 px-2', copied ? 'text-emerald-400' : 'text-zinc-500')}
       onClick={handleCopy}
     >
       {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
@@ -288,13 +293,13 @@ async function collectFrame() {
     si.networkStats(),
     si.cpuTemperature(),
     si.processes(),
-    ${config.enableGpu ? "si.graphics()," : "'skip',"}
+    ${config.enableGpu ? 'si.graphics(),' : "'skip',"}
   ]);
 
   const pCores = cpu.cpus?.slice(0, 16).map(c => c.load) || [];
   const gpuCores = ${config.enableGpu
-    ? "Array.from({ length: 40 }, () => Math.random() * (cpu.currentLoad || 20))"
-    : "[]"};
+    ? 'Array.from({ length: 40 }, () => Math.random() * (cpu.currentLoad || 20))'
+    : '[]'};
 
   const totalMem = mem.total / (1024 ** 3);
   const usedMem = mem.used / (1024 ** 3);
@@ -559,7 +564,7 @@ echo "Runner: http://${config.host}:3002 | Logs: /tmp/yyc3-runner.log"
 export function TelemetryAgentManager() {
   const { language } = useTranslation();
   const zh = language === 'zh';
-  const addLog = useSystemStore((s) => s.addLog);
+  const addLog = useSystemStore(s => s.addLog);
 
   const [config, setConfig] = React.useState<AgentConfig>(loadAgentConfig);
   const [connStatus, setConnStatus] = React.useState<ConnectionStatus>({
@@ -586,6 +591,7 @@ export function TelemetryAgentManager() {
     setIsTesting(true);
     setConnStatus({ ws: 'testing', http: 'testing' });
     const steps = [...deploySteps].map(s => ({ ...s, status: 'pending' as DeployStep['status'] }));
+
     setDeploySteps(steps);
 
     addLog('info', 'TELEMETRY_MGR', `Testing telemetry agent at ${config.host}:${config.wsPort}`);
@@ -597,19 +603,23 @@ export function TelemetryAgentManager() {
     // Step 2: Network reachability (HTTP probe)
     const httpStart = performance.now();
     let httpOk = false;
+
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 4000);
+
       await fetch(`http://${config.host}:${config.httpPort}/health`, {
-        mode: 'no-cors', signal: controller.signal
+        mode: 'no-cors', signal: controller.signal,
       });
       clearTimeout(timeout);
       const latency = Math.round(performance.now() - httpStart);
+
       httpOk = true;
       steps[1] = { ...steps[1], status: 'pass', detail: `${latency}ms` };
       setConnStatus(prev => ({ ...prev, http: 'connected', httpLatency: latency, lastTested: Date.now() }));
     } catch {
       const latency = Math.round(performance.now() - httpStart);
+
       if (latency > 3500) {
         steps[1] = { ...steps[1], status: 'fail', detail: 'Timeout' };
         setConnStatus(prev => ({ ...prev, http: 'timeout', httpLatency: latency, lastTested: Date.now() }));
@@ -622,12 +632,14 @@ export function TelemetryAgentManager() {
 
     // Step 3: WebSocket test
     const wsStart = performance.now();
-    await new Promise<void>((resolve) => {
+
+    await new Promise<void>(resolve => {
       try {
         const ws = new WebSocket(`ws://${config.host}:${config.wsPort}/telemetry`);
         const timeout = setTimeout(() => {
           ws.close();
           const latency = Math.round(performance.now() - wsStart);
+
           steps[2] = { ...steps[2], status: 'fail', detail: 'Timeout' };
           setConnStatus(prev => ({ ...prev, ws: 'timeout', wsLatency: latency }));
           resolve();
@@ -636,6 +648,7 @@ export function TelemetryAgentManager() {
         ws.onopen = () => {
           clearTimeout(timeout);
           const latency = Math.round(performance.now() - wsStart);
+
           steps[2] = { ...steps[2], status: 'pass', detail: `${latency}ms` };
           setConnStatus(prev => ({ ...prev, ws: 'connected', wsLatency: latency }));
           ws.close();
@@ -645,6 +658,7 @@ export function TelemetryAgentManager() {
         ws.onerror = () => {
           clearTimeout(timeout);
           const latency = Math.round(performance.now() - wsStart);
+
           steps[2] = { ...steps[2], status: 'fail', detail: zh ? 'WebSocket 连接失败' : 'WS connection failed' };
           setConnStatus(prev => ({ ...prev, ws: 'refused', wsLatency: latency }));
           resolve();
@@ -662,9 +676,11 @@ export function TelemetryAgentManager() {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 3000);
       const res = await fetch(`http://${config.host}:${config.httpPort}/health`, { signal: controller.signal });
+
       clearTimeout(timeout);
       if (res.ok) {
         const data = await res.json() as { status?: string; uptime?: number };
+
         steps[3] = { ...steps[3], status: 'pass', detail: `uptime: ${data.uptime || 0}s` };
       } else {
         steps[3] = { ...steps[3], status: 'fail', detail: `HTTP ${res.status}` };
@@ -739,21 +755,21 @@ export function TelemetryAgentManager() {
     <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
       {/* Header Card */}
       <Card className={cn(
-        "bg-zinc-900/30 transition-all duration-500",
-        overallConn === 'connected' ? "border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.06)]" :
-        overallConn === 'testing' ? "border-sky-500/20 shadow-[0_0_20px_rgba(14,165,233,0.06)]" :
-        overallConn === 'timeout' ? "border-amber-500/20" :
-        "border-zinc-800/50"
+        'bg-zinc-900/30 transition-all duration-500',
+        overallConn === 'connected' ? 'border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.06)]' :
+        overallConn === 'testing' ? 'border-sky-500/20 shadow-[0_0_20px_rgba(14,165,233,0.06)]' :
+        overallConn === 'timeout' ? 'border-amber-500/20' :
+        'border-zinc-800/50',
       )}>
         <CardHeader className="pb-2">
           <CardTitle className="text-xs font-mono text-zinc-400 flex items-center gap-2 uppercase tracking-wider">
-            <Radio className={cn("w-3.5 h-3.5", overallConn === 'connected' ? "text-emerald-400" : "text-pink-400")} />
+            <Radio className={cn('w-3.5 h-3.5', overallConn === 'connected' ? 'text-emerald-400' : 'text-pink-400')} />
             {zh ? 'YYC3 遥测代理管理器' : 'YYC3 Telemetry Agent Manager'}
             <Badge variant="outline" className={cn(
-              "text-[8px] font-mono ml-auto",
-              overallConn === 'connected' ? "text-emerald-400 border-emerald-500/20" :
-              overallConn === 'testing' ? "text-sky-400 border-sky-500/20" :
-              "text-zinc-600 border-zinc-700"
+              'text-[8px] font-mono ml-auto',
+              overallConn === 'connected' ? 'text-emerald-400 border-emerald-500/20' :
+              overallConn === 'testing' ? 'text-sky-400 border-sky-500/20' :
+              'text-zinc-600 border-zinc-700',
             )}>
               {overallConn === 'connected' ? 'LIVE' :
                overallConn === 'testing' ? 'TESTING' :
@@ -828,10 +844,10 @@ export function TelemetryAgentManager() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-1 px-3 py-1.5 text-[10px] font-mono transition-all border-b-2",
+                  'flex items-center gap-1 px-3 py-1.5 text-[10px] font-mono transition-all border-b-2',
                   activeTab === tab.id
-                    ? "text-zinc-200 border-primary"
-                    : "text-zinc-600 border-transparent hover:text-zinc-400"
+                    ? 'text-zinc-200 border-primary'
+                    : 'text-zinc-600 border-transparent hover:text-zinc-400',
                 )}
               >
                 <tab.icon className="w-3 h-3" />
@@ -855,11 +871,11 @@ export function TelemetryAgentManager() {
                       <div
                         key={step.id}
                         className={cn(
-                          "flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all",
-                          step.status === 'pass' ? "border-emerald-500/10 bg-emerald-500/[0.02]" :
-                          step.status === 'fail' ? "border-red-500/10 bg-red-500/[0.02]" :
-                          step.status === 'skip' ? "border-amber-500/10 bg-amber-500/[0.02]" :
-                          "border-zinc-800/30 bg-transparent"
+                          'flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all',
+                          step.status === 'pass' ? 'border-emerald-500/10 bg-emerald-500/[0.02]' :
+                          step.status === 'fail' ? 'border-red-500/10 bg-red-500/[0.02]' :
+                          step.status === 'skip' ? 'border-amber-500/10 bg-amber-500/[0.02]' :
+                          'border-zinc-800/30 bg-transparent',
                         )}
                       >
                         {step.status === 'pass' ? <CheckCircle2 className="w-3 h-3 text-emerald-400" /> :
@@ -885,11 +901,11 @@ export function TelemetryAgentManager() {
                   <div className="p-3 rounded-lg border border-zinc-800/30 bg-zinc-900/20 font-mono text-[9px] text-zinc-400 space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-amber-400">M4 Max</span>
-                      <span className="text-zinc-600">{'→'}</span>
+                      <span className="text-zinc-600">→</span>
                       <span className="text-pink-400">yyc3-telemetry-agent</span>
-                      <span className="text-zinc-600">{'→'}</span>
+                      <span className="text-zinc-600">→</span>
                       <span className="text-sky-400">WebSocket</span>
-                      <span className="text-zinc-600">{'→'}</span>
+                      <span className="text-zinc-600">→</span>
                       <span className="text-emerald-400">HardwareMonitor.tsx</span>
                     </div>
                     <div className="text-zinc-600 pl-4">
@@ -902,7 +918,7 @@ export function TelemetryAgentManager() {
                       {`├── http://${config.host}:${config.httpPort}/sse/telemetry (SSE fallback)`}
                     </div>
                     <div className="text-zinc-600 pl-4">
-                      {`└── Fallback: local simulation (no agent)`}
+                      └── Fallback: local simulation (no agent)
                     </div>
                   </div>
                 </div>
@@ -924,18 +940,18 @@ export function TelemetryAgentManager() {
                       <div
                         key={mod.id}
                         className={cn(
-                          "flex items-center gap-2 p-2 rounded-lg border transition-all",
+                          'flex items-center gap-2 p-2 rounded-lg border transition-all',
                           mod.enabled
-                            ? "border-emerald-500/10 bg-emerald-500/[0.02]"
-                            : "border-zinc-800/30 bg-transparent opacity-50"
+                            ? 'border-emerald-500/10 bg-emerald-500/[0.02]'
+                            : 'border-zinc-800/30 bg-transparent opacity-50',
                         )}
                       >
-                        <mod.icon className={cn("w-3.5 h-3.5", mod.enabled ? "text-emerald-400" : "text-zinc-600")} />
+                        <mod.icon className={cn('w-3.5 h-3.5', mod.enabled ? 'text-emerald-400' : 'text-zinc-600')} />
                         <div className="flex-1 min-w-0">
                           <div className="text-[9px] font-mono text-zinc-300 truncate">{mod.label}</div>
                           <div className="text-[7px] font-mono text-zinc-600 truncate">{mod.desc}</div>
                         </div>
-                        <div className={cn("w-2 h-2 rounded-full", mod.enabled ? "bg-emerald-500" : "bg-zinc-700")} />
+                        <div className={cn('w-2 h-2 rounded-full', mod.enabled ? 'bg-emerald-500' : 'bg-zinc-700')} />
                       </div>
                     ))}
                   </div>
@@ -1061,11 +1077,11 @@ export function TelemetryAgentManager() {
                   <div className="p-3 rounded-lg border border-zinc-800/30 bg-zinc-900/20 font-mono text-[9px] text-zinc-400 space-y-2">
                     <div className="flex items-center gap-2">
                       <span className="text-sky-400">DAG Executor</span>
-                      <span className="text-zinc-600">{'→'}</span>
+                      <span className="text-zinc-600">→</span>
                       <span className="text-amber-400">HTTP POST</span>
-                      <span className="text-zinc-600">{'→'}</span>
+                      <span className="text-zinc-600">→</span>
                       <span className="text-pink-400">yyc3-runner</span>
-                      <span className="text-zinc-600">{'→'}</span>
+                      <span className="text-zinc-600">→</span>
                       <span className="text-emerald-400">Shell Exec</span>
                     </div>
                     <div className="text-zinc-600 pl-4">
@@ -1078,14 +1094,14 @@ export function TelemetryAgentManager() {
                       {`├── GET  http://${config.host}:3002/api/history  (execution log)`}
                     </div>
                     <div className="text-zinc-600 pl-4">
-                      {`└── Fallback: simulated execution (no runner)`}
+                      └── Fallback: simulated execution (no runner)
                     </div>
                     <div className="flex items-center gap-2 pt-1 border-t border-zinc-800/30">
-                      <div className={cn("w-2 h-2 rounded-full",
-                        runnerHealth.status === 'online' ? "bg-emerald-500" :
-                        runnerHealth.status === 'checking' ? "bg-sky-500 animate-pulse" :
-                        runnerHealth.status === 'error' ? "bg-amber-500" :
-                        runnerHealth.status === 'offline' ? "bg-red-500" : "bg-zinc-600"
+                      <div className={cn('w-2 h-2 rounded-full',
+                        runnerHealth.status === 'online' ? 'bg-emerald-500' :
+                        runnerHealth.status === 'checking' ? 'bg-sky-500 animate-pulse' :
+                        runnerHealth.status === 'error' ? 'bg-amber-500' :
+                        runnerHealth.status === 'offline' ? 'bg-red-500' : 'bg-zinc-600',
                       )} />
                       <span className="text-[9px]">
                         {runnerHealth.status === 'online' ? `Online (${runnerHealth.latencyMs}ms, v${runnerHealth.version})` :
@@ -1132,7 +1148,7 @@ export function TelemetryAgentManager() {
                       <input
                         type={field.type}
                         value={(config as unknown as Record<string, string | number | boolean>)[field.key] as string | number}
-                        onChange={(e) => setConfig(prev => ({
+                        onChange={e => setConfig(prev => ({
                           ...prev,
                           [field.key]: field.type === 'number' ? parseInt(e.target.value) || 0 : e.target.value,
                         }))}

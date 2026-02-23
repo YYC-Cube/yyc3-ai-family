@@ -1,15 +1,15 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { useSystemStore } from "@/lib/store";
-import { useTranslation } from "@/lib/i18n";
-import type { ViewMode } from "@/lib/types";
 import {
-  Terminal, TerminalSquare, Activity, FolderOpen, Settings,
-  MessageSquare, Compass, Brain, ChevronUp, ChevronDown,
-  Package, Globe, BookOpen, Bookmark, MoreHorizontal, X,
-  Cpu, Shield, Network, Database, Radio, Wrench, HardDrive,
-  Monitor, FileText, Zap, ArrowLeftRight, Layers
-} from "lucide-react";
+  Terminal, TerminalSquare, Activity, FolderOpen, Settings, Compass, Brain,
+  Package, Globe, BookOpen, Bookmark, MoreHorizontal,
+  Cpu, Shield, Database, Radio, Wrench, HardDrive,
+  Monitor, FileText, ArrowLeftRight, Layers,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { useTranslation } from '@/lib/i18n';
+import { useSystemStore } from '@/lib/store';
+import type { ViewMode } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // MobileNavBar — Bottom Navigation + Swipe Gesture Support
@@ -29,11 +29,11 @@ interface MobileNavBarProps {
 export function MobileNavBar({ activeView, onViewChange }: MobileNavBarProps) {
   const { language } = useTranslation();
   const zh = language === 'zh';
-  const chatMode = useSystemStore((s) => s.chatMode);
-  const toggleChatMode = useSystemStore((s) => s.toggleChatMode);
-  const consoleTab = useSystemStore((s) => s.consoleTab);
-  const navigateToConsoleTab = useSystemStore((s) => s.navigateToConsoleTab);
-  const openSettings = useSystemStore((s) => s.openSettings);
+  const chatMode = useSystemStore(s => s.chatMode);
+  const toggleChatMode = useSystemStore(s => s.toggleChatMode);
+  const consoleTab = useSystemStore(s => s.consoleTab);
+  const navigateToConsoleTab = useSystemStore(s => s.navigateToConsoleTab);
+  const openSettings = useSystemStore(s => s.openSettings);
 
   const [moreOpen, setMoreOpen] = React.useState(false);
 
@@ -45,6 +45,7 @@ export function MobileNavBar({ activeView, onViewChange }: MobileNavBarProps) {
   React.useEffect(() => {
     const handleTouchStart = (e: TouchEvent) => {
       const touch = e.touches[0];
+
       touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
     };
 
@@ -54,6 +55,7 @@ export function MobileNavBar({ activeView, onViewChange }: MobileNavBarProps) {
       const deltaX = touch.clientX - touchStartRef.current.x;
       const deltaY = touch.clientY - touchStartRef.current.y;
       const elapsed = Date.now() - touchStartRef.current.time;
+
       touchStartRef.current = null;
 
       // Only consider horizontal swipes that are fast enough and not too vertical
@@ -62,6 +64,7 @@ export function MobileNavBar({ activeView, onViewChange }: MobileNavBarProps) {
 
       const views: ViewMode[] = ['terminal', 'console', 'monitor', 'projects', 'services'];
       const currentIdx = views.indexOf(activeView);
+
       if (currentIdx === -1) return;
 
       if (deltaX < 0 && currentIdx < views.length - 1) {
@@ -76,6 +79,7 @@ export function MobileNavBar({ activeView, onViewChange }: MobileNavBarProps) {
     // Attach to document body for global swipe detection
     document.addEventListener('touchstart', handleTouchStart, { passive: true });
     document.addEventListener('touchend', handleTouchEnd, { passive: true });
+
     return () => {
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchend', handleTouchEnd);
@@ -90,7 +94,9 @@ export function MobileNavBar({ activeView, onViewChange }: MobileNavBarProps) {
         setMoreOpen(false);
       }
     };
+
     setTimeout(() => document.addEventListener('touchstart', handler, { passive: true }), 100);
+
     return () => document.removeEventListener('touchstart', handler);
   }, [moreOpen]);
 
@@ -155,7 +161,7 @@ export function MobileNavBar({ activeView, onViewChange }: MobileNavBarProps) {
                     <Compass className="w-5 h-5 text-amber-400" />
                   )}
                   <div>
-                    <div className={cn("text-xs font-mono", chatMode === 'ai' ? "text-emerald-400" : "text-amber-400")}>
+                    <div className={cn('text-xs font-mono', chatMode === 'ai' ? 'text-emerald-400' : 'text-amber-400')}>
                       {chatMode === 'ai' ? (zh ? 'AI 对话模式' : 'AI Chat Mode') : (zh ? '导航模式' : 'Navigate Mode')}
                     </div>
                     <div className="text-[10px] text-zinc-600">{zh ? '点击切换' : 'Tap to switch'}</div>
@@ -176,10 +182,10 @@ export function MobileNavBar({ activeView, onViewChange }: MobileNavBarProps) {
                     key={v.id}
                     onClick={() => { onViewChange(v.id); setMoreOpen(false); }}
                     className={cn(
-                      "flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all min-h-[60px]",
+                      'flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all min-h-[60px]',
                       activeView === v.id
-                        ? "bg-primary/10 text-primary border border-primary/20"
-                        : "bg-zinc-900/50 text-zinc-500 border border-white/5 active:bg-zinc-800"
+                        ? 'bg-primary/10 text-primary border border-primary/20'
+                        : 'bg-zinc-900/50 text-zinc-500 border border-white/5 active:bg-zinc-800',
                     )}
                   >
                     <v.icon className="w-5 h-5" />
@@ -200,13 +206,13 @@ export function MobileNavBar({ activeView, onViewChange }: MobileNavBarProps) {
                     key={m.id}
                     onClick={() => { React.startTransition(() => { navigateToConsoleTab(m.id); }); setMoreOpen(false); }}
                     className={cn(
-                      "flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all min-h-[60px]",
+                      'flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all min-h-[60px]',
                       activeView === 'console' && consoleTab === m.id
-                        ? "bg-white/5 text-white border border-white/10"
-                        : "bg-zinc-900/50 text-zinc-500 border border-white/5 active:bg-zinc-800"
+                        ? 'bg-white/5 text-white border border-white/10'
+                        : 'bg-zinc-900/50 text-zinc-500 border border-white/5 active:bg-zinc-800',
                     )}
                   >
-                    <m.icon className={cn("w-5 h-5", m.color)} />
+                    <m.icon className={cn('w-5 h-5', m.color)} />
                     <span className="text-[10px] font-mono">{m.label}</span>
                   </button>
                 ))}
@@ -232,17 +238,18 @@ export function MobileNavBar({ activeView, onViewChange }: MobileNavBarProps) {
         <div className="flex items-center justify-around h-14">
           {primaryItems.map(item => {
             const isActive = activeView === item.id;
+
             return (
               <button
                 key={item.id}
                 onClick={() => onViewChange(item.id)}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 min-w-[56px] min-h-[44px] rounded-lg transition-all active:scale-95",
-                  isActive ? "text-primary" : "text-zinc-600"
+                  'flex flex-col items-center justify-center gap-0.5 min-w-[56px] min-h-[44px] rounded-lg transition-all active:scale-95',
+                  isActive ? 'text-primary' : 'text-zinc-600',
                 )}
               >
-                <item.icon className={cn("w-5 h-5", isActive && "drop-shadow-[0_0_6px_rgba(14,165,233,0.5)]")} />
-                <span className={cn("text-[9px] font-mono", isActive && "text-primary")}>{item.label}</span>
+                <item.icon className={cn('w-5 h-5', isActive && 'drop-shadow-[0_0_6px_rgba(14,165,233,0.5)]')} />
+                <span className={cn('text-[9px] font-mono', isActive && 'text-primary')}>{item.label}</span>
                 {isActive && (
                   <div className="absolute -top-px left-1/2 -translate-x-1/2 w-5 h-0.5 bg-primary rounded-full" />
                 )}
@@ -254,8 +261,8 @@ export function MobileNavBar({ activeView, onViewChange }: MobileNavBarProps) {
           <button
             onClick={() => setMoreOpen(!moreOpen)}
             className={cn(
-              "flex flex-col items-center justify-center gap-0.5 min-w-[56px] min-h-[44px] rounded-lg transition-all active:scale-95",
-              moreOpen ? "text-primary" : "text-zinc-600"
+              'flex flex-col items-center justify-center gap-0.5 min-w-[56px] min-h-[44px] rounded-lg transition-all active:scale-95',
+              moreOpen ? 'text-primary' : 'text-zinc-600',
             )}
           >
             <MoreHorizontal className="w-5 h-5" />

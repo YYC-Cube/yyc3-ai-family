@@ -12,27 +12,28 @@
 // Design: "万象归元于云枢; 深栈智启新纪元"
 // ============================================================
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   Rocket, Database, Wifi, WifiOff, Server, CheckCircle2,
   XCircle, Clock, Copy, Play, Loader2, RefreshCw,
   Terminal, FileCode, Box, Radio, AlertTriangle, Check,
   ChevronRight, Satellite, Zap, HardDrive,
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { eventBus } from '@/lib/event-bus';
 import {
   querySQLite,
   testSQLiteConnection,
   loadSQLiteConfig,
   loadDeviceConfigs,
   type DeviceConfig,
-} from "@/lib/nas-client";
-import { NAS_TABLE_DEFINITIONS } from "@/lib/persistence-engine";
-import { eventBus } from "@/lib/event-bus";
+} from '@/lib/nas-client';
+import { NAS_TABLE_DEFINITIONS } from '@/lib/persistence-engine';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // Types
@@ -286,6 +287,7 @@ function CopyButton({ text, label }: { text: string; label?: string }) {
     } catch {
       // Fallback
       const textarea = document.createElement('textarea');
+
       textarea.value = text;
       document.body.appendChild(textarea);
       textarea.select();
@@ -301,8 +303,8 @@ function CopyButton({ text, label }: { text: string; label?: string }) {
       size="sm"
       variant="ghost"
       className={cn(
-        "gap-1.5 text-[10px] transition-colors",
-        copied ? "text-green-400" : "text-zinc-400 hover:text-white"
+        'gap-1.5 text-[10px] transition-colors',
+        copied ? 'text-green-400' : 'text-zinc-400 hover:text-white',
       )}
       onClick={handleCopy}
     >
@@ -331,6 +333,7 @@ function NasTableManager() {
     setTesting(true);
     try {
       const result = await testSQLiteConnection();
+
       setSqliteConnected(result.success);
       setLatency(result.latencyMs);
       if (result.version) setSqliteVersion(result.version);
@@ -342,15 +345,19 @@ function NasTableManager() {
           try {
             const check = await querySQLite(
               `SELECT name FROM sqlite_master WHERE type='table' AND name=?`,
-              [tables[i].name]
+              [tables[i].name],
             );
+
             if (check.rows.length > 0) {
               // Get row count
               const countResult = await querySQLite(`SELECT COUNT(*) FROM ${tables[i].name}`);
               const count = (countResult.rows[0]?.[0] as number) || 0;
+
               setTables(prev => {
                 const next = [...prev];
+
                 next[i] = { ...next[i], status: 'exists', rowCount: count };
+
                 return next;
               });
             }
@@ -376,7 +383,9 @@ function NasTableManager() {
   const createTable = React.useCallback(async (index: number) => {
     setTables(prev => {
       const next = [...prev];
+
       next[index] = { ...next[index], status: 'creating', error: undefined };
+
       return next;
     });
 
@@ -390,7 +399,9 @@ function NasTableManager() {
 
       setTables(prev => {
         const next = [...prev];
+
         next[index] = { ...next[index], status: 'created', rowCount: 0 };
+
         return next;
       });
 
@@ -399,9 +410,12 @@ function NasTableManager() {
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
+
       setTables(prev => {
         const next = [...prev];
+
         next[index] = { ...next[index], status: 'error', error: msg };
+
         return next;
       });
 
@@ -433,12 +447,12 @@ function NasTableManager() {
       <CardContent className="space-y-4">
         {/* Connection Status */}
         <div className={cn(
-          "flex items-center gap-3 px-4 py-2.5 rounded-lg border",
+          'flex items-center gap-3 px-4 py-2.5 rounded-lg border',
           sqliteConnected === null
-            ? "bg-zinc-800/50 border-white/5"
+            ? 'bg-zinc-800/50 border-white/5'
             : sqliteConnected
-            ? "bg-green-500/5 border-green-500/20"
-            : "bg-red-500/5 border-red-500/20"
+            ? 'bg-green-500/5 border-green-500/20'
+            : 'bg-red-500/5 border-red-500/20',
         )}>
           {testing ? (
             <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
@@ -449,15 +463,15 @@ function NasTableManager() {
           )}
           <div className="flex-1 min-w-0">
             <span className={cn(
-              "text-xs font-mono",
-              sqliteConnected ? "text-green-400" : sqliteConnected === false ? "text-red-400" : "text-zinc-400"
+              'text-xs font-mono',
+              sqliteConnected ? 'text-green-400' : sqliteConnected === false ? 'text-red-400' : 'text-zinc-400',
             )}>
               {testing ? 'Testing connection...' : sqliteConnected ? `Connected (v${sqliteVersion})` : 'Unreachable'}
             </span>
             {sqliteConnected && <span className="text-[9px] text-zinc-500 ml-2">{latency}ms</span>}
           </div>
           <Button size="sm" variant="ghost" className="h-7 px-2" onClick={testConnection} disabled={testing}>
-            <RefreshCw className={cn("w-3 h-3", testing && "animate-spin")} />
+            <RefreshCw className={cn('w-3 h-3', testing && 'animate-spin')} />
           </Button>
         </div>
 
@@ -470,11 +484,11 @@ function NasTableManager() {
             >
               <div className="flex items-center gap-3">
                 <div className={cn(
-                  "w-2 h-2 rounded-full",
-                  table.status === 'exists' || table.status === 'created' ? "bg-green-500" :
-                  table.status === 'creating' ? "bg-amber-500 animate-pulse" :
-                  table.status === 'error' ? "bg-red-500" :
-                  "bg-zinc-600"
+                  'w-2 h-2 rounded-full',
+                  table.status === 'exists' || table.status === 'created' ? 'bg-green-500' :
+                  table.status === 'creating' ? 'bg-amber-500 animate-pulse' :
+                  table.status === 'error' ? 'bg-red-500' :
+                  'bg-zinc-600',
                 )} />
                 <div>
                   <span className="text-sm text-white font-mono">{table.name}</span>
@@ -490,12 +504,12 @@ function NasTableManager() {
                 <Badge
                   variant="outline"
                   className={cn(
-                    "text-[8px] h-5",
+                    'text-[8px] h-5',
                     table.status === 'exists' || table.status === 'created'
-                      ? "border-green-500/20 text-green-400"
+                      ? 'border-green-500/20 text-green-400'
                       : table.status === 'error'
-                      ? "border-red-500/20 text-red-400"
-                      : "border-white/10 text-zinc-500"
+                      ? 'border-red-500/20 text-red-400'
+                      : 'border-white/10 text-zinc-500',
                   )}
                 >
                   {table.status === 'exists' ? 'EXISTS' :
@@ -538,7 +552,7 @@ function NasTableManager() {
             onClick={testConnection}
             disabled={testing}
           >
-            <RefreshCw className={cn("w-3.5 h-3.5 mr-1.5", testing && "animate-spin")} />
+            <RefreshCw className={cn('w-3.5 h-3.5 mr-1.5', testing && 'animate-spin')} />
             Refresh Status
           </Button>
         </div>
@@ -620,10 +634,10 @@ function WsServiceDeployer() {
       <CardContent className="space-y-4">
         {/* WS Test */}
         <div className={cn(
-          "flex items-center gap-3 px-4 py-2.5 rounded-lg border",
-          wsTestStatus === 'up' ? "bg-green-500/5 border-green-500/20" :
-          wsTestStatus === 'down' ? "bg-red-500/5 border-red-500/20" :
-          "bg-zinc-800/50 border-white/5"
+          'flex items-center gap-3 px-4 py-2.5 rounded-lg border',
+          wsTestStatus === 'up' ? 'bg-green-500/5 border-green-500/20' :
+          wsTestStatus === 'down' ? 'bg-red-500/5 border-red-500/20' :
+          'bg-zinc-800/50 border-white/5',
         )}>
           {wsTestStatus === 'testing' ? (
             <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
@@ -635,9 +649,9 @@ function WsServiceDeployer() {
             <Wifi className="w-4 h-4 text-zinc-500" />
           )}
           <span className={cn(
-            "text-xs font-mono",
-            wsTestStatus === 'up' ? "text-green-400" :
-            wsTestStatus === 'down' ? "text-red-400" : "text-zinc-400"
+            'text-xs font-mono',
+            wsTestStatus === 'up' ? 'text-green-400' :
+            wsTestStatus === 'down' ? 'text-red-400' : 'text-zinc-400',
           )}>
             {wsTestStatus === 'testing' ? 'Testing WebSocket...' :
              wsTestStatus === 'up' ? `Connected (${wsTestLatency}ms)` :
@@ -646,7 +660,7 @@ function WsServiceDeployer() {
           </span>
           <div className="flex-1" />
           <Button size="sm" variant="ghost" className="h-7 px-2" onClick={testWsConnection}>
-            <RefreshCw className={cn("w-3 h-3", wsTestStatus === 'testing' && "animate-spin")} />
+            <RefreshCw className={cn('w-3 h-3', wsTestStatus === 'testing' && 'animate-spin')} />
           </Button>
         </div>
 
@@ -655,10 +669,10 @@ function WsServiceDeployer() {
           <button
             onClick={() => setActiveCode('server')}
             className={cn(
-              "px-3 py-1.5 rounded-t text-[10px] font-mono transition-colors",
+              'px-3 py-1.5 rounded-t text-[10px] font-mono transition-colors',
               activeCode === 'server'
-                ? "bg-white/10 text-green-400 border border-white/10 border-b-transparent"
-                : "text-zinc-500 hover:text-zinc-300"
+                ? 'bg-white/10 text-green-400 border border-white/10 border-b-transparent'
+                : 'text-zinc-500 hover:text-zinc-300',
             )}
           >
             <FileCode className="w-3 h-3 inline mr-1" />
@@ -667,10 +681,10 @@ function WsServiceDeployer() {
           <button
             onClick={() => setActiveCode('docker')}
             className={cn(
-              "px-3 py-1.5 rounded-t text-[10px] font-mono transition-colors",
+              'px-3 py-1.5 rounded-t text-[10px] font-mono transition-colors',
               activeCode === 'docker'
-                ? "bg-white/10 text-cyan-400 border border-white/10 border-b-transparent"
-                : "text-zinc-500 hover:text-zinc-300"
+                ? 'bg-white/10 text-cyan-400 border border-white/10 border-b-transparent'
+                : 'text-zinc-500 hover:text-zinc-300',
             )}
           >
             <Box className="w-3 h-3 inline mr-1" />
@@ -685,7 +699,7 @@ function WsServiceDeployer() {
           </div>
           <ScrollArea className="h-[320px]">
             <pre className="bg-black/50 border border-white/5 rounded-lg p-4 text-[10px] font-mono overflow-x-auto">
-              <code className={activeCode === 'server' ? "text-green-400/80" : "text-cyan-400/80"}>
+              <code className={activeCode === 'server' ? 'text-green-400/80' : 'text-cyan-400/80'}>
                 {activeCode === 'server' ? WS_SERVER_CODE : DOCKER_COMPOSE_YAML}
               </code>
             </pre>
@@ -750,35 +764,41 @@ function ServiceConnectivityMatrix() {
       const svc = device.services.find(s => s.id === r.serviceId)!;
 
       const start = performance.now();
+
       try {
         if (svc.protocol === 'ssh' || svc.protocol === 'tcp') {
           // Can't test from browser
           newResults[i] = { ...r, status: 'untested' };
         } else if (svc.protocol === 'ws') {
           // Test WebSocket
-          const wsUp = await new Promise<boolean>((resolve) => {
+          const wsUp = await new Promise<boolean>(resolve => {
             try {
               const ws = new WebSocket(`ws://${device.ip}:${svc.port}${svc.path || ''}`);
               const timeout = setTimeout(() => { ws.close(); resolve(false); }, 3000);
+
               ws.onopen = () => { clearTimeout(timeout); ws.close(); resolve(true); };
               ws.onerror = () => { clearTimeout(timeout); resolve(false); };
             } catch { resolve(false); }
           });
           const lat = Math.round(performance.now() - start);
+
           newResults[i] = { ...r, status: wsUp ? 'up' : 'down', latencyMs: lat };
         } else {
           // HTTP/HTTPS test
           const url = `${svc.protocol}://${device.ip}:${svc.port}${svc.path || '/'}`;
           const controller = new AbortController();
           const timeout = setTimeout(() => controller.abort(), 3000);
+
           try {
             await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
             clearTimeout(timeout);
             const lat = Math.round(performance.now() - start);
+
             newResults[i] = { ...r, status: 'up', latencyMs: lat };
           } catch {
             clearTimeout(timeout);
             const lat = Math.round(performance.now() - start);
+
             newResults[i] = { ...r, status: lat > 2900 ? 'timeout' : 'down', latencyMs: lat };
           }
         }
@@ -794,16 +814,19 @@ function ServiceConnectivityMatrix() {
 
     const upCount = newResults.filter(r => r.status === 'up').length;
     const totalTestable = newResults.filter(r => r.status !== 'untested').length;
+
     eventBus.system('deploy_scan', `Connectivity scan: ${upCount}/${totalTestable} services reachable`, upCount > 0 ? 'success' : 'warn');
   }, [devices]);
 
   // Group results by device
   const groupedResults = React.useMemo(() => {
     const grouped: Record<string, ServiceTestResult[]> = {};
+
     for (const r of results) {
       if (!grouped[r.deviceId]) grouped[r.deviceId] = [];
       grouped[r.deviceId].push(r);
     }
+
     return grouped;
   }, [results]);
 
@@ -852,6 +875,7 @@ function ServiceConnectivityMatrix() {
         ) : (
           devices.map(device => {
             const deviceResults = groupedResults[device.id] || [];
+
             if (deviceResults.length === 0) return null;
             const upCount = deviceResults.filter(r => r.status === 'up').length;
 
@@ -863,12 +887,12 @@ function ServiceConnectivityMatrix() {
                   <span className="text-[9px] text-zinc-600 font-mono">{device.ip}</span>
                   <div className="flex-1 h-px bg-white/5" />
                   <Badge variant="outline" className={cn(
-                    "text-[8px] h-4",
+                    'text-[8px] h-4',
                     upCount === deviceResults.length
-                      ? "border-green-500/20 text-green-400"
+                      ? 'border-green-500/20 text-green-400'
                       : upCount > 0
-                      ? "border-amber-500/20 text-amber-400"
-                      : "border-red-500/20 text-red-400"
+                      ? 'border-amber-500/20 text-amber-400'
+                      : 'border-red-500/20 text-red-400',
                   )}>
                     {upCount}/{deviceResults.length}
                   </Badge>
@@ -878,20 +902,20 @@ function ServiceConnectivityMatrix() {
                     <div
                       key={r.serviceId}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded border text-[10px] font-mono",
+                        'flex items-center gap-2 px-3 py-1.5 rounded border text-[10px] font-mono',
                         r.status === 'up'
-                          ? "bg-green-500/5 border-green-500/10"
+                          ? 'bg-green-500/5 border-green-500/10'
                           : r.status === 'down' || r.status === 'timeout'
-                          ? "bg-red-500/5 border-red-500/10"
-                          : "bg-white/5 border-white/5"
+                          ? 'bg-red-500/5 border-red-500/10'
+                          : 'bg-white/5 border-white/5',
                       )}
                     >
                       {statusIcon(r.status)}
                       <span className="text-zinc-300 flex-1 truncate">{r.serviceName}</span>
                       {r.latencyMs !== undefined && r.status !== 'untested' && (
                         <span className={cn(
-                          "text-[8px]",
-                          r.status === 'up' ? "text-green-500" : "text-red-500"
+                          'text-[8px]',
+                          r.status === 'up' ? 'text-green-500' : 'text-red-500',
                         )}>
                           {r.latencyMs}ms
                         </span>
@@ -929,6 +953,7 @@ function DeploymentChecklist() {
     setTasks(prev => prev.map(t => {
       if (t.id !== id) return t;
       const nextStatus = t.status === 'done' ? 'pending' : 'done';
+
       return { ...t, status: nextStatus };
     }));
   };
@@ -984,25 +1009,25 @@ function DeploymentChecklist() {
                 key={task.id}
                 onClick={() => toggleTask(task.id)}
                 className={cn(
-                  "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all",
+                  'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all',
                   task.status === 'done'
-                    ? "bg-green-500/5 border-green-500/10 opacity-70"
-                    : "bg-black/20 border-white/5 hover:border-white/10"
+                    ? 'bg-green-500/5 border-green-500/10 opacity-70'
+                    : 'bg-black/20 border-white/5 hover:border-white/10',
                 )}
               >
                 <div className={cn(
-                  "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+                  'w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
                   task.status === 'done'
-                    ? "border-green-500 bg-green-500/20"
-                    : "border-zinc-600"
+                    ? 'border-green-500 bg-green-500/20'
+                    : 'border-zinc-600',
                 )}>
                   {task.status === 'done' && <Check className="w-3 h-3 text-green-400" />}
                 </div>
-                <Icon className={cn("w-4 h-4 shrink-0", color)} />
+                <Icon className={cn('w-4 h-4 shrink-0', color)} />
                 <div className="flex-1 min-w-0">
                   <div className={cn(
-                    "text-xs",
-                    task.status === 'done' ? "text-zinc-500 line-through" : "text-white"
+                    'text-xs',
+                    task.status === 'done' ? 'text-zinc-500 line-through' : 'text-white',
                   )}>
                     {task.title}
                   </div>

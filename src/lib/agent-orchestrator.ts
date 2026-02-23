@@ -27,11 +27,20 @@
 // 1. Types
 // ============================================================
 
+// ============================================================
+// 6. Agent Selection Algorithm
+// ============================================================
+
+import type { EventLevel } from '@/lib/event-bus';
+
+import { getAllMCPServers, type MCPTool } from './mcp-protocol';
+
+
 export type CollaborationMode =
-  | 'pipeline'   // 串行接力
-  | 'parallel'   // 并行汇总
-  | 'debate'     // 辩论仲裁
-  | 'ensemble'   // 集成共识
+  | 'pipeline' // 串行接力
+  | 'parallel' // 并行汇总
+  | 'debate' // 辩论仲裁
+  | 'ensemble' // 集成共识
   | 'delegation'; // 委托分工
 
 export type AgentRole = 'lead' | 'contributor' | 'reviewer' | 'judge' | 'observer';
@@ -63,7 +72,7 @@ export interface CollaborationTask {
   id: string;
   title: string;
   description: string;
-  intent: string;            // 用户原始意图
+  intent: string; // 用户原始意图
   mode: CollaborationMode;
   status: TaskStatus;
   priority: 'low' | 'medium' | 'high' | 'critical';
@@ -107,7 +116,7 @@ export interface SubTask {
   assignedAgent: string;
   status: TaskStatus;
   result?: string;
-  dependencies: string[];    // other subtask IDs
+  dependencies: string[]; // other subtask IDs
   order: number;
 }
 
@@ -115,13 +124,13 @@ export interface AgentResult {
   agentId: string;
   role: AgentRole;
   output: string;
-  confidence: number;        // 0-1
+  confidence: number; // 0-1
   reasoning?: string;
-  artifacts?: Array<{
+  artifacts?: {
     type: 'code' | 'document' | 'data' | 'diagram';
     content: string;
     language?: string;
-  }>;
+  }[];
   pendingToolCall?: {
     toolName: string;
     arguments: Record<string, unknown>;
@@ -282,7 +291,7 @@ export interface CollaborationPreset {
   nameZh: string;
   description: string;
   mode: CollaborationMode;
-  agents: Array<{ agentId: string; role: AgentRole }>;
+  agents: { agentId: string; role: AgentRole }[];
   template: string;
   icon: string;
   color: string;
@@ -397,6 +406,7 @@ function uid() { return Math.random().toString(36).substring(2, 10); }
 export function loadTasks(): CollaborationTask[] {
   try {
     const raw = localStorage.getItem(ORCHESTRATOR_STORAGE_KEY);
+
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 }
@@ -410,7 +420,7 @@ export function saveTasks(tasks: CollaborationTask[]): void {
 export function createTask(
   intent: string,
   mode: CollaborationMode,
-  agentAssignments: Array<{ agentId: string; role: AgentRole }>
+  agentAssignments: { agentId: string; role: AgentRole }[],
 ): CollaborationTask {
   const now = new Date().toISOString();
 
@@ -444,6 +454,7 @@ export function createTask(
   };
 
   const tasks = loadTasks();
+
   tasks.unshift(task);
   saveTasks(tasks);
 
@@ -453,6 +464,7 @@ export function createTask(
 export function updateTask(taskId: string, updates: Partial<CollaborationTask>): void {
   const tasks = loadTasks();
   const idx = tasks.findIndex(t => t.id === taskId);
+
   if (idx >= 0) {
     tasks[idx] = { ...tasks[idx], ...updates, updatedAt: new Date().toISOString() };
     saveTasks(tasks);
@@ -462,6 +474,7 @@ export function updateTask(taskId: string, updates: Partial<CollaborationTask>):
 export function addTimelineEvent(taskId: string, event: Omit<TimelineEvent, 'id' | 'timestamp'>): void {
   const tasks = loadTasks();
   const task = tasks.find(t => t.id === taskId);
+
   if (task) {
     task.timeline.push({
       ...event,
@@ -472,12 +485,6 @@ export function addTimelineEvent(taskId: string, event: Omit<TimelineEvent, 'id'
     saveTasks(tasks);
   }
 }
-
-// ============================================================
-// 6. Agent Selection Algorithm
-// ============================================================
-
-import { getAllMCPServers, type MCPTool } from './mcp-protocol';
 
 /**
  * 智能工具发现：根据任务意图从 MCP 注册表中检索相关工具
@@ -515,7 +522,7 @@ export function injectToolsToPrompt(basePrompt: string, tools: MCPTool[]): strin
   if (tools.length === 0) return basePrompt;
 
   const toolDefinitions = tools.map(t =>
-    `- ${t.name}: ${t.description} (Args: ${Object.keys(t.inputSchema.properties).join(', ')})`
+    `- ${t.name}: ${t.description} (Args: ${Object.keys(t.inputSchema.properties).join(', ')})`,
   ).join('\n');
 
   return `${basePrompt}\n\n## Available MCP Tools\nYou have access to the following tools via the Model Context Protocol. To use them, output a JSON block with "tool_call": { "name": "...", "arguments": {...} }.\n\n${toolDefinitions}`;
@@ -524,10 +531,10 @@ export function injectToolsToPrompt(basePrompt: string, tools: MCPTool[]): strin
 export function recommendAgents(
   intent: string,
   mode: CollaborationMode,
-  maxAgents = 4
+  maxAgents = 4,
 ): AgentRecommendation[] {
   const keywords = intent.toLowerCase();
-  const scores: Array<{ agentId: string; score: number; reasons: string[] }> = [];
+  const scores: { agentId: string; score: number; reasons: string[] }[] = [];
 
   for (const [agentId, cap] of Object.entries(AGENT_CAPABILITIES)) {
     let score = 0;
@@ -585,6 +592,7 @@ export function recommendAgents(
 
   // Assign roles
   const selected = scores.slice(0, maxAgents);
+
   return selected.map((s, i) => ({
     agentId: s.agentId,
     role: i === 0 ? 'lead' as AgentRole :
@@ -618,8 +626,10 @@ export type ExecutionMode = 'simulation' | 'real-llm';
 export function isRealLLMAvailable(): boolean {
   try {
     const raw = localStorage.getItem('yyc3-llm-provider-config');
+
     if (!raw) return false;
-    const configs = JSON.parse(raw) as Array<{ enabled: boolean; apiKey: string }>;
+    const configs = JSON.parse(raw) as { enabled: boolean; apiKey: string }[];
+
     return configs.some(c => c.enabled && c.apiKey);
   } catch { return false; }
 }
@@ -631,19 +641,21 @@ export function isRealLLMAvailable(): boolean {
  */
 export async function executeRealCollaboration(
   task: CollaborationTask,
-  callbacks: SimulationCallbacks
+  callbacks: SimulationCallbacks,
 ): Promise<CollaborationTask> {
   // Dynamic import to avoid circular dependencies
   const { agentStreamChat, trackUsage, loadProviderConfigs } = await import('./llm-bridge');
   const { AGENT_ROUTES } = await import('./llm-providers');
-  type LLMMessage = { role: 'system' | 'user' | 'assistant'; content: string };
+
+  interface LLMMessage { role: 'system' | 'user' | 'assistant'; content: string }
 
   const updatedTask = { ...task };
   const configs = loadProviderConfigs();
-  const hasKeys = configs.some((c) => c.enabled && c.apiKey);
+  const hasKeys = configs.some(c => c.enabled && c.apiKey);
 
   // Phase 35: Discover relevant MCP tools
   const discoveredTools = discoverToolsForTask(task.intent);
+
   if (discoveredTools.length > 0) {
     callbacks.onTimelineEvent({
       id: `ev-${uid()}`, timestamp: new Date().toISOString(),
@@ -667,6 +679,7 @@ export async function executeRealCollaboration(
   updatedTask.status = 'assigning';
   for (const agent of updatedTask.agents) {
     const route = AGENT_ROUTES[agent.agentId];
+
     callbacks.onTimelineEvent({
       id: `ev-${uid()}`, timestamp: new Date().toISOString(),
       type: 'agent_assigned', agentId: agent.agentId,
@@ -682,20 +695,23 @@ export async function executeRealCollaboration(
   // Build shared context from task intent + previous results
   const buildContext = (prevResults: AgentResult[]): string => {
     let ctx = `## 协作任务\n**模式**: ${task.mode}\n**意图**: ${task.intent}\n\n`;
+
     if (prevResults.length > 0) {
       ctx += `## 前序 Agent 输出\n`;
       for (const r of prevResults) {
         const name = AGENT_CAPABILITIES[r.agentId]?.nameZh || r.agentId;
+
         ctx += `### ${name} (${r.role})\n${r.output}\n\n`;
       }
     }
+
     return ctx;
   };
 
   // Execute based on mode
   const executeAgent = async (
     agent: typeof updatedTask.agents[0],
-    contextMessage: string
+    contextMessage: string,
   ): Promise<AgentResult> => {
     const startTime = performance.now();
 
@@ -728,7 +744,7 @@ export async function executeRealCollaboration(
         agent.agentId,
         `[Multi-Agent ${task.mode} Collaboration]\n\n你的角色: ${agent.role}\n参与的 Agent: ${updatedTask.agents.map(a => AGENT_CAPABILITIES[a.agentId]?.nameZh).join('、')}\n\n${contextMessage}`,
         chatHistory,
-        (chunk) => {
+        chunk => {
           if (chunk.type === 'content') {
             output += chunk.content;
           }
@@ -737,7 +753,7 @@ export async function executeRealCollaboration(
           }
         },
         undefined,
-        systemPromptWithTools
+        systemPromptWithTools,
       );
 
       if (response) {
@@ -754,11 +770,14 @@ export async function executeRealCollaboration(
           denied?: boolean;
           result?: string;
         } | undefined;
+
         if (output.includes('tool_call')) {
           try {
             const toolMatch = output.match(/\{[\s\S]*?"tool_call"[\s\S]*?\}/);
+
             if (toolMatch) {
               const toolObj = JSON.parse(toolMatch[0]).tool_call;
+
               if (toolObj && toolObj.name) {
                 pendingToolCall = {
                   toolName: toolObj.name,
@@ -769,7 +788,7 @@ export async function executeRealCollaboration(
                   id: `ev-${uid()}`, timestamp: new Date().toISOString(),
                   type: 'human_review', agentId: agent.agentId,
                   message: `[Review Required] ${AGENT_CAPABILITIES[agent.agentId]?.nameZh} proposed tool call: ${toolObj.name}`,
-                  metadata: { toolName: toolObj.name, arguments: toolObj.arguments }
+                  metadata: { toolName: toolObj.name, arguments: toolObj.arguments },
                 });
 
                 // Phase 35: Human-in-the-loop confirmation
@@ -781,7 +800,7 @@ export async function executeRealCollaboration(
                   callbacks.onTimelineEvent({
                     id: `ev-${uid()}`, timestamp: new Date().toISOString(),
                     type: 'message', agentId: agent.agentId,
-                    message: `[Confirmed] Executing ${toolObj.name}...`
+                    message: `[Confirmed] Executing ${toolObj.name}...`,
                   });
                   // Mock tool execution result
                   pendingToolCall.result = `[Real MCP Proxy] Successfully executed ${toolObj.name}. Result: Action completed on cluster.`;
@@ -791,7 +810,7 @@ export async function executeRealCollaboration(
                   callbacks.onTimelineEvent({
                     id: `ev-${uid()}`, timestamp: new Date().toISOString(),
                     type: 'message', agentId: agent.agentId,
-                    message: `[Denied] Tool call ${toolObj.name} was rejected by user.`
+                    message: `[Denied] Tool call ${toolObj.name} was rejected by user.`,
                   });
                   output += `\n\n[Tool Execution Rejected]: Security gate triggered. User denied this action.`;
                 }
@@ -826,28 +845,29 @@ export async function executeRealCollaboration(
           latencyMs,
           timestamp: new Date().toISOString(),
         };
-      } else {
-        // Fallback to template if no provider available
-        output = generateFallbackOutput(agent, task);
-        callbacks.onTimelineEvent({
-          id: `ev-${uid()}`, timestamp: new Date().toISOString(),
-          type: 'agent_completed', agentId: agent.agentId,
-          message: `${AGENT_CAPABILITIES[agent.agentId]?.nameZh} fallback to template (no provider keys)`,
-        });
-
-        callbacks.onAgentStatusChange(agent.agentId, 'done');
-        agent.status = 'done';
-        return {
-          agentId: agent.agentId,
-          role: agent.role,
-          output,
-          confidence: 0.5,
-          reasoning: 'Template fallback due to missing credentials',
-          tokensUsed: 0,
-          latencyMs: Math.round(performance.now() - startTime),
-          timestamp: new Date().toISOString(),
-        };
       }
+      // Fallback to template if no provider available
+      output = generateFallbackOutput(agent, task);
+      callbacks.onTimelineEvent({
+        id: `ev-${uid()}`, timestamp: new Date().toISOString(),
+        type: 'agent_completed', agentId: agent.agentId,
+        message: `${AGENT_CAPABILITIES[agent.agentId]?.nameZh} fallback to template (no provider keys)`,
+      });
+
+      callbacks.onAgentStatusChange(agent.agentId, 'done');
+      agent.status = 'done';
+
+      return {
+        agentId: agent.agentId,
+        role: agent.role,
+        output,
+        confidence: 0.5,
+        reasoning: 'Template fallback due to missing credentials',
+        tokensUsed: 0,
+        latencyMs: Math.round(performance.now() - startTime),
+        timestamp: new Date().toISOString(),
+      };
+
     } catch (e) {
       console.error(`[Orchestrator] Error in executeAgent (${agent.agentId}):`, e);
       callbacks.onAgentStatusChange(agent.agentId, 'error');
@@ -867,6 +887,7 @@ export async function executeRealCollaboration(
       for (const agent of updatedTask.agents) {
         const context = buildContext(updatedTask.results);
         const result = await executeAgent(agent, context + `\n请基于你的专业角色 (${agent.role}) 对上述内容进行分析和输出。`);
+
         updatedTask.results.push(result);
         callbacks.onResultReceived(result);
       }
@@ -880,9 +901,10 @@ export async function executeRealCollaboration(
       });
       const context = buildContext([]);
       const promises = updatedTask.agents.map(agent =>
-        executeAgent(agent, context + `\n请从你的专业角度 (${AGENT_CAPABILITIES[agent.agentId]?.nameZh}, ${agent.role}) 独立分析。`)
+        executeAgent(agent, context + `\n请从你的专业角度 (${AGENT_CAPABILITIES[agent.agentId]?.nameZh}, ${agent.role}) 独立分析。`),
       );
       const results = await Promise.all(promises);
+
       for (const result of results) {
         updatedTask.results.push(result);
         callbacks.onResultReceived(result);
@@ -899,8 +921,10 @@ export async function executeRealCollaboration(
         type: 'message', message: '[REAL LLM] Debate Round 1: Initial positions',
       });
       const debateContext = buildContext([]);
+
       for (const debater of debaters) {
         const result = await executeAgent(debater, debateContext + `\n请阐述你的立场和分析方案。这是一场辩论，请给出有说服力的论点。`);
+
         updatedTask.results.push(result);
         callbacks.onResultReceived(result);
       }
@@ -913,14 +937,17 @@ export async function executeRealCollaboration(
       });
       const judgeContext = buildContext(updatedTask.results);
       const judgeResult = await executeAgent(judge, judgeContext + `\n作为仲裁者，请综合上述各方观点，给出最终裁决和推荐方案。`);
+
       updatedTask.results.push(judgeResult);
       callbacks.onResultReceived(judgeResult);
       break;
     }
     case 'ensemble': {
       const context = buildContext([]);
+
       for (const agent of updatedTask.agents) {
         const result = await executeAgent(agent, context + `\n请独立评估并给出你的评分 (1-10) 和理由。这是集成共识模式，你的评估将与其他 Agent 汇总。`);
+
         updatedTask.results.push(result);
         callbacks.onResultReceived(result);
       }
@@ -937,6 +964,7 @@ export async function executeRealCollaboration(
 
       // Lead decomposes
       const decompResult = await executeAgent(lead, buildContext([]) + `\n作为团队领导，请将任务分解为 ${workers.length} 个子任务，分别委托给: ${workers.map(w => AGENT_CAPABILITIES[w.agentId]?.nameZh).join('、')}。`);
+
       updatedTask.results.push(decompResult);
       callbacks.onResultReceived(decompResult);
 
@@ -944,6 +972,7 @@ export async function executeRealCollaboration(
       for (const worker of workers) {
         const workerContext = buildContext([decompResult]);
         const result = await executeAgent(worker, workerContext + `\n请根据团队领导的分工，完成分配给你的子任务。`);
+
         updatedTask.results.push(result);
         callbacks.onResultReceived(result);
       }
@@ -951,6 +980,7 @@ export async function executeRealCollaboration(
       // Lead aggregates
       const aggContext = buildContext(updatedTask.results);
       const aggResult = await executeAgent(lead, aggContext + `\n所有子任务已完成，请汇总各 Agent 的输出，形成最终报告。`);
+
       updatedTask.results.push(aggResult);
       callbacks.onResultReceived(aggResult);
       break;
@@ -987,6 +1017,7 @@ export async function executeRealCollaboration(
   // Persist
   const tasks = loadTasks();
   const idx = tasks.findIndex(t => t.id === updatedTask.id);
+
   if (idx >= 0) tasks[idx] = updatedTask;
   saveTasks(tasks);
 
@@ -1005,6 +1036,7 @@ function generateFallbackOutput(agent: { agentId: string; role: AgentRole }, tas
     sentinel: `[${cap?.nameZh} - Template] 安全审计完成。未发现严重漏洞。建议加强密钥轮换策略。`,
     grandmaster: `[${cap?.nameZh} - Template] 知识图谱分析完成。发现与历史案例的高度相似性。`,
   };
+
   return outputs[agent.agentId] || `[${cap?.nameZh || agent.agentId} - Template] 分析完成。`;
 }
 
@@ -1014,7 +1046,7 @@ function generateFallbackOutput(agent: { agentId: string; role: AgentRole }, tas
  */
 export async function simulateCollaboration(
   task: CollaborationTask,
-  callbacks: SimulationCallbacks
+  callbacks: SimulationCallbacks,
 ): Promise<CollaborationTask> {
   const updatedTask = { ...task };
 
@@ -1095,6 +1127,7 @@ export async function simulateCollaboration(
   // Persist
   const tasks = loadTasks();
   const idx = tasks.findIndex(t => t.id === updatedTask.id);
+
   if (idx >= 0) tasks[idx] = updatedTask;
   saveTasks(tasks);
 
@@ -1120,6 +1153,7 @@ async function executePipeline(task: CollaborationTask, cb: SimulationCallbacks)
     await sleep(800 + Math.random() * 600);
 
     const result = generateMockResult(agent, task);
+
     task.results.push(result);
     cb.onResultReceived(result);
 
@@ -1155,11 +1189,13 @@ async function executeParallel(task: CollaborationTask, cb: SimulationCallbacks)
   // Complete at staggered times
   for (let i = 0; i < task.agents.length; i++) {
     const agent = task.agents[i];
+
     cb.onAgentStatusChange(agent.agentId, 'executing');
     agent.status = 'executing';
     await sleep(400 + Math.random() * 400);
 
     const result = generateMockResult(agent, task);
+
     task.results.push(result);
     cb.onResultReceived(result);
 
@@ -1196,6 +1232,7 @@ async function executeDebate(task: CollaborationTask, cb: SimulationCallbacks) {
     await sleep(800);
 
     const result = generateMockResult(debater, task, 'debate-position');
+
     task.results.push(result);
     cb.onResultReceived(result);
     cb.onAgentStatusChange(debater.agentId, 'waiting');
@@ -1228,6 +1265,7 @@ async function executeDebate(task: CollaborationTask, cb: SimulationCallbacks) {
   await sleep(1200);
 
   const judgeResult = generateMockResult(judge, task, 'judge-verdict');
+
   task.results.push(judgeResult);
   cb.onResultReceived(judgeResult);
   cb.onAgentStatusChange(judge.agentId, 'done');
@@ -1248,6 +1286,7 @@ async function executeEnsemble(task: CollaborationTask, cb: SimulationCallbacks)
     await sleep(300 + Math.random() * 500);
 
     const result = generateMockResult(agent, task, 'ensemble-vote');
+
     task.results.push(result);
     cb.onResultReceived(result);
     cb.onAgentStatusChange(agent.agentId, 'done');
@@ -1288,6 +1327,7 @@ async function executeDelegation(task: CollaborationTask, cb: SimulationCallback
       dependencies: [],
       order: i,
     };
+
     task.subtasks.push(subtask);
     cb.onTimelineEvent({
       id: `ev-${uid()}`, timestamp: new Date().toISOString(),
@@ -1306,6 +1346,7 @@ async function executeDelegation(task: CollaborationTask, cb: SimulationCallback
     await sleep(800 + Math.random() * 600);
 
     const result = generateMockResult(worker, task);
+
     task.results.push(result);
     cb.onResultReceived(result);
     cb.onAgentStatusChange(worker.agentId, 'done');
@@ -1318,6 +1359,7 @@ async function executeDelegation(task: CollaborationTask, cb: SimulationCallback
   lead.status = 'executing';
   await sleep(800);
   const leadResult = generateMockResult(lead, task, 'aggregation');
+
   task.results.push(leadResult);
   cb.onResultReceived(leadResult);
   cb.onAgentStatusChange(lead.agentId, 'done');
@@ -1331,7 +1373,7 @@ function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
 function generateMockResult(
   agent: AgentAssignment,
   task: CollaborationTask,
-  variant?: string
+  variant?: string,
 ): AgentResult {
   const cap = AGENT_CAPABILITIES[agent.agentId];
   const tokens = 200 + Math.floor(Math.random() * 800);
@@ -1386,10 +1428,11 @@ function generateFinalOutput(task: CollaborationTask): string {
 ### 各智能体输出摘要
 
 ${task.results.map(r => {
-  const cap = AGENT_CAPABILITIES[r.agentId];
-  return `**${cap?.nameZh || r.agentId}** (${r.role}, 置信度: ${Math.round(r.confidence * 100)}%):
+    const cap = AGENT_CAPABILITIES[r.agentId];
+
+    return `**${cap?.nameZh || r.agentId}** (${r.role}, 置信度: ${Math.round(r.confidence * 100)}%):
 ${r.output}`;
-}).join('\n\n')}
+  }).join('\n\n')}
 
 ### 综合结论
 
@@ -1435,6 +1478,7 @@ const MCP_INVOKE_REGEX = /\[MCP:([a-z/]+):([a-z0-9_-]+)\s+(\{[^}]*\})\]/gi;
 export function parseMCPInvocations(text: string): MCPToolInvocation[] {
   const invocations: MCPToolInvocation[] = [];
   let match: RegExpExecArray | null;
+
   MCP_INVOKE_REGEX.lastIndex = 0;
 
   while ((match = MCP_INVOKE_REGEX.exec(text)) !== null) {
@@ -1457,12 +1501,13 @@ export function parseMCPInvocations(text: string): MCPToolInvocation[] {
 export async function executeAgentMCPCalls(
   agentOutput: string,
   agentId: string,
-  callbacks?: SimulationCallbacks
+  callbacks?: SimulationCallbacks,
 ): Promise<{ enrichedOutput: string; invocations: MCPToolInvocation[] }> {
   const { smartMCPCall } = await import('./mcp-protocol');
   const { eventBus } = await import('./event-bus');
 
   const invocations = parseMCPInvocations(agentOutput);
+
   if (invocations.length === 0) {
     return { enrichedOutput: agentOutput, invocations: [] };
   }
@@ -1484,6 +1529,7 @@ export async function executeAgentMCPCalls(
 
     try {
       const result = await smartMCPCall(inv.serverId, inv.method, inv.params);
+
       inv.result = result.response?.result;
       inv.success = result.success;
       inv.latencyMs = result.latencyMs;
@@ -1491,11 +1537,12 @@ export async function executeAgentMCPCalls(
       // Replace the invocation placeholder with the result
       const placeholder = `[MCP:${inv.method}:${inv.serverId} ${JSON.stringify(inv.params)}]`;
       const resultBlock = `\n\`\`\`mcp-result (${inv.method}@${inv.serverId}, ${inv.latencyMs}ms)\n${JSON.stringify(inv.result, null, 2)}\n\`\`\`\n`;
+
       enrichedOutput = enrichedOutput.replace(placeholder, resultBlock);
 
       eventBus.mcp('agent_call_result', `${inv.method}@${inv.serverId}: ${inv.success ? 'OK' : 'FAIL'} (${inv.latencyMs}ms)`,
         inv.success ? 'success' : 'error',
-        { agentId, method: inv.method, serverId: inv.serverId, latencyMs: inv.latencyMs }
+        { agentId, method: inv.method, serverId: inv.serverId, latencyMs: inv.latencyMs },
       );
     } catch (error) {
       inv.success = false;
@@ -1517,11 +1564,14 @@ export async function executeAgentMCPCalls(
 export function getMCPToolContextForAgent(): string {
   try {
     const raw = localStorage.getItem('yyc3-mcp-servers');
+
     if (!raw) return '';
-    const servers = JSON.parse(raw) as Array<{ id: string; name: string; tools: Array<{ name: string; description: string }> }>;
+    const servers = JSON.parse(raw) as { id: string; name: string; tools: { name: string; description: string }[] }[];
+
     if (!servers.length) return '';
 
     let ctx = '\n## Available MCP Tools\nYou can invoke MCP tools using this format: [MCP:tools/call:serverId {"name":"toolName","arguments":{...}}]\n\n';
+
     for (const srv of servers) {
       if (!srv.tools?.length) continue;
       ctx += `### ${srv.name} (${srv.id})\n`;
@@ -1530,6 +1580,7 @@ export function getMCPToolContextForAgent(): string {
       }
       ctx += '\n';
     }
+
     return ctx;
   } catch { return ''; }
 }
@@ -1546,20 +1597,19 @@ export function emitOrchestrationEvent(
   type: string,
   message: string,
   level: 'info' | 'warn' | 'error' | 'success' = 'info',
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
 ): void {
   try {
     // Dynamic import to avoid circular dependency at module load time
     const bus = (globalThis as unknown as Record<string, unknown>).__yyc3_event_bus_ref as
       | { orchestrate: (type: string, message: string, level: string, metadata?: Record<string, unknown>) => void }
       | undefined;
+
     if (bus) {
       bus.orchestrate(type, message, level, metadata);
     }
   } catch { /* ignore if bus not ready */ }
 }
-
-import type { EventLevel } from '@/lib/event-bus';
 
 // Register global reference (called once from event-bus module consumer)
 interface EventBusRef {

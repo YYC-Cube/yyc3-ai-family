@@ -1,21 +1,18 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
-  Server, Wrench, Database, FolderOpen, Search, Globe, Zap,
-  Plus, Trash2, Copy, Check, Play, Eye, Code, ChevronDown,
+  Server, Wrench, Database, Globe, Zap, Copy, Check, Play, Eye, Code, ChevronDown,
   ChevronRight, FileCode, Settings, RefreshCw, Download,
   ArrowRight, Send, Clock, AlertCircle, CheckCircle2,
-  BookOpen, Terminal as TerminalIcon, X
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { Input } from "@/app/components/ui/input";
-import { useSystemStore } from "@/lib/store";
+  BookOpen, X,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Input } from '@/app/components/ui/input';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
 import {
   getAllMCPServers,
-  executeMCPCall,
   getMCPCallLog,
   generateMCPServerCode,
   generateMCPClientConfig,
@@ -31,7 +28,9 @@ import {
   type MCPCallResult,
   type MCPCallPreset,
   type MCPTransportConnection,
-} from "@/lib/mcp-protocol";
+} from '@/lib/mcp-protocol';
+import { useSystemStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
 
 // --- Icon mapping ---
 const TRANSPORT_COLORS: Record<string, string> = {
@@ -49,8 +48,8 @@ const CATEGORY_BADGES: Record<string, { label: string; color: string }> = {
 type TabId = 'registry' | 'explorer' | 'playground' | 'codegen' | 'log';
 
 export function McpServiceBuilder() {
-  const addLog = useSystemStore((s) => s.addLog);
-  const isMobile = useSystemStore((s) => s.isMobile);
+  const addLog = useSystemStore(s => s.addLog);
+  const isMobile = useSystemStore(s => s.isMobile);
 
   const [activeTab, setActiveTab] = React.useState<TabId>('registry');
   const [servers, setServers] = React.useState<MCPServerDefinition[]>(getAllMCPServers);
@@ -78,6 +77,7 @@ export function McpServiceBuilder() {
   // Refresh connections state
   const refreshConnections = React.useCallback(() => {
     const conns: Record<string, MCPTransportConnection> = {};
+
     for (const c of getAllMCPConnections()) {
       conns[c.serverId] = c;
     }
@@ -93,11 +93,12 @@ export function McpServiceBuilder() {
     setTestResult(null);
     try {
       const result = await testMCPConnection(srv);
+
       setTestResult({ serverId: srv.id, ...result });
       addLog(
         result.success ? 'success' : 'warn',
         'MCP',
-        `Connection test → ${srv.name}: ${result.success ? 'OK' : result.error} (${result.latencyMs}ms)`
+        `Connection test → ${srv.name}: ${result.success ? 'OK' : result.error} (${result.latencyMs}ms)`,
       );
     } catch (e) {
       addLog('error', 'MCP', `Connection test failed: ${e}`);
@@ -109,11 +110,12 @@ export function McpServiceBuilder() {
     setConnectingId(srv.id);
     try {
       const conn = await connectMCPServer(srv);
+
       refreshConnections();
       addLog(
         conn.status === 'connected' ? 'success' : 'error',
         'MCP',
-        `Connect → ${srv.name}: ${conn.status} ${conn.error || ''}`
+        `Connect → ${srv.name}: ${conn.status} ${conn.error || ''}`,
       );
     } catch (e) {
       addLog('error', 'MCP', `Connect failed: ${e}`);
@@ -139,14 +141,16 @@ export function McpServiceBuilder() {
     try {
       const params = JSON.parse(pgParams);
       const result = await smartMCPCall(pgServerId, pgMethod, params);
+
       setPgResult(result);
       setCallLog(getMCPCallLog());
       const conn = getMCPConnection(pgServerId);
       const mode = conn?.status === 'connected' ? 'REAL' : 'MOCK';
+
       addLog(
         result.success ? 'success' : 'error',
         'MCP',
-        `[${mode}] ${pgMethod} → ${pgServerId}: ${result.success ? 'OK' : 'FAILED'} (${result.latencyMs}ms)`
+        `[${mode}] ${pgMethod} → ${pgServerId}: ${result.success ? 'OK' : 'FAILED'} (${result.latencyMs}ms)`,
       );
     } catch (e) {
       addLog('error', 'MCP', `Call failed: ${e}`);
@@ -164,7 +168,7 @@ export function McpServiceBuilder() {
     }
   };
 
-  const tabs: Array<{ id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+  const tabs: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'registry', label: 'Registry', icon: Server },
     { id: 'explorer', label: 'Explorer', icon: Eye },
     { id: 'playground', label: 'Playground', icon: Play },
@@ -202,10 +206,10 @@ export function McpServiceBuilder() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-2 text-xs font-mono rounded-t-lg transition-colors",
+              'flex items-center gap-1.5 px-3 py-2 text-xs font-mono rounded-t-lg transition-colors',
               activeTab === tab.id
-                ? "bg-white/5 text-white border-b-2 border-primary"
-                : "text-zinc-500 hover:text-zinc-300 hover:bg-white/3"
+                ? 'bg-white/5 text-white border-b-2 border-primary'
+                : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/3',
             )}
           >
             <tab.icon className="w-3.5 h-3.5" />
@@ -217,33 +221,34 @@ export function McpServiceBuilder() {
       {/* TAB: Registry */}
       {activeTab === 'registry' && (
         <div className="space-y-4">
-          <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-2 xl:grid-cols-3")}>
+          <div className={cn('grid gap-4', isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3')}>
             {servers.map(srv => {
               const conn = connections[srv.id];
+
               return (
                 <Card
                   key={srv.id}
                   className={cn(
-                    "bg-zinc-900/40 border-white/5 cursor-pointer transition-all hover:border-white/20 group",
-                    selectedServer === srv.id && "border-primary/30 ring-1 ring-primary/20"
+                    'bg-zinc-900/40 border-white/5 cursor-pointer transition-all hover:border-white/20 group',
+                    selectedServer === srv.id && 'border-primary/30 ring-1 ring-primary/20',
                   )}
                   onClick={() => setSelectedServer(selectedServer === srv.id ? null : srv.id)}
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
-                        <Server className={cn("w-4 h-4 shrink-0", srv.color || 'text-zinc-400')} />
+                        <Server className={cn('w-4 h-4 shrink-0', srv.color || 'text-zinc-400')} />
                         <CardTitle className="text-sm font-mono text-zinc-200 truncate">{srv.name}</CardTitle>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Badge className={CATEGORY_BADGES[srv.category]?.color || ''}>{CATEGORY_BADGES[srv.category]?.label}</Badge>
                         <div className={cn(
-                          "w-2 h-2 rounded-full",
-                          conn?.status === 'connected' ? "bg-green-500 animate-pulse" :
-                          conn?.status === 'error' ? "bg-red-500" :
-                          srv.status === 'connected' ? "bg-green-500" :
-                          srv.status === 'error' ? "bg-red-500" :
-                          "bg-zinc-600"
+                          'w-2 h-2 rounded-full',
+                          conn?.status === 'connected' ? 'bg-green-500 animate-pulse' :
+                          conn?.status === 'error' ? 'bg-red-500' :
+                          srv.status === 'connected' ? 'bg-green-500' :
+                          srv.status === 'error' ? 'bg-red-500' :
+                          'bg-zinc-600',
                         )} />
                       </div>
                     </div>
@@ -251,7 +256,7 @@ export function McpServiceBuilder() {
                   <CardContent className="space-y-2">
                     <p className="text-[11px] text-zinc-500 line-clamp-2">{srv.description}</p>
                     <div className="flex flex-wrap gap-1">
-                      <Badge variant="outline" className={cn("text-[9px] font-mono", TRANSPORT_COLORS[srv.transport])}>
+                      <Badge variant="outline" className={cn('text-[9px] font-mono', TRANSPORT_COLORS[srv.transport])}>
                         {srv.transport}
                       </Badge>
                       {srv.capabilities.tools && <Badge variant="outline" className="text-[9px] font-mono text-amber-400">tools:{srv.tools.length}</Badge>}
@@ -260,12 +265,12 @@ export function McpServiceBuilder() {
                     </div>
                     {conn && (
                       <div className={cn(
-                        "flex items-center gap-1.5 text-[9px] font-mono px-2 py-1 rounded border",
+                        'flex items-center gap-1.5 text-[9px] font-mono px-2 py-1 rounded border',
                         conn.status === 'connected'
-                          ? "text-green-400 border-green-500/20 bg-green-500/5"
+                          ? 'text-green-400 border-green-500/20 bg-green-500/5'
                           : conn.status === 'error'
-                          ? "text-red-400 border-red-500/20 bg-red-500/5"
-                          : "text-zinc-500 border-white/5"
+                          ? 'text-red-400 border-red-500/20 bg-red-500/5'
+                          : 'text-zinc-500 border-white/5',
                       )}>
                         {conn.status === 'connected' ? <CheckCircle2 className="w-2.5 h-2.5" /> : <AlertCircle className="w-2.5 h-2.5" />}
                         {conn.status.toUpperCase()}
@@ -329,7 +334,7 @@ export function McpServiceBuilder() {
                 <div className="grid grid-cols-2 gap-3 text-[11px] font-mono">
                   <div>
                     <span className="text-zinc-500">Transport</span>
-                    <div className={cn("mt-0.5", TRANSPORT_COLORS[server.transport])}>{server.transport}</div>
+                    <div className={cn('mt-0.5', TRANSPORT_COLORS[server.transport])}>{server.transport}</div>
                   </div>
                   <div>
                     <span className="text-zinc-500">URL</span>
@@ -349,10 +354,10 @@ export function McpServiceBuilder() {
                   </div>
                   <div>
                     <span className="text-zinc-500">Status</span>
-                    <div className={cn("mt-0.5",
+                    <div className={cn('mt-0.5',
                       connections[server.id]?.status === 'connected' ? 'text-green-400' :
                       connections[server.id]?.status === 'error' ? 'text-red-400' :
-                      'text-zinc-500'
+                      'text-zinc-500',
                     )}>
                       {connections[server.id]?.status?.toUpperCase() || 'DISCONNECTED'}
                       {connections[server.id]?.latencyMs !== undefined && ` (${connections[server.id]?.latencyMs}ms)`}
@@ -363,10 +368,10 @@ export function McpServiceBuilder() {
                 {/* Connection test result */}
                 {testResult && testResult.serverId === server.id && (
                   <div className={cn(
-                    "p-3 rounded-lg border text-xs font-mono",
+                    'p-3 rounded-lg border text-xs font-mono',
                     testResult.success
-                      ? "bg-green-500/5 border-green-500/20 text-green-400"
-                      : "bg-red-500/5 border-red-500/20 text-red-400"
+                      ? 'bg-green-500/5 border-green-500/20 text-green-400'
+                      : 'bg-red-500/5 border-red-500/20 text-red-400',
                   )}>
                     <div className="flex items-center gap-2 mb-1">
                       {testResult.success ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
@@ -407,9 +412,9 @@ export function McpServiceBuilder() {
 
       {/* TAB: Explorer */}
       {activeTab === 'explorer' && (
-        <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-12")}>
+        <div className={cn('grid gap-4', isMobile ? 'grid-cols-1' : 'grid-cols-12')}>
           {/* Server List */}
-          <div className={cn("space-y-2", isMobile ? "" : "col-span-4")}>
+          <div className={cn('space-y-2', isMobile ? '' : 'col-span-4')}>
             <h3 className="text-xs font-mono text-zinc-500 uppercase tracking-wider px-1">Servers</h3>
             <ScrollArea className="h-[500px]">
               {servers.map(srv => (
@@ -417,12 +422,12 @@ export function McpServiceBuilder() {
                   <button
                     onClick={() => setExpandedServer(expandedServer === srv.id ? null : srv.id)}
                     className={cn(
-                      "w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left transition-colors",
-                      expandedServer === srv.id ? "bg-white/5 text-white" : "text-zinc-400 hover:bg-white/3"
+                      'w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left transition-colors',
+                      expandedServer === srv.id ? 'bg-white/5 text-white' : 'text-zinc-400 hover:bg-white/3',
                     )}
                   >
                     {expandedServer === srv.id ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                    <Server className={cn("w-3.5 h-3.5", srv.color)} />
+                    <Server className={cn('w-3.5 h-3.5', srv.color)} />
                     <span className="text-xs font-mono truncate">{srv.name}</span>
                     <span className="ml-auto text-[9px] text-zinc-600">{srv.tools.length}T</span>
                   </button>
@@ -436,8 +441,8 @@ export function McpServiceBuilder() {
                               key={tool.name}
                               onClick={() => setSelectedTool(selectedTool?.name === tool.name ? null : tool)}
                               className={cn(
-                                "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs font-mono transition-colors",
-                                selectedTool?.name === tool.name ? "bg-amber-500/10 text-amber-400" : "text-zinc-500 hover:text-zinc-300"
+                                'w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs font-mono transition-colors',
+                                selectedTool?.name === tool.name ? 'bg-amber-500/10 text-amber-400' : 'text-zinc-500 hover:text-zinc-300',
                               )}
                             >
                               <Wrench className="w-3 h-3" />
@@ -476,7 +481,7 @@ export function McpServiceBuilder() {
           </div>
 
           {/* Tool Detail */}
-          <div className={cn(isMobile ? "" : "col-span-8")}>
+          <div className={cn(isMobile ? '' : 'col-span-8')}>
             {selectedTool ? (
               <Card className="bg-black/40 border-white/10">
                 <CardHeader className="pb-2 border-b border-white/5">
@@ -515,16 +520,16 @@ export function McpServiceBuilder() {
                   <div>
                     <h4 className="text-[10px] text-zinc-500 font-mono uppercase mb-2">JSON-RPC Call</h4>
                     <pre className="text-[11px] font-mono text-cyan-300 bg-black/50 p-3 rounded-lg border border-white/5 overflow-auto">
-{`{
+                      {`{
   "jsonrpc": "2.0",
   "id": 1,
   "method": "tools/call",
   "params": {
     "name": "${selectedTool.name}",
     "arguments": ${JSON.stringify(
-      Object.fromEntries(
-        Object.entries(selectedTool.inputSchema.properties).map(([k, v]) => [k, v.default || `<${v.type}>`])
-      ), null, 4).replace(/\n/g, '\n    ')}
+                        Object.fromEntries(
+                          Object.entries(selectedTool.inputSchema.properties).map(([k, v]) => [k, v.default || `<${v.type}>`]),
+                        ), null, 4).replace(/\n/g, '\n    ')}
   }
 }`}
                     </pre>
@@ -555,10 +560,10 @@ export function McpServiceBuilder() {
                   key={preset.id}
                   onClick={() => handleApplyPreset(preset)}
                   className={cn(
-                    "px-2.5 py-1.5 rounded-lg text-[10px] font-mono border transition-colors",
+                    'px-2.5 py-1.5 rounded-lg text-[10px] font-mono border transition-colors',
                     selectedPreset?.id === preset.id
-                      ? "bg-primary/10 text-primary border-primary/30"
-                      : "text-zinc-500 border-white/5 hover:border-white/15 hover:text-zinc-300 bg-zinc-900/50"
+                      ? 'bg-primary/10 text-primary border-primary/30'
+                      : 'text-zinc-500 border-white/5 hover:border-white/15 hover:text-zinc-300 bg-zinc-900/50',
                   )}
                 >
                   {preset.name}
@@ -567,7 +572,7 @@ export function McpServiceBuilder() {
             </div>
           </div>
 
-          <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-2")}>
+          <div className={cn('grid gap-4', isMobile ? 'grid-cols-1' : 'grid-cols-2')}>
             {/* Request */}
             <Card className="bg-black/40 border-white/10">
               <CardHeader className="pb-2 border-b border-white/5">
@@ -578,7 +583,7 @@ export function McpServiceBuilder() {
                   <label className="text-[10px] text-zinc-500 font-mono block mb-1">Server</label>
                   <select
                     value={pgServerId}
-                    onChange={(e) => setPgServerId(e.target.value)}
+                    onChange={e => setPgServerId(e.target.value)}
                     className="w-full h-8 bg-zinc-900 border border-white/10 rounded text-xs font-mono px-2 text-white"
                   >
                     <option value="">Select server...</option>
@@ -589,7 +594,7 @@ export function McpServiceBuilder() {
                   <label className="text-[10px] text-zinc-500 font-mono block mb-1">Method</label>
                   <Input
                     value={pgMethod}
-                    onChange={(e) => setPgMethod(e.target.value)}
+                    onChange={e => setPgMethod(e.target.value)}
                     placeholder="tools/call"
                     className="h-8 bg-zinc-900 border-white/10 text-xs font-mono"
                   />
@@ -598,7 +603,7 @@ export function McpServiceBuilder() {
                   <label className="text-[10px] text-zinc-500 font-mono block mb-1">Params (JSON)</label>
                   <textarea
                     value={pgParams}
-                    onChange={(e) => setPgParams(e.target.value)}
+                    onChange={e => setPgParams(e.target.value)}
                     rows={8}
                     className="w-full bg-zinc-900 border border-white/10 rounded text-[11px] font-mono p-3 text-cyan-300 resize-none focus:outline-none focus:border-primary/50"
                   />
@@ -672,10 +677,10 @@ export function McpServiceBuilder() {
                 key={srv.id}
                 onClick={() => setSelectedServer(srv.id)}
                 className={cn(
-                  "px-3 py-1.5 rounded-lg text-[11px] font-mono border transition-colors",
+                  'px-3 py-1.5 rounded-lg text-[11px] font-mono border transition-colors',
                   selectedServer === srv.id
-                    ? "bg-primary/10 text-primary border-primary/30"
-                    : "text-zinc-500 border-white/5 hover:border-white/15 bg-zinc-900/50"
+                    ? 'bg-primary/10 text-primary border-primary/30'
+                    : 'text-zinc-500 border-white/5 hover:border-white/15 bg-zinc-900/50',
                 )}
               >
                 {srv.name}
@@ -703,6 +708,7 @@ export function McpServiceBuilder() {
                           const blob = new Blob([generateMCPServerCode(server)], { type: 'text/typescript' });
                           const url = URL.createObjectURL(blob);
                           const a = document.createElement('a');
+
                           a.href = url;
                           a.download = `mcp-${server.id}.ts`;
                           a.click();
@@ -764,8 +770,8 @@ export function McpServiceBuilder() {
                   className="flex items-center gap-3 px-3 py-2.5 bg-zinc-900/40 border border-white/5 rounded-lg text-xs font-mono"
                 >
                   <div className={cn(
-                    "w-2 h-2 rounded-full shrink-0",
-                    call.success ? "bg-green-500" : "bg-red-500"
+                    'w-2 h-2 rounded-full shrink-0',
+                    call.success ? 'bg-green-500' : 'bg-red-500',
                   )} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">

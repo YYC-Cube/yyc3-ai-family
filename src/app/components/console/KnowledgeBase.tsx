@@ -25,34 +25,26 @@
 // - Importance levels
 // ============================================================
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   BookOpen, Search, Plus, Edit3, Trash2, Brain,
   Shield, Terminal, Layers, Award, Bug, Heart, X, Check,
   ChevronDown, Clock, Eye, Sparkles,
   Database, Loader2, CloudOff, Cloud, Download, Upload,
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
-import { Card, CardContent } from "@/app/components/ui/card";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent } from '@/app/components/ui/card';
 import {
   type KnowledgeEntry,
   type KnowledgeCategory,
   KNOWLEDGE_CATEGORY_META,
   loadKnowledgeBase,
   saveKnowledgeBase,
-} from "@/lib/agent-identity";
-import { AGENT_CAPABILITIES } from "@/lib/agent-orchestrator";
-import { eventBus } from "@/lib/event-bus";
-import {
-  readKnowledgeEntries,
-  writeKnowledgeEntries,
-  upsertKnowledgeEntry,
-  deleteKnowledgeEntry as deleteKnowledgeFromEngine,
-  getPersistenceEngine,
-} from "@/lib/persistence-engine";
+} from '@/lib/agent-identity';
+import { AGENT_CAPABILITIES } from '@/lib/agent-orchestrator';
+import { eventBus } from '@/lib/event-bus';
 import {
   exportKnowledgeJSON,
   pickJSONFile,
@@ -63,7 +55,15 @@ import {
   canGenerateSummary,
   generateEntrySummary,
   type KBImportResult,
-} from "@/lib/kb-utils";
+} from '@/lib/kb-utils';
+import {
+  readKnowledgeEntries,
+  writeKnowledgeEntries,
+  upsertKnowledgeEntry,
+  deleteKnowledgeEntry as deleteKnowledgeFromEngine,
+  getPersistenceEngine,
+} from '@/lib/persistence-engine';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // Icon Map for Categories
@@ -81,10 +81,10 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>
 };
 
 const IMPORTANCE_META: Record<string, { color: string; bg: string; label: string }> = {
-  low:      { color: 'text-zinc-400',  bg: 'bg-zinc-500/10',  label: 'Low' },
-  medium:   { color: 'text-blue-400',  bg: 'bg-blue-500/10',  label: 'Medium' },
-  high:     { color: 'text-amber-400', bg: 'bg-amber-500/10', label: 'High' },
-  critical: { color: 'text-red-400',   bg: 'bg-red-500/10',   label: 'Critical' },
+  low: { color: 'text-zinc-400', bg: 'bg-zinc-500/10', label: 'Low' },
+  medium: { color: 'text-blue-400', bg: 'bg-blue-500/10', label: 'Medium' },
+  high: { color: 'text-amber-400', bg: 'bg-amber-500/10', label: 'High' },
+  critical: { color: 'text-red-400', bg: 'bg-red-500/10', label: 'Critical' },
 };
 
 // ============================================================
@@ -212,6 +212,7 @@ const SEED_KNOWLEDGE: KnowledgeEntry[] = [
 
 function HighlightText({ text, query }: { text: string; query: string }) {
   const segments = getHighlightSegments(text, query);
+
   return (
     <>
       {segments.map((seg, i) =>
@@ -219,7 +220,7 @@ function HighlightText({ text, query }: { text: string; query: string }) {
           <mark key={i} className="bg-cyan-500/25 text-cyan-300 rounded-sm px-0.5">{seg.text}</mark>
         ) : (
           <span key={i}>{seg.text}</span>
-        )
+        ),
       )}
     </>
   );
@@ -231,12 +232,13 @@ function HighlightText({ text, query }: { text: string; query: string }) {
 
 function ImportResultBanner({ result, onDismiss }: { result: KBImportResult | null; onDismiss: () => void }) {
   if (!result) return null;
+
   return (
     <div className={cn(
-      "p-3 rounded-lg border text-xs font-mono animate-in slide-in-from-top-2 duration-200",
+      'p-3 rounded-lg border text-xs font-mono animate-in slide-in-from-top-2 duration-200',
       result.success
-        ? "bg-green-500/5 border-green-500/20 text-green-400"
-        : "bg-red-500/5 border-red-500/20 text-red-400"
+        ? 'bg-green-500/5 border-green-500/20 text-green-400'
+        : 'bg-red-500/5 border-red-500/20 text-red-400',
     )}>
       <div className="flex items-center justify-between">
         <span>
@@ -307,7 +309,7 @@ function KnowledgeEditor({
         <input
           className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50"
           value={draft.title}
-          onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+          onChange={e => setDraft({ ...draft, title: e.target.value })}
           placeholder="Knowledge entry title..."
         />
       </div>
@@ -318,7 +320,7 @@ function KnowledgeEditor({
         <input
           className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50"
           value={draft.summary}
-          onChange={(e) => setDraft({ ...draft, summary: e.target.value })}
+          onChange={e => setDraft({ ...draft, summary: e.target.value })}
           placeholder="Brief summary..."
         />
       </div>
@@ -329,7 +331,7 @@ function KnowledgeEditor({
         <textarea
           className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50 h-28 resize-none"
           value={draft.content}
-          onChange={(e) => setDraft({ ...draft, content: e.target.value })}
+          onChange={e => setDraft({ ...draft, content: e.target.value })}
           placeholder="Detailed knowledge content..."
         />
       </div>
@@ -341,7 +343,7 @@ function KnowledgeEditor({
           <select
             className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none"
             value={draft.category}
-            onChange={(e) => setDraft({ ...draft, category: e.target.value as KnowledgeCategory })}
+            onChange={e => setDraft({ ...draft, category: e.target.value as KnowledgeCategory })}
           >
             {Object.entries(KNOWLEDGE_CATEGORY_META).map(([key, meta]) => (
               <option key={key} value={key} className="bg-zinc-900">{meta.labelZh}</option>
@@ -355,7 +357,7 @@ function KnowledgeEditor({
           <select
             className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none"
             value={draft.importance}
-            onChange={(e) => setDraft({ ...draft, importance: e.target.value as 'low' | 'medium' | 'high' | 'critical' })}
+            onChange={e => setDraft({ ...draft, importance: e.target.value as 'low' | 'medium' | 'high' | 'critical' })}
           >
             {Object.entries(IMPORTANCE_META).map(([key, meta]) => (
               <option key={key} value={key} className="bg-zinc-900">{meta.label}</option>
@@ -370,7 +372,7 @@ function KnowledgeEditor({
         <input
           className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50"
           value={draft.tags.join(', ')}
-          onChange={(e) => setDraft({ ...draft, tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+          onChange={e => setDraft({ ...draft, tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
           placeholder="tag1, tag2, ..."
         />
       </div>
@@ -386,13 +388,14 @@ function KnowledgeEditor({
                 const agents = draft.linkedAgents.includes(id)
                   ? draft.linkedAgents.filter(a => a !== id)
                   : [...draft.linkedAgents, id];
+
                 setDraft({ ...draft, linkedAgents: agents });
               }}
               className={cn(
-                "px-2.5 py-1 rounded-full text-[10px] font-mono border transition-all",
+                'px-2.5 py-1 rounded-full text-[10px] font-mono border transition-all',
                 draft.linkedAgents.includes(id)
-                  ? "text-cyan-400 border-cyan-500/30 bg-cyan-500/10"
-                  : "text-zinc-500 border-white/5 hover:border-white/20"
+                  ? 'text-cyan-400 border-cyan-500/30 bg-cyan-500/10'
+                  : 'text-zinc-500 border-white/5 hover:border-white/20',
               )}
             >
               {cap.nameZh}
@@ -407,7 +410,7 @@ function KnowledgeEditor({
         <input
           className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50"
           value={draft.source}
-          onChange={(e) => setDraft({ ...draft, source: e.target.value })}
+          onChange={e => setDraft({ ...draft, source: e.target.value })}
         />
       </div>
     </div>
@@ -444,6 +447,7 @@ function KnowledgeCard({
     if (aiGenerating) {
       abortRef.current?.abort();
       setAiGenerating(false);
+
       return;
     }
     if (!canGenerateSummary()) return;
@@ -461,7 +465,7 @@ function KnowledgeCard({
           onSummaryUpdate?.(entry.id, text);
         }
       },
-      abortRef.current.signal
+      abortRef.current.signal,
     );
     setAiGenerating(false);
   };
@@ -472,8 +476,8 @@ function KnowledgeCard({
         {/* Header */}
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-start gap-2 min-w-0 flex-1">
-            <div className={cn("p-1.5 rounded-lg shrink-0 mt-0.5", catMeta.bg)}>
-              <CatIcon className={cn("w-4 h-4", catMeta.color)} />
+            <div className={cn('p-1.5 rounded-lg shrink-0 mt-0.5', catMeta.bg)}>
+              <CatIcon className={cn('w-4 h-4', catMeta.color)} />
             </div>
             <div className="min-w-0 flex-1">
               <h4 className="text-sm text-white truncate">
@@ -489,7 +493,7 @@ function KnowledgeCard({
             <Button
               size="sm"
               variant="ghost"
-              className={cn("h-6 px-1.5", aiGenerating ? "text-amber-400" : "text-cyan-400")}
+              className={cn('h-6 px-1.5', aiGenerating ? 'text-amber-400' : 'text-cyan-400')}
               onClick={handleAISummary}
               disabled={!canGenerateSummary() && !aiGenerating}
               title={canGenerateSummary() ? 'AI Summary' : 'No LLM provider configured'}
@@ -515,10 +519,10 @@ function KnowledgeCard({
 
         {/* Tags */}
         <div className="flex flex-wrap gap-1 mb-2">
-          <Badge variant="outline" className={cn("text-[8px] h-4 px-1.5", catMeta.color, "border-current/20")}>
+          <Badge variant="outline" className={cn('text-[8px] h-4 px-1.5', catMeta.color, 'border-current/20')}>
             {catMeta.labelZh}
           </Badge>
-          <Badge variant="outline" className={cn("text-[8px] h-4 px-1.5", impMeta.color, "border-current/20")}>
+          <Badge variant="outline" className={cn('text-[8px] h-4 px-1.5', impMeta.color, 'border-current/20')}>
             {impMeta.label}
           </Badge>
           {entry.tags.slice(0, 3).map(tag => (
@@ -563,7 +567,7 @@ function KnowledgeCard({
               onClick={() => setExpanded(!expanded)}
               className="text-[10px] text-zinc-500 hover:text-white transition-colors flex items-center gap-0.5"
             >
-              <ChevronDown className={cn("w-3 h-3 transition-transform", expanded && "rotate-180")} />
+              <ChevronDown className={cn('w-3 h-3 transition-transform', expanded && 'rotate-180')} />
               {expanded ? 'Less' : 'More'}
             </button>
           </div>
@@ -579,6 +583,7 @@ function KnowledgeCard({
 
 function KnowledgeStats({ entries, nasAvailable }: { entries: KnowledgeEntry[]; nasAvailable: boolean }) {
   const catCounts: Record<string, number> = {};
+
   for (const e of entries) {
     catCounts[e.category] = (catCounts[e.category] || 0) + 1;
   }
@@ -588,10 +593,11 @@ function KnowledgeStats({ entries, nasAvailable }: { entries: KnowledgeEntry[]; 
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
         {Object.entries(KNOWLEDGE_CATEGORY_META).map(([key, meta]) => {
           const CatIcon = CATEGORY_ICONS[key] || BookOpen;
+
           return (
-            <div key={key} className={cn("p-3 rounded-lg border border-white/5 text-center", meta.bg)}>
-              <CatIcon className={cn("w-4 h-4 mx-auto mb-1", meta.color)} />
-              <div className={cn("text-lg font-mono", meta.color)}>{catCounts[key] || 0}</div>
+            <div key={key} className={cn('p-3 rounded-lg border border-white/5 text-center', meta.bg)}>
+              <CatIcon className={cn('w-4 h-4 mx-auto mb-1', meta.color)} />
+              <div className={cn('text-lg font-mono', meta.color)}>{catCounts[key] || 0}</div>
               <div className="text-[8px] text-zinc-500">{meta.labelZh}</div>
             </div>
           );
@@ -642,10 +648,12 @@ export function KnowledgeBase() {
         // Check NAS health
         const engine = getPersistenceEngine();
         const nasOk = await engine.checkNasHealth();
+
         if (!cancelled) setNasAvailable(nasOk);
 
         // Read from persistence engine (localStorage first, fast)
         const persisted = await readKnowledgeEntries();
+
         if (!cancelled) {
           if (persisted.length > 0) {
             setEntries(persisted as KnowledgeEntry[]);
@@ -662,6 +670,7 @@ export function KnowledgeBase() {
         // Fallback to legacy localStorage
         if (!cancelled) {
           const legacy = loadKnowledgeBase();
+
           setEntries(legacy.length > 0 ? legacy : SEED_KNOWLEDGE);
         }
       } finally {
@@ -670,20 +679,24 @@ export function KnowledgeBase() {
     }
 
     loadEntries();
+
     return () => { cancelled = true; };
   }, []);
 
   // Filter & search (Phase 32: fuzzy search with scoring)
   const filtered = React.useMemo(() => {
     let result = entries;
+
     if (filterCategory !== 'all') {
       result = result.filter(e => e.category === filterCategory);
     }
     if (search.trim()) {
       // Fuzzy search with weighted scoring
       const fuzzyResults = fuzzySearchEntries(result, search);
+
       return fuzzyResults.map(r => r.item);
     }
+
     return result;
   }, [entries, search, filterCategory]);
 
@@ -695,13 +708,16 @@ export function KnowledgeBase() {
   // Import handler (Phase 32)
   const handleImport = React.useCallback(async () => {
     const content = await pickJSONFile();
+
     if (!content) return;
 
     const result = parseImportJSON(content, entries);
+
     setImportResult(result);
 
     if (result.success) {
       const merged = mergeEntries(entries, result.entries);
+
       setEntries(merged);
       // Persist merged data
       try {
@@ -717,13 +733,16 @@ export function KnowledgeBase() {
   const handleSummaryUpdate = React.useCallback(async (entryId: string, summary: string) => {
     setEntries(prev => {
       const updated = prev.map(e =>
-        e.id === entryId ? { ...e, summary, updatedAt: new Date().toISOString() } : e
+        e.id === entryId ? { ...e, summary, updatedAt: new Date().toISOString() } : e,
       );
+
       saveKnowledgeBase(updated);
+
       return updated;
     });
     // Also persist to NAS
     const entry = entries.find(e => e.id === entryId);
+
     if (entry) {
       try {
         await upsertKnowledgeEntry({ ...entry, summary, updatedAt: new Date().toISOString() });
@@ -738,11 +757,15 @@ export function KnowledgeBase() {
       // Update local state
       setEntries(prev => {
         const idx = prev.findIndex(e => e.id === entry.id);
+
         if (idx >= 0) {
           const next = [...prev];
+
           next[idx] = entry;
+
           return next;
         }
+
         return [entry, ...prev];
       });
 
@@ -752,6 +775,7 @@ export function KnowledgeBase() {
       // Legacy localStorage backup
       setEntries(current => {
         saveKnowledgeBase(current);
+
         return current;
       });
 
@@ -775,7 +799,9 @@ export function KnowledgeBase() {
     try {
       setEntries(prev => {
         const filtered = prev.filter(e => e.id !== id);
+
         saveKnowledgeBase(filtered); // Legacy backup
+
         return filtered;
       });
 
@@ -855,7 +881,7 @@ export function KnowledgeBase() {
             className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-primary/50 placeholder:text-zinc-600"
             placeholder="Search knowledge..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
           />
         </div>
 
@@ -863,10 +889,10 @@ export function KnowledgeBase() {
           <button
             onClick={() => setFilterCategory('all')}
             className={cn(
-              "px-3 py-1.5 rounded-full text-[10px] font-mono border transition-all",
+              'px-3 py-1.5 rounded-full text-[10px] font-mono border transition-all',
               filterCategory === 'all'
-                ? "text-white border-white/20 bg-white/10"
-                : "text-zinc-500 border-white/5 hover:border-white/15"
+                ? 'text-white border-white/20 bg-white/10'
+                : 'text-zinc-500 border-white/5 hover:border-white/15',
             )}
           >
             All
@@ -876,10 +902,10 @@ export function KnowledgeBase() {
               key={key}
               onClick={() => setFilterCategory(key as KnowledgeCategory)}
               className={cn(
-                "px-3 py-1.5 rounded-full text-[10px] font-mono border transition-all",
+                'px-3 py-1.5 rounded-full text-[10px] font-mono border transition-all',
                 filterCategory === key
-                  ? cn(meta.color, meta.bg, "border-current/30")
-                  : "text-zinc-500 border-white/5 hover:border-white/15"
+                  ? cn(meta.color, meta.bg, 'border-current/30')
+                  : 'text-zinc-500 border-white/5 hover:border-white/15',
               )}
             >
               {meta.labelZh}

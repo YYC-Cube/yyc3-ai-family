@@ -38,13 +38,16 @@ export async function checkConnection(): Promise<boolean> {
     const res = await fetch(`${API_BASE_URL}/health`, {
       signal: controller.signal,
     });
+
     clearTimeout(timeoutId);
     _connectionStatus = res.ok ? 'connected' : 'disconnected';
     _lastCheck = Date.now();
+
     return res.ok;
   } catch {
     _connectionStatus = 'disconnected';
     _lastCheck = Date.now();
+
     return false;
   }
 }
@@ -53,6 +56,7 @@ export function getConnectionStatus(): ConnectionStatus {
   if (Date.now() - _lastCheck > CHECK_INTERVAL) {
     checkConnection(); // fire-and-forget refresh
   }
+
   return _connectionStatus;
 }
 
@@ -60,7 +64,7 @@ export function getConnectionStatus(): ConnectionStatus {
 
 async function apiFetch<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<{ data: T | null; error: string | null; fromCache: boolean }> {
   // 检查连接状态
   if (_connectionStatus === 'checking') {
@@ -89,14 +93,17 @@ async function apiFetch<T>(
 
     if (!res.ok) {
       const errorText = await res.text();
+
       return { data: null, error: `HTTP ${res.status}: ${errorText}`, fromCache: false };
     }
 
     const data = await res.json() as T;
+
     return { data, error: null, fromCache: false };
   } catch (err) {
     _connectionStatus = 'disconnected';
     const message = err instanceof Error ? err.message : 'Unknown error';
+
     return { data: null, error: message, fromCache: true };
   }
 }
@@ -211,6 +218,7 @@ export interface DBProject {
 function localGet<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(`yyc3_${key}`);
+
     return raw ? JSON.parse(raw) as T : fallback;
   } catch {
     return fallback;
@@ -232,9 +240,11 @@ export const api = {
   sessions: {
     async list(): Promise<DBSession[]> {
       const result = await apiFetch<DBSession[]>('/sessions');
+
       if (result.fromCache) {
         return localGet<DBSession[]>('sessions', []);
       }
+
       return result.data ?? [];
     },
 
@@ -243,6 +253,7 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ title }),
       });
+
       if (result.fromCache) {
         const session: DBSession = {
           id: crypto.randomUUID(),
@@ -253,18 +264,23 @@ export const api = {
           metadata: {},
         };
         const sessions = localGet<DBSession[]>('sessions', []);
+
         sessions.unshift(session);
         localSet('sessions', sessions);
+
         return session;
       }
+
       return result.data;
     },
 
     async archive(id: string): Promise<void> {
       const result = await apiFetch(`/sessions/${id}/archive`, { method: 'PATCH' });
+
       if (result.fromCache) {
         const sessions = localGet<DBSession[]>('sessions', []);
         const idx = sessions.findIndex(s => s.id === id);
+
         if (idx >= 0) {
           sessions[idx].is_archived = true;
           localSet('sessions', sessions);
@@ -277,9 +293,11 @@ export const api = {
   messages: {
     async list(sessionId: string): Promise<DBMessage[]> {
       const result = await apiFetch<DBMessage[]>(`/sessions/${sessionId}/messages`);
+
       if (result.fromCache) {
         return localGet<DBMessage[]>(`messages_${sessionId}`, []);
       }
+
       return result.data ?? [];
     },
 
@@ -288,6 +306,7 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(msg),
       });
+
       if (result.fromCache) {
         const newMsg: DBMessage = {
           ...msg,
@@ -296,10 +315,13 @@ export const api = {
           tokens_used: 0,
         };
         const messages = localGet<DBMessage[]>(`messages_${sessionId}`, []);
+
         messages.push(newMsg);
         localSet(`messages_${sessionId}`, messages);
+
         return newMsg;
       }
+
       return result.data;
     },
   },
@@ -311,9 +333,11 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ agent_name: agentName }),
       });
+
       if (result.fromCache) {
         const key = `agent_session_${agentId}`;
         let session = localGet<DBAgentSession | null>(key, null);
+
         if (!session) {
           session = {
             id: crypto.randomUUID(),
@@ -327,8 +351,10 @@ export const api = {
           };
           localSet(key, session);
         }
+
         return session;
       }
+
       return result.data;
     },
 
@@ -343,9 +369,11 @@ export const api = {
   agentMessages: {
     async list(agentId: string): Promise<DBAgentMessage[]> {
       const result = await apiFetch<DBAgentMessage[]>(`/agents/${agentId}/messages`);
+
       if (result.fromCache) {
         return localGet<DBAgentMessage[]>(`agent_messages_${agentId}`, []);
       }
+
       return result.data ?? [];
     },
 
@@ -354,6 +382,7 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(msg),
       });
+
       if (result.fromCache) {
         const newMsg: DBAgentMessage = {
           ...msg,
@@ -362,10 +391,13 @@ export const api = {
           thinking_time: 0,
         };
         const messages = localGet<DBAgentMessage[]>(`agent_messages_${agentId}`, []);
+
         messages.push(newMsg);
         localSet(`agent_messages_${agentId}`, messages);
+
         return newMsg;
       }
+
       return result.data;
     },
   },
@@ -377,9 +409,11 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ node_id: nodeId, metric_type: metricType, value, unit }),
       });
+
       if (result.fromCache) {
         const key = `metrics_${nodeId}_${metricType}`;
-        const points = localGet<Array<{ value: number; recorded_at: string }>>(key, []);
+        const points = localGet<{ value: number; recorded_at: string }[]>(key, []);
+
         points.push({ value, recorded_at: new Date().toISOString() });
         // 保留最近 200 个点
         if (points.length > 200) points.splice(0, points.length - 200);
@@ -389,11 +423,13 @@ export const api = {
 
     async query(nodeId: string, metricType: string, limit = 60): Promise<DBMetricPoint[]> {
       const result = await apiFetch<DBMetricPoint[]>(
-        `/metrics?node_id=${nodeId}&metric_type=${metricType}&limit=${limit}`
+        `/metrics?node_id=${nodeId}&metric_type=${metricType}&limit=${limit}`,
       );
+
       if (result.fromCache) {
         const key = `metrics_${nodeId}_${metricType}`;
-        const points = localGet<Array<{ value: number; recorded_at: string }>>(key, []);
+        const points = localGet<{ value: number; recorded_at: string }[]>(key, []);
+
         return points.slice(-limit).map((p, i) => ({
           id: i,
           node_id: nodeId,
@@ -403,6 +439,7 @@ export const api = {
           recorded_at: p.recorded_at,
         }));
       }
+
       return result.data ?? [];
     },
   },
@@ -411,11 +448,14 @@ export const api = {
   logs: {
     async list(limit = 50, level?: string): Promise<DBLogEntry[]> {
       const params = new URLSearchParams({ limit: String(limit) });
+
       if (level) params.set('level', level);
       const result = await apiFetch<DBLogEntry[]>(`/logs?${params}`);
+
       if (result.fromCache) {
         return localGet<DBLogEntry[]>('logs', []).slice(0, limit);
       }
+
       return result.data ?? [];
     },
 
@@ -424,8 +464,10 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(entry),
       });
+
       if (result.fromCache) {
         const logs = localGet<DBLogEntry[]>('logs', []);
+
         logs.unshift({
           ...entry,
           id: Date.now(),
@@ -441,9 +483,11 @@ export const api = {
   preferences: {
     async get(key: string): Promise<unknown> {
       const result = await apiFetch<{ value: unknown }>(`/preferences/${key}`);
+
       if (result.fromCache) {
         return localGet(`pref_${key}`, null);
       }
+
       return result.data?.value ?? null;
     },
 
@@ -460,18 +504,23 @@ export const api = {
   projects: {
     async list(): Promise<DBProject[]> {
       const result = await apiFetch<DBProject[]>('/projects');
+
       if (result.fromCache) {
         return localGet<DBProject[]>('projects', []);
       }
+
       return result.data ?? [];
     },
 
     async get(id: string): Promise<DBProject | null> {
       const result = await apiFetch<DBProject>(`/projects/${id}`);
+
       if (result.fromCache) {
         const projects = localGet<DBProject[]>('projects', []);
+
         return projects.find(p => p.id === id) ?? null;
       }
+
       return result.data;
     },
 
@@ -480,6 +529,7 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(project),
       });
+
       if (result.fromCache) {
         const newProject: DBProject = {
           ...project,
@@ -490,10 +540,13 @@ export const api = {
           service_count: 0,
         };
         const projects = localGet<DBProject[]>('projects', []);
+
         projects.unshift(newProject);
         localSet('projects', projects);
+
         return newProject;
       }
+
       return result.data;
     },
 
@@ -502,26 +555,34 @@ export const api = {
         method: 'PUT',
         body: JSON.stringify(data),
       });
+
       if (result.fromCache) {
         const projects = localGet<DBProject[]>('projects', []);
         const idx = projects.findIndex(p => p.id === id);
+
         if (idx >= 0) {
           projects[idx] = { ...projects[idx], ...data };
           localSet('projects', projects);
+
           return projects[idx];
         }
+
         return null;
       }
+
       return result.data;
     },
 
     async remove(id: string): Promise<boolean> {
       const result = await apiFetch(`/projects/${id}`, { method: 'DELETE' });
+
       if (result.fromCache) {
         const projects = localGet<DBProject[]>('projects', []);
         const filtered = projects.filter(p => p.id !== id);
+
         localSet('projects', filtered);
       }
+
       return true;
     },
   },
@@ -531,18 +592,23 @@ export const api = {
     async list(type?: string): Promise<DBArtifact[]> {
       const params = type && type !== 'all' ? `?type=${type}` : '';
       const result = await apiFetch<DBArtifact[]>(`/artifacts${params}`);
+
       if (result.fromCache) {
         return localGet<DBArtifact[]>('artifacts', []);
       }
+
       return result.data ?? [];
     },
 
     async get(id: string): Promise<DBArtifact | null> {
       const result = await apiFetch<DBArtifact>(`/artifacts/${id}`);
+
       if (result.fromCache) {
         const artifacts = localGet<DBArtifact[]>('artifacts', []);
+
         return artifacts.find(a => a.id === id) ?? null;
       }
+
       return result.data;
     },
 
@@ -560,6 +626,7 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(artifact),
       });
+
       if (result.fromCache) {
         const newArtifact: DBArtifact = {
           id: crypto.randomUUID(),
@@ -577,10 +644,13 @@ export const api = {
           updated_at: new Date().toISOString(),
         };
         const artifacts = localGet<DBArtifact[]>('artifacts', []);
+
         artifacts.unshift(newArtifact);
         localSet('artifacts', artifacts);
+
         return newArtifact;
       }
+
       return result.data;
     },
 
@@ -589,41 +659,54 @@ export const api = {
         method: 'PUT',
         body: JSON.stringify(data),
       });
+
       if (result.fromCache) {
         const artifacts = localGet<DBArtifact[]>('artifacts', []);
         const idx = artifacts.findIndex(a => a.id === id);
+
         if (idx >= 0) {
           artifacts[idx] = { ...artifacts[idx], ...data, updated_at: new Date().toISOString() };
           localSet('artifacts', artifacts);
+
           return artifacts[idx];
         }
+
         return null;
       }
+
       return result.data;
     },
 
     async remove(id: string): Promise<boolean> {
       const result = await apiFetch(`/artifacts/${id}`, { method: 'DELETE' });
+
       if (result.fromCache) {
         const artifacts = localGet<DBArtifact[]>('artifacts', []);
         const filtered = artifacts.filter(a => a.id !== id);
+
         localSet('artifacts', filtered);
       }
+
       return true;
     },
 
     async toggleStar(id: string): Promise<DBArtifact | null> {
       const result = await apiFetch<DBArtifact>(`/artifacts/${id}/star`, { method: 'PATCH' });
+
       if (result.fromCache) {
         const artifacts = localGet<DBArtifact[]>('artifacts', []);
         const idx = artifacts.findIndex(a => a.id === id);
+
         if (idx >= 0) {
           artifacts[idx].is_starred = !artifacts[idx].is_starred;
           localSet('artifacts', artifacts);
+
           return artifacts[idx];
         }
+
         return null;
       }
+
       return result.data;
     },
   },
@@ -631,6 +714,7 @@ export const api = {
   // === Health ===
   async health(): Promise<{ status: string; db: string; uptime: number } | null> {
     const result = await apiFetch<{ status: string; db: string; uptime: number }>('/health');
+
     return result.data;
   },
 };

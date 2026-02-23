@@ -3,26 +3,27 @@
 // Phase 14.4: Data Dimension (D2) — Recharts Visualization
 // ============================================================
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import {
+  Coins, Zap, Clock, TrendingUp, Activity, RefreshCw,
+  ShieldCheck, ShieldAlert, ShieldOff, BarChart3, Brain,
+} from 'lucide-react';
+import * as React from 'react';
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   Area, AreaChart,
-} from "recharts";
-import {
-  Coins, Zap, Clock, TrendingUp, Activity, RefreshCw,
-  ShieldCheck, ShieldAlert, ShieldOff, BarChart3, Brain,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { Button } from "@/app/components/ui/button";
+} from 'recharts';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import {
   getUsageSummary,
   type UsageRecord,
-} from "@/lib/llm-bridge";
-import { PROVIDERS } from "@/lib/llm-providers";
-import { getRouter, type ProviderHealthScore, type RouterSummary } from "@/lib/llm-router";
+} from '@/lib/llm-bridge';
+import { PROVIDERS } from '@/lib/llm-providers';
+import { getRouter, type ProviderHealthScore, type RouterSummary } from '@/lib/llm-router';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // Data Helpers
@@ -73,6 +74,7 @@ const PROVIDER_COLORS: Record<string, string> = {
 function CircuitIcon({ state }: { state: string }) {
   if (state === 'CLOSED') return <ShieldCheck className="w-3.5 h-3.5 text-green-500" />;
   if (state === 'HALF_OPEN') return <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />;
+
   return <ShieldOff className="w-3.5 h-3.5 text-red-500" />;
 }
 
@@ -80,8 +82,9 @@ function CircuitIcon({ state }: { state: string }) {
 // Custom Recharts Tooltip
 // ============================================================
 
-function CyberTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name?: string; value?: number; color?: string }>; label?: string }) {
+function CyberTooltip({ active, payload, label }: { active?: boolean; payload?: { name?: string; value?: number; color?: string }[]; label?: string }) {
   if (!active || !payload?.length) return null;
+
   return (
     <div className="bg-zinc-900/95 border border-white/10 rounded-lg px-3 py-2 shadow-xl backdrop-blur-sm">
       <p className="text-[10px] font-mono text-zinc-400 mb-1">{label}</p>
@@ -112,20 +115,20 @@ function StatCard({ icon: Icon, label, value, sub, color, trend }: {
     <Card className="bg-black/40 border-white/8">
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
-          <div className={cn("p-2 rounded-lg bg-opacity-10", color.replace('text-', 'bg-').replace('500', '500/10'))}>
-            <Icon className={cn("w-4 h-4", color)} />
+          <div className={cn('p-2 rounded-lg bg-opacity-10', color.replace('text-', 'bg-').replace('500', '500/10'))}>
+            <Icon className={cn('w-4 h-4', color)} />
           </div>
           {trend && (
-            <TrendingUp className={cn("w-3.5 h-3.5",
+            <TrendingUp className={cn('w-3.5 h-3.5',
               trend === 'up' ? 'text-green-500' :
               trend === 'down' ? 'text-red-500 rotate-180' :
-              'text-zinc-500 rotate-90'
+              'text-zinc-500 rotate-90',
             )} />
           )}
         </div>
         <div className="mt-3">
           <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">{label}</p>
-          <p className={cn("text-xl font-mono mt-0.5", color)}>{value}</p>
+          <p className={cn('text-xl font-mono mt-0.5', color)}>{value}</p>
           {sub && <p className="text-[10px] font-mono text-zinc-600 mt-0.5">{sub}</p>}
         </div>
       </CardContent>
@@ -146,6 +149,7 @@ export function TokenUsageDashboard() {
     setRecords(loadUsageRecords());
     try {
       const router = getRouter();
+
       setRouterSummary(router.getRouterSummary());
     } catch { /* no router yet */ }
   }, [refreshKey]);
@@ -157,12 +161,14 @@ export function TokenUsageDashboard() {
   // 1. Daily tokens (line/area chart)
   const dailyData = React.useMemo(() => {
     const byDate: Record<string, { tokens: number; cost: number; calls: number }> = {};
+
     for (const r of records) {
       if (!byDate[r.date]) byDate[r.date] = { tokens: 0, cost: 0, calls: 0 };
       byDate[r.date].tokens += r.totalTokens;
       byDate[r.date].cost += r.costUsd;
       byDate[r.date].calls += 1;
     }
+
     return Object.entries(byDate)
       .sort(([a], [b]) => a.localeCompare(b))
       .slice(-14) // last 14 days
@@ -206,6 +212,7 @@ export function TokenUsageDashboard() {
     const buckets: Record<string, number> = {
       '<500ms': 0, '500-1s': 0, '1-2s': 0, '2-5s': 0, '>5s': 0,
     };
+
     for (const r of records) {
       if (r.latencyMs < 500) buckets['<500ms']++;
       else if (r.latencyMs < 1000) buckets['500-1s']++;
@@ -213,6 +220,7 @@ export function TokenUsageDashboard() {
       else if (r.latencyMs < 5000) buckets['2-5s']++;
       else buckets['>5s']++;
     }
+
     return Object.entries(buckets).map(([range, count]) => ({ range, count }));
   }, [records]);
 
@@ -430,10 +438,10 @@ export function TokenUsageDashboard() {
             {routerSummary && (
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className={cn(
-                  "text-[9px] font-mono",
-                  routerSummary.overallHealth >= 80 ? "border-green-500/30 text-green-500" :
-                  routerSummary.overallHealth >= 50 ? "border-amber-500/30 text-amber-500" :
-                  "border-red-500/30 text-red-500"
+                  'text-[9px] font-mono',
+                  routerSummary.overallHealth >= 80 ? 'border-green-500/30 text-green-500' :
+                  routerSummary.overallHealth >= 50 ? 'border-amber-500/30 text-amber-500' :
+                  'border-red-500/30 text-red-500',
                 )}>
                   HEALTH: {routerSummary.overallHealth}%
                 </Badge>
@@ -532,18 +540,18 @@ function ProviderHealthCard({ health }: { health: ProviderHealthScore }) {
       <div className="mb-2">
         <div className="flex items-center justify-between mb-0.5">
           <span className="text-[9px] font-mono text-zinc-500">SCORE</span>
-          <span className={cn("text-[10px] font-mono",
-            health.score >= 80 ? "text-green-500" :
-            health.score >= 50 ? "text-amber-500" :
-            "text-red-500"
+          <span className={cn('text-[10px] font-mono',
+            health.score >= 80 ? 'text-green-500' :
+            health.score >= 50 ? 'text-amber-500' :
+            'text-red-500',
           )}>{health.score}/100</span>
         </div>
         <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
           <div
-            className={cn("h-full rounded-full transition-all duration-500",
-              health.score >= 80 ? "bg-green-500" :
-              health.score >= 50 ? "bg-amber-500" :
-              "bg-red-500"
+            className={cn('h-full rounded-full transition-all duration-500',
+              health.score >= 80 ? 'bg-green-500' :
+              health.score >= 50 ? 'bg-amber-500' :
+              'bg-red-500',
             )}
             style={{ width: `${health.score}%` }}
           />
@@ -554,10 +562,10 @@ function ProviderHealthCard({ health }: { health: ProviderHealthScore }) {
       <div className="grid grid-cols-2 gap-x-3 gap-y-1">
         <div className="flex justify-between">
           <span className="text-[9px] font-mono text-zinc-600">Circuit</span>
-          <span className={cn("text-[9px] font-mono",
-            health.circuitState === 'CLOSED' ? "text-green-500" :
-            health.circuitState === 'HALF_OPEN' ? "text-amber-500" :
-            "text-red-500"
+          <span className={cn('text-[9px] font-mono',
+            health.circuitState === 'CLOSED' ? 'text-green-500' :
+            health.circuitState === 'HALF_OPEN' ? 'text-amber-500' :
+            'text-red-500',
           )}>{health.circuitState}</span>
         </div>
         <div className="flex justify-between">
@@ -584,5 +592,6 @@ function ProviderHealthCard({ health }: { health: ProviderHealthScore }) {
 function formatNum(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+
   return n.toString();
 }

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
+
+import { eventBus } from './event-bus';
+import { loadDeviceConfigs } from './nas-client';
 import { useSystemStore } from './store';
 import type { ClusterMetricsSnapshot } from './store';
-import { loadDeviceConfigs } from './nas-client';
-import { eventBus } from './event-bus';
 
 // ============================================================
 // YYC3 — Enhanced WebSocket Client Hook
@@ -40,12 +41,14 @@ function getWsEndpoints(): string[] {
 
   // Priority 1: NAS WS relay service
   const nas = devices.find(d => d.id === 'yanyucloud');
+
   if (nas) {
     endpoints.push(`ws://${nas.ip}:3001/ws`);
   }
 
   // Priority 2: M4-Max local WS
   const m4 = devices.find(d => d.id === 'm4-max');
+
   if (m4) {
     endpoints.push(`ws://${m4.ip}:3001/ws`);
   }
@@ -65,9 +68,9 @@ export function useWebSocket() {
   const [status, setStatus] = useState<WsStatus>('connecting');
   const mountedRef = useRef(true);
 
-  const updateMetrics = useSystemStore((s) => s.updateMetrics);
-  const addLog = useSystemStore((s) => s.addLog);
-  const setDbConnected = useSystemStore((s) => s.setDbConnected);
+  const updateMetrics = useSystemStore(s => s.updateMetrics);
+  const addLog = useSystemStore(s => s.addLog);
+  const setDbConnected = useSystemStore(s => s.setDbConnected);
 
   const handleMessage = useCallback((event: MessageEvent) => {
     try {
@@ -89,18 +92,21 @@ export function useWebSocket() {
             'yanyucloud': { ...defaults, ...raw['yanyucloud'] },
             timestamp: msg.timestamp,
           };
+
           updateMetrics(snapshot);
           break;
         }
 
         case 'log': {
           const logData = msg.data as { level: 'info' | 'warn' | 'error' | 'success'; source: string; message: string };
+
           addLog(logData.level, `[WS] ${logData.source}`, logData.message);
           break;
         }
 
         case 'docker_event': {
           const dockerData = msg.data as { action: string; container: string };
+
           addLog('info', 'DOCKER_WS', `${dockerData.action}: ${dockerData.container}`);
           break;
         }
@@ -117,7 +123,7 @@ export function useWebSocket() {
             level: 'info',
             source: 'WebSocket',
             message: `WS message: ${msg.type}`,
-            metadata: msg.data as Record<string, unknown>
+            metadata: msg.data as Record<string, unknown>,
           });
           break;
       }
@@ -138,7 +144,9 @@ export function useWebSocket() {
       const ws = new WebSocket(url);
 
       ws.onopen = () => {
-        if (!mountedRef.current) { ws.close(); return; }
+        if (!mountedRef.current) { ws.close();
+
+          return; }
         console.log(`[WS] Connected to ${url}`);
         setStatus('connected');
         _activeEndpoint = url;
@@ -224,19 +232,21 @@ export function useDockerLogs(containerId: string | null) {
   useEffect(() => {
     if (!containerId) {
       setLogs([]);
+
       return;
     }
 
     const subId = `docker_logs:${containerId}`;
+
     send('subscribe', { channel: subId });
     setLogs(['[WS] Establishing real-time connection to container stdout...']);
 
-    const unsubscribe = eventBus.on((event) => {
+    const unsubscribe = eventBus.on(event => {
       if (event.type === 'ws:docker_logs' && event.metadata?.containerId === containerId) {
         setLogs(prev => [...prev.slice(-200), (event.metadata as any).line]);
       }
     });
-    
+
     return () => {
       send('unsubscribe', { channel: subId });
       eventBus.off(unsubscribe);

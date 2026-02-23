@@ -1,15 +1,14 @@
-import * as React from "react";
 import {
-  Bookmark, Plus, Trash2, ExternalLink, Search, Star, StarOff,
-  FolderOpen, Edit3, Save, X, ChevronDown, ChevronRight,
-  Globe, GitBranch, Box, Server, Code2, FileText, Layers,
-  GripVertical, Copy, CheckCircle2, Tag
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n";
+  Bookmark, Plus, Trash2, ExternalLink, Search, Star, StarOff, Edit3, Save, X, ChevronDown, ChevronRight,
+  Globe, GitBranch, Box, Server, Code2, FileText, Layers, Copy, CheckCircle2,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { useTranslation } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 
 // --- Bookmark Types ---
 interface BookmarkItem {
@@ -67,8 +66,10 @@ const DEFAULT_BOOKMARKS: BookmarkItem[] = [
 function loadBookmarks(): BookmarkItem[] {
   try {
     const raw = localStorage.getItem(BOOKMARKS_STORAGE_KEY);
+
     if (raw) return JSON.parse(raw);
   } catch { /* ignore */ }
+
   return DEFAULT_BOOKMARKS;
 }
 
@@ -154,7 +155,9 @@ export function BookmarksView() {
   const toggleCategoryExpand = (id: string) => {
     setExpandedCategories(prev => {
       const next = new Set(prev);
+
       if (next.has(id)) next.delete(id); else next.add(id);
+
       return next;
     });
   };
@@ -163,6 +166,7 @@ export function BookmarksView() {
     const matchCat = activeCategory === 'all' || b.category === activeCategory;
     const q = search.toLowerCase();
     const matchSearch = !q || b.name.toLowerCase().includes(q) || b.description.toLowerCase().includes(q) || b.url.toLowerCase().includes(q) || b.tags.some(t => t.toLowerCase().includes(q));
+
     return matchCat && matchSearch;
   });
 
@@ -190,10 +194,10 @@ export function BookmarksView() {
         </div>
         <div className="flex items-center gap-2">
           <div className="flex bg-muted/30 rounded p-0.5 border border-border/50">
-            <button onClick={() => setViewMode('grid')} className={cn("px-2 py-0.5 rounded text-[10px] font-mono", viewMode === 'grid' ? "bg-[#0EA5E9]/15 text-[#0EA5E9]" : "text-zinc-500")}>
+            <button onClick={() => setViewMode('grid')} className={cn('px-2 py-0.5 rounded text-[10px] font-mono', viewMode === 'grid' ? 'bg-[#0EA5E9]/15 text-[#0EA5E9]' : 'text-zinc-500')}>
               {language === 'zh' ? '卡片' : 'Grid'}
             </button>
-            <button onClick={() => setViewMode('list')} className={cn("px-2 py-0.5 rounded text-[10px] font-mono", viewMode === 'list' ? "bg-[#0EA5E9]/15 text-[#0EA5E9]" : "text-zinc-500")}>
+            <button onClick={() => setViewMode('list')} className={cn('px-2 py-0.5 rounded text-[10px] font-mono', viewMode === 'list' ? 'bg-[#0EA5E9]/15 text-[#0EA5E9]' : 'text-zinc-500')}>
               {language === 'zh' ? '列表' : 'List'}
             </button>
           </div>
@@ -211,14 +215,16 @@ export function BookmarksView() {
           <Input value={search} onChange={e => setSearch(e.target.value)} placeholder={language === 'zh' ? '搜索项目...' : 'Search projects...'} className="pl-8 h-8 text-xs font-mono bg-muted/20" />
         </div>
         <div className="flex items-center gap-1 overflow-x-auto">
-          <button onClick={() => setActiveCategory('all')} className={cn("px-2.5 py-1 rounded text-[10px] font-mono whitespace-nowrap", activeCategory === 'all' ? "bg-[#0EA5E9]/15 text-[#0EA5E9] border border-[#0EA5E9]/30" : "text-zinc-500 hover:text-zinc-300 border border-transparent")}>
+          <button onClick={() => setActiveCategory('all')} className={cn('px-2.5 py-1 rounded text-[10px] font-mono whitespace-nowrap', activeCategory === 'all' ? 'bg-[#0EA5E9]/15 text-[#0EA5E9] border border-[#0EA5E9]/30' : 'text-zinc-500 hover:text-zinc-300 border border-transparent')}>
             ALL ({bookmarks.length})
           </button>
           {BOOKMARK_CATEGORIES.map(cat => {
             const count = bookmarks.filter(b => b.category === cat.id).length;
+
             if (count === 0) return null;
+
             return (
-              <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={cn("px-2.5 py-1 rounded text-[10px] font-mono whitespace-nowrap", activeCategory === cat.id ? "bg-[#0EA5E9]/15 text-[#0EA5E9] border border-[#0EA5E9]/30" : "text-zinc-500 hover:text-zinc-300 border border-transparent")}>
+              <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={cn('px-2.5 py-1 rounded text-[10px] font-mono whitespace-nowrap', activeCategory === cat.id ? 'bg-[#0EA5E9]/15 text-[#0EA5E9] border border-[#0EA5E9]/30' : 'text-zinc-500 hover:text-zinc-300 border border-transparent')}>
                 {language === 'zh' ? cat.label : cat.labelEn} ({count})
               </button>
             );
@@ -262,7 +268,7 @@ export function BookmarksView() {
                 <span className="text-[11px] font-mono text-amber-400 uppercase tracking-widest">{language === 'zh' ? '收藏项目' : 'STARRED'}</span>
                 <div className="flex-1 h-px bg-amber-400/10" />
               </div>
-              <div className={cn(viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" : "space-y-1.5")}>
+              <div className={cn(viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3' : 'space-y-1.5')}>
                 {starredItems.map(b => (
                   <BookmarkCard key={b.id} bookmark={b} language={language} viewMode={viewMode} editingId={editingId} form={form} setForm={setForm as React.Dispatch<React.SetStateAction<{ name: string; url: string; description: string; category: string; tags: string; status: 'active' | 'archived' | 'maintenance' }>>} onToggleStar={toggleStar} onDelete={deleteBookmark} onEdit={startEdit} onSaveEdit={saveEdit} onCancelEdit={() => setEditingId(null)} onCopyUrl={copyUrl} copiedId={copiedId} />
                 ))}
@@ -275,18 +281,20 @@ export function BookmarksView() {
             const isExpanded = expandedCategories.has(group.id);
             const Icon = group.icon;
             const items = activeCategory === 'all' ? group.items.filter(b => !b.starred) : group.items;
+
             if (items.length === 0 && activeCategory === 'all') return null;
+
             return (
               <div key={group.id}>
                 <button onClick={() => toggleCategoryExpand(group.id)} className="flex items-center gap-2 mb-2 w-full">
                   {isExpanded ? <ChevronDown className="w-3 h-3 text-zinc-500" /> : <ChevronRight className="w-3 h-3 text-zinc-500" />}
-                  <Icon className={cn("w-3.5 h-3.5", group.color)} />
-                  <span className={cn("text-[11px] font-mono uppercase tracking-widest", group.color)}>{language === 'zh' ? group.label : group.labelEn}</span>
+                  <Icon className={cn('w-3.5 h-3.5', group.color)} />
+                  <span className={cn('text-[11px] font-mono uppercase tracking-widest', group.color)}>{language === 'zh' ? group.label : group.labelEn}</span>
                   <span className="text-[9px] text-zinc-600 font-mono">{items.length}</span>
                   <div className="flex-1 h-px bg-border/30" />
                 </button>
                 {isExpanded && (
-                  <div className={cn(viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 ml-5" : "space-y-1.5 ml-5")}>
+                  <div className={cn(viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 ml-5' : 'space-y-1.5 ml-5')}>
                     {items.map(b => (
                       <BookmarkCard key={b.id} bookmark={b} language={language} viewMode={viewMode} editingId={editingId} form={form} setForm={setForm as React.Dispatch<React.SetStateAction<{ name: string; url: string; description: string; category: string; tags: string; status: 'active' | 'archived' | 'maintenance' }>>} onToggleStar={toggleStar} onDelete={deleteBookmark} onEdit={startEdit} onSaveEdit={saveEdit} onCancelEdit={() => setEditingId(null)} onCopyUrl={copyUrl} copiedId={copiedId} />
                     ))}
@@ -345,11 +353,11 @@ function BookmarkCard({ bookmark, language, viewMode, editingId, form, setForm, 
   if (viewMode === 'list') {
     return (
       <div className="group flex items-center gap-3 px-3 py-2 rounded-lg border border-border/30 hover:border-[#0EA5E9]/30 hover:bg-[#0EA5E9]/5 transition-all">
-        <Icon className={cn("w-4 h-4 shrink-0", cat?.color)} />
+        <Icon className={cn('w-4 h-4 shrink-0', cat?.color)} />
         <div className="flex-1 min-w-0 flex items-center gap-3">
           <span className="text-xs font-mono truncate">{bookmark.name}</span>
           {bookmark.starred && <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400 shrink-0" />}
-          <span className={cn("text-[8px] px-1.5 py-0.5 rounded border font-mono shrink-0", STATUS_COLORS[bookmark.status])}>
+          <span className={cn('text-[8px] px-1.5 py-0.5 rounded border font-mono shrink-0', STATUS_COLORS[bookmark.status])}>
             {STATUS_LABELS[bookmark.status]?.[language] || bookmark.status}
           </span>
           <span className="text-[10px] text-zinc-500 font-mono truncate hidden md:block">{bookmark.description}</span>
@@ -370,9 +378,9 @@ function BookmarkCard({ bookmark, language, viewMode, editingId, form, setForm, 
 
   // Grid card
   return (
-    <div className={cn("group p-3 rounded-lg border transition-all cursor-pointer relative", bookmark.status === 'archived' ? "border-border/30 opacity-60" : "border-border/50 bg-card/50 hover:border-[#0EA5E9]/30 hover:bg-[#0EA5E9]/5")}>
+    <div className={cn('group p-3 rounded-lg border transition-all cursor-pointer relative', bookmark.status === 'archived' ? 'border-border/30 opacity-60' : 'border-border/50 bg-card/50 hover:border-[#0EA5E9]/30 hover:bg-[#0EA5E9]/5')}>
       <div className="flex items-start gap-3">
-        <div className={cn("w-9 h-9 rounded-lg bg-muted/20 border border-border flex items-center justify-center shrink-0", cat?.color)}>
+        <div className={cn('w-9 h-9 rounded-lg bg-muted/20 border border-border flex items-center justify-center shrink-0', cat?.color)}>
           <Icon className="w-4 h-4" />
         </div>
         <div className="flex-1 min-w-0">
@@ -383,7 +391,7 @@ function BookmarkCard({ bookmark, language, viewMode, editingId, form, setForm, 
           <p className="text-[10px] text-muted-foreground truncate mt-0.5">{bookmark.description}</p>
           <p className="text-[9px] text-zinc-600 font-mono truncate mt-1">{bookmark.url}</p>
           <div className="flex items-center gap-1.5 mt-1.5">
-            <span className={cn("text-[8px] px-1.5 py-0.5 rounded border font-mono", STATUS_COLORS[bookmark.status])}>
+            <span className={cn('text-[8px] px-1.5 py-0.5 rounded border font-mono', STATUS_COLORS[bookmark.status])}>
               {STATUS_LABELS[bookmark.status]?.[language] || bookmark.status}
             </span>
             {bookmark.tags.slice(0, 2).map(tag => (

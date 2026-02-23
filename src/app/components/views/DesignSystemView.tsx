@@ -1,17 +1,17 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
-  Palette, Layout, Type, Layers, Zap, BookOpen,
-  Code2, Settings, ChevronRight, ExternalLink, Github,
-  Download, RefreshCw, CheckCircle2, AlertCircle
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
-import { YYC3DesignSystemDemo } from "@/app/components/examples/YYC3DesignSystemDemo";
+  Palette, Layout, Layers, Zap, BookOpen,
+  Code2, Settings, ExternalLink, Github,
+  Download, RefreshCw, CheckCircle2,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { YYC3DesignSystemDemo } from '@/app/components/examples/YYC3DesignSystemDemo';
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
+import { Input } from '@/app/components/ui/input';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 interface DesignSystemSection {
   id: string;
@@ -23,9 +23,9 @@ interface DesignSystemSection {
 
 const SECTIONS: DesignSystemSection[] = [
   {
-    id: "overview",
-    title: "概览",
-    description: "YYC³ Design System 简介",
+    id: 'overview',
+    title: '概览',
+    description: 'YYC³ Design System 简介',
     icon: <BookOpen className="w-5 h-5" />,
     content: (
       <div className="space-y-6">
@@ -95,19 +95,19 @@ const SECTIONS: DesignSystemSection[] = [
           </div>
         </div>
       </div>
-    )
+    ),
   },
   {
-    id: "tokens",
-    title: "设计令牌",
-    description: "设计令牌参考",
+    id: 'tokens',
+    title: '设计令牌',
+    description: '设计令牌参考',
     icon: <Palette className="w-5 h-5" />,
-    content: <YYC3DesignSystemDemo />
+    content: <YYC3DesignSystemDemo />,
   },
   {
-    id: "components",
-    title: "组件库",
-    description: "可用组件列表",
+    id: 'components',
+    title: '组件库',
+    description: '可用组件列表',
     icon: <Layers className="w-5 h-5" />,
     content: (
       <div className="space-y-6">
@@ -195,12 +195,12 @@ const SECTIONS: DesignSystemSection[] = [
           </pre>
         </div>
       </div>
-    )
+    ),
   },
   {
-    id: "documentation",
-    title: "文档",
-    description: "用户手册和 API 文档",
+    id: 'documentation',
+    title: '文档',
+    description: '用户手册和 API 文档',
     icon: <BookOpen className="w-5 h-5" />,
     content: (
       <div className="space-y-6">
@@ -318,12 +318,12 @@ const SECTIONS: DesignSystemSection[] = [
           </div>
         </div>
       </div>
-    )
+    ),
   },
   {
-    id: "settings",
-    title: "设置",
-    description: "Design System 配置",
+    id: 'settings',
+    title: '设置',
+    description: 'Design System 配置',
     icon: <Settings className="w-5 h-5" />,
     content: (
       <div className="space-y-6">
@@ -415,12 +415,12 @@ npm run build:tokens`}</code>
           </Card>
         </div>
       </div>
-    )
-  }
+    ),
+  },
 ];
 
 export const DesignSystemView: React.FC = () => {
-  const [activeSection, setActiveSection] = React.useState<string>("overview");
+  const [activeSection, setActiveSection] = React.useState<string>('overview');
 
   const currentSection = SECTIONS.find(s => s.id === activeSection);
 
@@ -429,15 +429,15 @@ export const DesignSystemView: React.FC = () => {
       <div className="border-b border-border">
         <ScrollArea className="h-14">
           <div className="flex items-center px-4 h-full">
-            {SECTIONS.map((section) => (
+            {SECTIONS.map(section => (
               <button
                 key={section.id}
                 onClick={() => setActiveSection(section.id)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap",
+                  'flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap',
                   activeSection === section.id
-                    ? "text-foreground border-b-2 border-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    ? 'text-foreground border-b-2 border-primary'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
                 )}
               >
                 {section.icon}

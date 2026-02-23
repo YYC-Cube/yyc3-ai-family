@@ -29,12 +29,12 @@ import { useEffect, useState, useRef, useSyncExternalStore } from 'react';
 // ============================================================
 
 export type EventCategory =
-  | 'persist'      // D2 数据维: 持久化引擎
-  | 'orchestrate'  // D1 智能维: Agent 协作编排
-  | 'mcp'          // D3 架构维: MCP 工具链
-  | 'system'       // 系统层: 集群/设备/网络
-  | 'security'     // D5 安全维: 审计/加密/权限
-  | 'ui';          // D4 体验维: 用户交互
+  | 'persist' // D2 数据维: 持久化引擎
+  | 'orchestrate' // D1 智能维: Agent 协作编排
+  | 'mcp' // D3 架构维: MCP 工具链
+  | 'system' // 系统层: 集群/设备/网络
+  | 'security' // D5 安全维: 审计/加密/权限
+  | 'ui'; // D4 体验维: 用户交互
 
 export type EventLevel = 'debug' | 'info' | 'warn' | 'error' | 'success';
 
@@ -42,19 +42,19 @@ export interface BusEvent {
   id: string;
   timestamp: string;
   category: EventCategory;
-  type: string;           // e.g., 'persist.write', 'mcp.call', 'orchestrate.agent_started'
+  type: string; // e.g., 'persist.write', 'mcp.call', 'orchestrate.agent_started'
   level: EventLevel;
-  source: string;         // module/component name
+  source: string; // module/component name
   message: string;
   metadata?: Record<string, unknown>;
 }
 
 export type EventSubscriber = (event: BusEvent) => void;
-export type EventFilter = {
+export interface EventFilter {
   category?: EventCategory | EventCategory[];
   level?: EventLevel | EventLevel[];
   type?: string | RegExp;
-};
+}
 
 // ============================================================
 // 2. Ring Buffer
@@ -79,6 +79,7 @@ class RingBuffer<T> {
     if (this._size < this.capacity) {
       return this.buffer.slice(0, this._size);
     }
+
     // When full, read from head (oldest) to end, then wrap to beginning
     return [
       ...this.buffer.slice(this.head),
@@ -90,6 +91,7 @@ class RingBuffer<T> {
 
   last(n: number): T[] {
     const arr = this.toArray();
+
     return arr.slice(-n);
   }
 
@@ -104,6 +106,7 @@ class RingBuffer<T> {
 // ============================================================
 
 let _idCounter = 0;
+
 function nextId(): string {
   return `evt-${Date.now().toString(36)}-${(++_idCounter).toString(36)}`;
 }
@@ -171,7 +174,9 @@ class EventBus {
 
   on(fn: EventSubscriber, filter?: EventFilter): string {
     const id = nextId();
+
     this.subscribers.set(id, { fn, filter });
+
     return id;
   }
 
@@ -204,6 +209,7 @@ class EventBus {
 
   subscribe(listener: () => void): () => void {
     this._snapshotListeners.add(listener);
+
     return () => { this._snapshotListeners.delete(listener); };
   }
 
@@ -218,11 +224,13 @@ class EventBus {
 
     if (filter.category) {
       const cats = Array.isArray(filter.category) ? filter.category : [filter.category];
+
       if (!cats.includes(event.category)) return false;
     }
 
     if (filter.level) {
       const levels = Array.isArray(filter.level) ? filter.level : [filter.level];
+
       if (!levels.includes(event.level)) return false;
     }
 
@@ -257,6 +265,7 @@ export const eventBus = new EventBus(500);
  */
 export function useEventBus(filter?: EventFilter, maxItems = 100): BusEvent[] {
   const filterRef = useRef(filter);
+
   filterRef.current = filter;
 
   const [events, setEvents] = useState<BusEvent[]>([]);
@@ -267,12 +276,14 @@ export function useEventBus(filter?: EventFilter, maxItems = 100): BusEvent[] {
     const filtered = filter
       ? history.filter(e => matchFilterStatic(e, filter))
       : history;
+
     setEvents(filtered.slice(-maxItems));
 
     // Subscribe to new events
-    const subId = eventBus.on((event) => {
+    const subId = eventBus.on(event => {
       setEvents(prev => {
         const next = [...prev, event];
+
         return next.length > maxItems ? next.slice(-maxItems) : next;
       });
     }, filterRef.current);
@@ -295,8 +306,8 @@ export function useEventBus(filter?: EventFilter, maxItems = 100): BusEvent[] {
  */
 export function useEventBusVersion(): number {
   return useSyncExternalStore(
-    (listener) => eventBus.subscribe(listener),
-    () => eventBus.getSnapshot()
+    listener => eventBus.subscribe(listener),
+    () => eventBus.getSnapshot(),
   );
 }
 
@@ -304,10 +315,12 @@ export function useEventBusVersion(): number {
 function matchFilterStatic(event: BusEvent, filter: EventFilter): boolean {
   if (filter.category) {
     const cats = Array.isArray(filter.category) ? filter.category : [filter.category];
+
     if (!cats.includes(event.category)) return false;
   }
   if (filter.level) {
     const levels = Array.isArray(filter.level) ? filter.level : [filter.level];
+
     if (!levels.includes(event.level)) return false;
   }
   if (filter.type) {
@@ -317,6 +330,7 @@ function matchFilterStatic(event: BusEvent, filter: EventFilter): boolean {
       if (!filter.type.test(event.type)) return false;
     }
   }
+
   return true;
 }
 
@@ -332,9 +346,9 @@ export const EVENT_CATEGORY_META: Record<EventCategory, {
   bgColor: string;
 }> = {
   orchestrate: { label: 'Intelligence', labelZh: '智能维', dimension: 'D1', color: 'text-cyan-400', bgColor: 'bg-cyan-500/10' },
-  persist:     { label: 'Data',         labelZh: '数据维', dimension: 'D2', color: 'text-green-400', bgColor: 'bg-green-500/10' },
-  mcp:         { label: 'Architecture', labelZh: '架构维', dimension: 'D3', color: 'text-amber-400', bgColor: 'bg-amber-500/10' },
-  ui:          { label: 'Experience',   labelZh: '体验维', dimension: 'D4', color: 'text-purple-400', bgColor: 'bg-purple-500/10' },
-  security:    { label: 'Security',     labelZh: '安全维', dimension: 'D5', color: 'text-red-400', bgColor: 'bg-red-500/10' },
-  system:      { label: 'System',       labelZh: '系统层', dimension: 'SYS', color: 'text-zinc-400', bgColor: 'bg-zinc-500/10' },
+  persist: { label: 'Data', labelZh: '数据维', dimension: 'D2', color: 'text-green-400', bgColor: 'bg-green-500/10' },
+  mcp: { label: 'Architecture', labelZh: '架构维', dimension: 'D3', color: 'text-amber-400', bgColor: 'bg-amber-500/10' },
+  ui: { label: 'Experience', labelZh: '体验维', dimension: 'D4', color: 'text-purple-400', bgColor: 'bg-purple-500/10' },
+  security: { label: 'Security', labelZh: '安全维', dimension: 'D5', color: 'text-red-400', bgColor: 'bg-red-500/10' },
+  system: { label: 'System', labelZh: '系统层', dimension: 'SYS', color: 'text-zinc-400', bgColor: 'bg-zinc-500/10' },
 };

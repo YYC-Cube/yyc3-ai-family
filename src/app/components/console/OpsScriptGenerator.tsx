@@ -1,21 +1,19 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n";
-import { useSystemStore } from "@/lib/store";
-import { loadProviderConfigs } from "@/lib/llm-bridge";
-import { PROVIDERS } from "@/lib/llm-providers";
-import { loadDeviceConfigs } from "@/lib/nas-client";
-import { eventBus } from "@/lib/event-bus";
 import {
-  Terminal, Copy, Check, Rocket, Database, HardDrive,
-  Shield, Activity, Cpu, Box, RefreshCw, Download,
-  Server, Wifi, Settings, Play, FileText, Wrench,
-  Zap, ChevronDown, ChevronRight, Radio, Key
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+  Terminal, Copy, Check, Rocket, Database, Activity, Cpu, Box, Download,
+  Server, Wrench, ChevronDown, ChevronRight, Radio, Key,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { eventBus } from '@/lib/event-bus';
+import { useTranslation } from '@/lib/i18n';
+import { loadProviderConfigs } from '@/lib/llm-bridge';
+import { PROVIDERS } from '@/lib/llm-providers';
+import { loadDeviceConfigs } from '@/lib/nas-client';
+import { useSystemStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // OpsScriptGenerator — One-Click Operation Script Panel
@@ -55,6 +53,7 @@ function CopyButton({ text }: { text: string }) {
     } catch {
       // Fallback: create textarea
       const ta = document.createElement('textarea');
+
       ta.value = text;
       document.body.appendChild(ta);
       ta.select();
@@ -70,8 +69,8 @@ function CopyButton({ text }: { text: string }) {
       variant="ghost"
       size="sm"
       className={cn(
-        "h-7 text-[10px] font-mono gap-1 px-2 transition-all",
-        copied ? "text-emerald-400" : "text-zinc-500 hover:text-zinc-200"
+        'h-7 text-[10px] font-mono gap-1 px-2 transition-all',
+        copied ? 'text-emerald-400' : 'text-zinc-500 hover:text-zinc-200',
       )}
       onClick={handleCopy}
     >
@@ -94,18 +93,18 @@ function ScriptCard({ template, expanded, onToggle }: {
 
   return (
     <div className={cn(
-      "border rounded-lg transition-all",
+      'border rounded-lg transition-all',
       expanded
-        ? "border-zinc-700/50 bg-zinc-900/40 shadow-lg"
-        : "border-zinc-800/30 bg-zinc-900/20 hover:border-zinc-700/40"
+        ? 'border-zinc-700/50 bg-zinc-900/40 shadow-lg'
+        : 'border-zinc-800/30 bg-zinc-900/20 hover:border-zinc-700/40',
     )}>
       <button
         onClick={onToggle}
         className="w-full flex items-center gap-3 p-3 text-left"
       >
         <div className={cn(
-          "w-8 h-8 rounded-lg flex items-center justify-center border border-zinc-700/50 bg-zinc-800/50 shrink-0",
-          template.color
+          'w-8 h-8 rounded-lg flex items-center justify-center border border-zinc-700/50 bg-zinc-800/50 shrink-0',
+          template.color,
         )}>
           <Icon className="w-4 h-4" />
         </div>
@@ -357,6 +356,7 @@ echo "=== Maintenance complete ==="`,
           { name: 'Dev Server', url: `http://${nasIp}:5173/`, method: 'GET' },
           { name: 'Telemetry WS', url: `${nasIp}:3001`, method: 'TCP' },
         ];
+
         return `#!/bin/bash
 # YYC3 Infrastructure Health Check
 # Probes all cluster services
@@ -408,15 +408,16 @@ echo "========================================"
 echo ""
 echo "--- HTTP Services ---"
 ${endpoints.filter(e => e.method === 'GET').map(e =>
-  `check_http "${e.name}" "${e.url}"`
-).join('\n')}
+    `check_http "${e.name}" "${e.url}"`,
+  ).join('\n')}
 
 echo ""
 echo "--- TCP Ports ---"
 ${endpoints.filter(e => e.method === 'TCP').map(e => {
-  const [host, port] = e.url.split(':');
-  return `check_tcp "${e.name}" "${host}" "${port}"`;
-}).join('\n')}
+    const [host, port] = e.url.split(':');
+
+    return `check_tcp "${e.name}" "${host}" "${port}"`;
+  }).join('\n')}
 
 echo ""
 echo "--- Ollama Models ---"
@@ -541,6 +542,7 @@ echo '  curl http://${nasIp}:11434/api/generate -d '"'"'{"model":"qwen2.5:72b","
           model: p.defaultModel,
         }));
         const enabledList = enabledProviders.map(c => c.providerId).join(', ') || 'none';
+
         return `#!/bin/bash
 # YYC3 LLM Provider Routing Diagnostics
 # Active providers: ${enabledList}
@@ -853,7 +855,7 @@ const CATEGORY_META: Record<string, { label: string; labelEn: string; icon: Reac
 export function OpsScriptGenerator() {
   const { language } = useTranslation();
   const zh = language === 'zh';
-  const addLog = useSystemStore((s) => s.addLog);
+  const addLog = useSystemStore(s => s.addLog);
 
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
   const [activeCategory, setActiveCategory] = React.useState<string | null>(null);
@@ -863,15 +865,18 @@ export function OpsScriptGenerator() {
   // Group by category
   const grouped = React.useMemo(() => {
     const groups: Record<string, ScriptTemplate[]> = {};
+
     for (const t of templates) {
       if (!groups[t.category]) groups[t.category] = [];
       groups[t.category].push(t);
     }
+
     return groups;
   }, [templates]);
 
   const filteredGroups = React.useMemo(() => {
     if (!activeCategory) return grouped;
+
     return { [activeCategory]: grouped[activeCategory] || [] };
   }, [grouped, activeCategory]);
 
@@ -886,6 +891,7 @@ export function OpsScriptGenerator() {
         source: 'OpsScript',
         message: `Script viewed: ${id}`,
       });
+
       return id;
     });
   }, [addLog]);
@@ -916,10 +922,10 @@ export function OpsScriptGenerator() {
         <button
           onClick={() => setActiveCategory(null)}
           className={cn(
-            "px-2.5 py-1 rounded-lg text-[10px] font-mono border transition-all",
+            'px-2.5 py-1 rounded-lg text-[10px] font-mono border transition-all',
             !activeCategory
-              ? "bg-white/10 text-white border-white/20"
-              : "bg-transparent text-zinc-600 border-zinc-800 hover:text-zinc-400"
+              ? 'bg-white/10 text-white border-white/20'
+              : 'bg-transparent text-zinc-600 border-zinc-800 hover:text-zinc-400',
           )}
         >
           {zh ? '全部' : 'All'}
@@ -927,15 +933,16 @@ export function OpsScriptGenerator() {
         {Object.entries(CATEGORY_META).map(([cat, meta]) => {
           const CatIcon = meta.icon;
           const isActive = activeCategory === cat;
+
           return (
             <button
               key={cat}
               onClick={() => setActiveCategory(isActive ? null : cat)}
               className={cn(
-                "px-2.5 py-1 rounded-lg text-[10px] font-mono border transition-all flex items-center gap-1",
+                'px-2.5 py-1 rounded-lg text-[10px] font-mono border transition-all flex items-center gap-1',
                 isActive
-                  ? cn("bg-white/10 border-white/20", meta.color)
-                  : "bg-transparent text-zinc-600 border-zinc-800 hover:text-zinc-400"
+                  ? cn('bg-white/10 border-white/20', meta.color)
+                  : 'bg-transparent text-zinc-600 border-zinc-800 hover:text-zinc-400',
               )}
             >
               <CatIcon className="w-3 h-3" />
@@ -952,12 +959,14 @@ export function OpsScriptGenerator() {
           {Object.entries(filteredGroups).map(([cat, items]) => {
             if (!items || items.length === 0) return null;
             const meta = CATEGORY_META[cat];
+
             if (!meta) return null;
             const CatIcon = meta.icon;
+
             return (
               <div key={cat}>
                 <div className="flex items-center gap-2 mb-2">
-                  <CatIcon className={cn("w-4 h-4", meta.color)} />
+                  <CatIcon className={cn('w-4 h-4', meta.color)} />
                   <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider">
                     {zh ? meta.label : meta.labelEn}
                   </span>

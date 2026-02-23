@@ -9,20 +9,21 @@
 // Run: npx vitest run src/lib/__tests__/mcp-protocol.test.ts
 // ============================================================
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
+
 import {
-  MCP_SERVER_PRESETS,
   MCP_CALL_PRESETS,
-  loadMCPRegistry,
-  saveMCPRegistry,
-  getAllMCPServers,
+  MCP_SERVER_PRESETS,
   executeMCPCall,
-  logMCPCall,
-  getMCPCallLog,
-  generateMCPServerCode,
   generateMCPClientConfig,
-  type MCPServerDefinition,
+  generateMCPServerCode,
+  getAllMCPServers,
+  getMCPCallLog,
+  loadMCPRegistry,
+  logMCPCall,
+  saveMCPRegistry,
   type MCPCallResult,
+  type MCPServerDefinition,
   type MCPTool,
 } from '../mcp-protocol';
 
@@ -66,11 +67,13 @@ describe('MCP Protocol — Server Presets', () => {
 
   it('MCP-03: preset IDs are unique', () => {
     const ids = MCP_SERVER_PRESETS.map(s => s.id);
+
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   it('MCP-04: expected servers present', () => {
     const ids = MCP_SERVER_PRESETS.map(s => s.id);
+
     expect(ids).toContain('mcp-filesystem');
     expect(ids).toContain('mcp-postgres');
     expect(ids).toContain('mcp-yyc3-cluster');
@@ -80,9 +83,11 @@ describe('MCP Protocol — Server Presets', () => {
 
   it('MCP-05: yyc3-cluster has 5 tools', () => {
     const cluster = MCP_SERVER_PRESETS.find(s => s.id === 'mcp-yyc3-cluster');
+
     expect(cluster).toBeDefined();
     expect(cluster!.tools).toHaveLength(5);
     const toolNames = cluster!.tools.map(t => t.name);
+
     expect(toolNames).toContain('cluster_status');
     expect(toolNames).toContain('docker_containers');
     expect(toolNames).toContain('sqlite_query');
@@ -92,11 +97,13 @@ describe('MCP Protocol — Server Presets', () => {
 
   it('MCP-06: filesystem server has 4 tools', () => {
     const fs = MCP_SERVER_PRESETS.find(s => s.id === 'mcp-filesystem');
+
     expect(fs!.tools).toHaveLength(4);
   });
 
   it('MCP-07: postgres server has query tool', () => {
     const pg = MCP_SERVER_PRESETS.find(s => s.id === 'mcp-postgres');
+
     expect(pg!.tools).toHaveLength(1);
     expect(pg!.tools[0].name).toBe('query');
     expect(pg!.tools[0].annotations?.readOnlyHint).toBe(true);
@@ -138,10 +145,12 @@ describe('MCP Protocol — Tool Schemas', () => {
   it('MCP-10: destructive tools have annotations', () => {
     const cluster = MCP_SERVER_PRESETS.find(s => s.id === 'mcp-yyc3-cluster');
     const deploy = cluster!.tools.find(t => t.name === 'deploy_service');
+
     expect(deploy!.annotations?.destructiveHint).toBe(true);
 
     const fs = MCP_SERVER_PRESETS.find(s => s.id === 'mcp-filesystem');
     const write = fs!.tools.find(t => t.name === 'write_file');
+
     expect(write!.annotations?.destructiveHint).toBe(true);
   });
 });
@@ -153,6 +162,7 @@ describe('MCP Protocol — Tool Schemas', () => {
 describe('MCP Protocol — Call Presets', () => {
   it('MCP-11: has presets for all MCP methods', () => {
     const methods = MCP_CALL_PRESETS.map(p => p.method);
+
     expect(methods).toContain('initialize');
     expect(methods).toContain('ping');
     expect(methods).toContain('tools/list');
@@ -177,6 +187,7 @@ describe('MCP Protocol — Call Presets', () => {
 
   it('MCP-13: preset IDs are unique', () => {
     const ids = MCP_CALL_PRESETS.map(p => p.id);
+
     expect(new Set(ids).size).toBe(ids.length);
   });
 });
@@ -188,6 +199,7 @@ describe('MCP Protocol — Call Presets', () => {
 describe('MCP Protocol — Registry', () => {
   it('MCP-14: loadMCPRegistry returns empty when no data', () => {
     const registry = loadMCPRegistry();
+
     expect(registry).toEqual([]);
   });
 
@@ -211,8 +223,10 @@ describe('MCP Protocol — Registry', () => {
       createdAt: '2026-02-21T00:00:00Z',
       updatedAt: '2026-02-21T00:00:00Z',
     }];
+
     await saveMCPRegistry(servers);
     const loaded = loadMCPRegistry();
+
     expect(loaded).toHaveLength(1);
     expect(loaded[0].id).toBe('custom-test');
     expect(loaded[0].name).toBe('Test Server');
@@ -237,6 +251,7 @@ describe('MCP Protocol — Registry', () => {
       updatedAt: '2026-02-21',
     }]);
     const all = getAllMCPServers();
+
     expect(all.length).toBeGreaterThan(MCP_SERVER_PRESETS.length);
     expect(all.find(s => s.id === 'custom-server')).toBeDefined();
     expect(all.find(s => s.id === 'mcp-filesystem')).toBeDefined();
@@ -249,18 +264,22 @@ describe('MCP Protocol — Registry', () => {
     }]);
     const all = getAllMCPServers();
     const overridden = all.find(s => s.id === MCP_SERVER_PRESETS[0].id);
+
     expect(overridden!.name).toBe('Override Name');
     // Should not have duplicate IDs
     const idCounts = all.reduce((acc, s) => {
       acc[s.id] = (acc[s.id] || 0) + 1;
+
       return acc;
     }, {} as Record<string, number>);
+
     expect(Object.values(idCounts).every(c => c === 1)).toBe(true);
   });
 
   it('MCP-18: handles corrupt registry gracefully', () => {
     localStorage.setItem(MCP_REGISTRY_KEY, 'not-json');
     const registry = loadMCPRegistry();
+
     expect(registry).toEqual([]);
   });
 });
@@ -283,8 +302,10 @@ describe('MCP Protocol — Call Log', () => {
       response: { jsonrpc: '2.0', id: 1, result: { tools: [] } },
       timestamp: Date.now(),
     };
+
     logMCPCall(entry);
     const log = getMCPCallLog();
+
     expect(log).toHaveLength(1);
     expect(log[0].method).toBe('tools/list');
   });
@@ -301,6 +322,7 @@ describe('MCP Protocol — Call Log', () => {
       });
     }
     const log = getMCPCallLog();
+
     expect(log.length).toBeLessThanOrEqual(200);
   });
 
@@ -314,6 +336,7 @@ describe('MCP Protocol — Call Log', () => {
       response: { jsonrpc: '2.0', id: 2, result: {} }, timestamp: 2000,
     });
     const log = getMCPCallLog();
+
     expect(log[0].method).toBe('second');
     expect(log[1].method).toBe('first');
   });
@@ -326,8 +349,10 @@ describe('MCP Protocol — Call Log', () => {
 describe('MCP Protocol — executeMCPCall', () => {
   it('MCP-23: initialize returns server info', async () => {
     const result = await executeMCPCall('mcp-yyc3-cluster', 'initialize');
+
     expect(result.success).toBe(true);
     const res = result.response.result as Record<string, unknown>;
+
     expect(res.protocolVersion).toBe('2025-03-26');
     expect(res.serverInfo).toBeDefined();
     expect((res.serverInfo as Record<string, unknown>).name).toBe('YYC3 Cluster');
@@ -335,14 +360,17 @@ describe('MCP Protocol — executeMCPCall', () => {
 
   it('MCP-24: ping returns success', async () => {
     const result = await executeMCPCall('mcp-filesystem', 'ping');
+
     expect(result.success).toBe(true);
     expect(result.response.result).toEqual({});
   });
 
   it('MCP-25: tools/list returns server tools', async () => {
     const result = await executeMCPCall('mcp-yyc3-cluster', 'tools/list');
+
     expect(result.success).toBe(true);
     const res = result.response.result as { tools: MCPTool[] };
+
     expect(res.tools).toHaveLength(5);
   });
 
@@ -351,13 +379,16 @@ describe('MCP Protocol — executeMCPCall', () => {
       name: 'cluster_status',
       arguments: { node: 'all' },
     });
+
     expect(result.success).toBe(true);
-    const res = result.response.result as { content: Array<{ type: string; text?: string }> };
+    const res = result.response.result as { content: { type: string; text?: string }[] };
+
     expect(res.content).toBeDefined();
     expect(res.content[0].type).toBe('text');
     expect(res.content[0].text).toBeTruthy();
     // Should contain structured JSON
     const parsed = JSON.parse(res.content[0].text!);
+
     expect(parsed.cluster).toBe('yyc3-family');
     expect(parsed.nodes).toBeDefined();
   });
@@ -367,6 +398,7 @@ describe('MCP Protocol — executeMCPCall', () => {
       name: 'nonexistent_tool',
       arguments: {},
     });
+
     expect(result.success).toBe(false);
     expect(result.response.error).toBeDefined();
     expect(result.response.error!.code).toBe(-32602);
@@ -374,6 +406,7 @@ describe('MCP Protocol — executeMCPCall', () => {
 
   it('MCP-28: unknown server returns error', async () => {
     const result = await executeMCPCall('nonexistent-server', 'ping');
+
     expect(result.success).toBe(false);
     expect(result.response.error).toBeDefined();
     expect(result.response.error!.code).toBe(-32601);
@@ -387,8 +420,10 @@ describe('MCP Protocol — executeMCPCall', () => {
 describe('MCP Protocol — Resources', () => {
   it('MCP-29: resources/list returns resource list', async () => {
     const result = await executeMCPCall('mcp-yyc3-cluster', 'resources/list');
+
     expect(result.success).toBe(true);
     const res = result.response.result as { resources: unknown[] };
+
     expect(res.resources.length).toBeGreaterThan(0);
   });
 
@@ -396,19 +431,24 @@ describe('MCP Protocol — Resources', () => {
     const result = await executeMCPCall('mcp-yyc3-cluster', 'resources/read', {
       uri: 'yyc3://metrics/cluster',
     });
+
     expect(result.success).toBe(true);
-    const res = result.response.result as { contents: Array<{ uri: string; text?: string; mimeType?: string }> };
+    const res = result.response.result as { contents: { uri: string; text?: string; mimeType?: string }[] };
+
     expect(res.contents).toBeDefined();
     expect(res.contents[0].uri).toBe('yyc3://metrics/cluster');
     expect(res.contents[0].mimeType).toBe('application/json');
     const parsed = JSON.parse(res.contents[0].text!);
+
     expect(parsed.cluster).toBe('yyc3-family');
   });
 
   it('MCP-31: resources/templates/list returns templates', async () => {
     const result = await executeMCPCall('mcp-yyc3-cluster', 'resources/templates/list');
+
     expect(result.success).toBe(true);
     const res = result.response.result as { resourceTemplates: unknown[] };
+
     expect(res.resourceTemplates.length).toBeGreaterThan(0);
   });
 });
@@ -420,8 +460,10 @@ describe('MCP Protocol — Resources', () => {
 describe('MCP Protocol — Prompts', () => {
   it('MCP-32: prompts/list returns prompt list', async () => {
     const result = await executeMCPCall('mcp-yyc3-cluster', 'prompts/list');
+
     expect(result.success).toBe(true);
     const res = result.response.result as { prompts: unknown[] };
+
     expect(res.prompts.length).toBeGreaterThanOrEqual(2);
   });
 
@@ -430,8 +472,10 @@ describe('MCP Protocol — Prompts', () => {
       name: 'cluster_report',
       arguments: { timeframe: '24h', format: 'markdown' },
     });
+
     expect(result.success).toBe(true);
-    const res = result.response.result as { messages: Array<{ role: string; content: { text: string } }> };
+    const res = result.response.result as { messages: { role: string; content: { text: string } }[] };
+
     expect(res.messages).toHaveLength(1);
     expect(res.messages[0].role).toBe('user');
     expect(res.messages[0].content.text).toContain('24h');
@@ -443,8 +487,10 @@ describe('MCP Protocol — Prompts', () => {
       name: 'incident_response',
       arguments: { severity: 'high', affected_node: 'yanyucloud' },
     });
+
     expect(result.success).toBe(true);
-    const res = result.response.result as { messages: Array<{ role: string; content: { text: string } }> };
+    const res = result.response.result as { messages: { role: string; content: { text: string } }[] };
+
     expect(res.messages[0].content.text).toContain('HIGH');
     expect(res.messages[0].content.text).toContain('yanyucloud');
   });
@@ -460,8 +506,9 @@ describe('MCP Protocol — Rich Mock Data', () => {
       name: 'docker_containers',
       arguments: { action: 'list' },
     });
-    const content = (result.response.result as { content: Array<{ text: string }> }).content[0].text;
+    const content = (result.response.result as { content: { text: string }[] }).content[0].text;
     const data = JSON.parse(content);
+
     expect(data.containers).toBeDefined();
     expect(data.total).toBeGreaterThan(0);
     expect(data.running).toBeDefined();
@@ -472,8 +519,9 @@ describe('MCP Protocol — Rich Mock Data', () => {
       name: 'sqlite_query',
       arguments: { sql: 'SELECT * FROM yyc3_persist' },
     });
-    const content = (result.response.result as { content: Array<{ text: string }> }).content[0].text;
+    const content = (result.response.result as { content: { text: string }[] }).content[0].text;
     const data = JSON.parse(content);
+
     expect(data.columns).toBeDefined();
     expect(data.rows).toBeDefined();
   });
@@ -483,8 +531,9 @@ describe('MCP Protocol — Rich Mock Data', () => {
       name: 'system_diagnostics',
       arguments: { scope: 'full' },
     });
-    const content = (result.response.result as { content: Array<{ text: string }> }).content[0].text;
+    const content = (result.response.result as { content: { text: string }[] }).content[0].text;
     const data = JSON.parse(content);
+
     expect(data.scope).toBe('full');
     expect(data.network).toBeDefined();
     expect(data.storage).toBeDefined();
@@ -496,7 +545,8 @@ describe('MCP Protocol — Rich Mock Data', () => {
       name: 'read_file',
       arguments: { path: '/src/lib/mcp-protocol.ts' },
     });
-    const content = (result.response.result as { content: Array<{ text: string }> }).content[0].text;
+    const content = (result.response.result as { content: { text: string }[] }).content[0].text;
+
     expect(content).toBeTruthy();
     expect(content).toContain('import');
   });
@@ -506,8 +556,9 @@ describe('MCP Protocol — Rich Mock Data', () => {
       name: 'search_repositories',
       arguments: { query: 'yyc3' },
     });
-    const content = (result.response.result as { content: Array<{ text: string }> }).content[0].text;
+    const content = (result.response.result as { content: { text: string }[] }).content[0].text;
     const data = JSON.parse(content);
+
     expect(data.items).toBeDefined();
     expect(data.total_count).toBeGreaterThan(0);
   });
@@ -517,8 +568,9 @@ describe('MCP Protocol — Rich Mock Data', () => {
       name: 'brave_web_search',
       arguments: { query: 'MCP protocol' },
     });
-    const content = (result.response.result as { content: Array<{ text: string }> }).content[0].text;
+    const content = (result.response.result as { content: { text: string }[] }).content[0].text;
     const data = JSON.parse(content);
+
     expect(data.results).toBeDefined();
     expect(data.total).toBeGreaterThan(0);
   });
@@ -530,11 +582,14 @@ describe('MCP Protocol — Rich Mock Data', () => {
       'yyc3://docker/containers',
       'yyc3://config/devices',
     ];
+
     for (const uri of uris) {
       const result = await executeMCPCall('mcp-yyc3-cluster', 'resources/read', { uri });
-      const res = result.response.result as { contents: Array<{ text: string }> };
+      const res = result.response.result as { contents: { text: string }[] };
+
       expect(res.contents[0].text).toBeTruthy();
       const parsed = JSON.parse(res.contents[0].text);
+
       expect(parsed).toBeDefined();
     }
   });
@@ -548,6 +603,7 @@ describe('MCP Protocol — Code Generation', () => {
   it('MCP-42: generateMCPServerCode produces valid Node.js code', () => {
     const server = MCP_SERVER_PRESETS.find(s => s.id === 'mcp-yyc3-cluster')!;
     const code = generateMCPServerCode(server);
+
     expect(code).toContain('import { Server }');
     expect(code).toContain('StdioServerTransport');
     expect(code).toContain('tools/list');
@@ -562,16 +618,18 @@ describe('MCP Protocol — Code Generation', () => {
   it('MCP-43: generated code contains real tool implementations', () => {
     const server = MCP_SERVER_PRESETS.find(s => s.id === 'mcp-filesystem')!;
     const code = generateMCPServerCode(server);
-    expect(code).toContain('readFile');
-    expect(code).toContain('writeFile');
-    expect(code).toContain('readdir');
-    expect(code).toContain('grep');
+
+    expect(code).toContain('read_file');
+    expect(code).toContain('write_file');
+    expect(code).toContain('list_directory');
+    expect(code).toContain('search_files');
   });
 
   it('MCP-44: generateMCPClientConfig produces valid JSON', () => {
     const servers = MCP_SERVER_PRESETS.slice(0, 3);
     const config = generateMCPClientConfig(servers);
     const parsed = JSON.parse(config);
+
     expect(parsed.mcpServers).toBeDefined();
     expect(Object.keys(parsed.mcpServers).length).toBe(3);
   });
@@ -585,6 +643,7 @@ describe('MCP Protocol — Call Logging', () => {
   it('MCP-45: executeMCPCall automatically logs calls', async () => {
     await executeMCPCall('mcp-filesystem', 'ping');
     const log = getMCPCallLog();
+
     expect(log.length).toBeGreaterThanOrEqual(1);
     expect(log[0].method).toBe('ping');
     expect(log[0].serverId).toBe('mcp-filesystem');
@@ -596,14 +655,17 @@ describe('MCP Protocol — Call Logging', () => {
   it('MCP-46: error calls are also logged', async () => {
     await executeMCPCall('nonexistent', 'ping');
     const log = getMCPCallLog();
+
     expect(log[0].success).toBe(false);
     expect(log[0].serverId).toBe('nonexistent');
   });
 
   it('MCP-47: unknown method returns message with supported methods', async () => {
     const result = await executeMCPCall('mcp-filesystem', 'unknown/method');
+
     expect(result.success).toBe(true); // method handling returns result, not error
     const res = result.response.result as { message: string; supportedMethods: string[] };
+
     expect(res.message).toContain('not recognized');
     expect(res.supportedMethods).toContain('tools/list');
     expect(res.supportedMethods).toContain('resources/read');

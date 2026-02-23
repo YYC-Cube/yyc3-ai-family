@@ -8,13 +8,13 @@ interface ImportResult {
 
 export const importKnowledgeBase = async (
   file: File,
-  existingData: KnowledgeItem[]
+  existingData: KnowledgeItem[],
 ): Promise<ImportResult> => {
   const result: ImportResult = {
     added: 0,
     merged: 0,
     errors: [],
-    total: 0
+    total: 0,
   };
 
   try {
@@ -24,11 +24,13 @@ export const importKnowledgeBase = async (
     // 验证版本和数据结构
     if (!importData.version || !importData.version.startsWith('yyc3-kb-export')) {
       result.errors.push('无效的导出文件版本');
+
       return result;
     }
 
     if (!Array.isArray(importData.data)) {
       result.errors.push('数据格式错误：应为数组格式');
+
       return result;
     }
 
@@ -59,7 +61,7 @@ export const importKnowledgeBase = async (
               ...existingItem,
               ...item,
               updatedAt: new Date().toISOString(),
-              _imported: true
+              _imported: true,
             };
             result.merged++;
           }

@@ -134,6 +134,7 @@ function main() {
   // Group summary
   for (const [group, info] of Object.entries(result.groups)) {
     const status = info.issues.length === 0 ? '\x1b[32mOK\x1b[0m' : `\x1b[33m${info.issues.length} issues\x1b[0m`;
+
     console.log(`\n  [${group}] ${info.configured}/${info.total} configured — ${status}`);
     for (const issue of info.issues) {
       console.log(`    - ${issue}`);
@@ -157,8 +158,10 @@ function main() {
   const llmKeys = ENV_SPECS.filter(s => s.group === 'LLM');
   const configuredLlm = llmKeys.filter(s => {
     const val = typeof process !== 'undefined' ? process.env[s.key] : undefined;
+
     return !!val;
   }).length;
+
   console.log(`\n  LLM Providers configured: ${configuredLlm}/${llmKeys.length}`);
   if (configuredLlm === 0) {
     console.log('  \x1b[33mHint: Configure at least 1 LLM provider in .env.local or UI Settings\x1b[0m');

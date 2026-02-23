@@ -1,22 +1,23 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   FolderOpen, FileCode, GitBranch, GitCommit, Clock,
   Star, Search, Plus, Filter,
-  ChevronRight, ChevronDown, ChevronLeft, File, FolderClosed,
-  Terminal, Globe, Database, Server, Package,
-  Activity, CheckCircle2, AlertCircle, ExternalLink,
+  ChevronRight, ChevronDown, ChevronLeft, FolderClosed,
+  Terminal, Globe, Database, Server, Package, CheckCircle2, AlertCircle, ExternalLink,
   Trash2, X, Save, ArrowLeft,
   Eye, Code2, Columns, PanelRightClose, PanelRightOpen,
-  Figma, Layers, MoreHorizontal, RefreshCw, Copy
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { Input } from "@/app/components/ui/input";
-import { useSystemStore } from "@/lib/store";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+  Figma, MoreHorizontal, RefreshCw, Copy,
+} from 'lucide-react';
+import * as React from 'react';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Input } from '@/app/components/ui/input';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { useSystemStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
+
 
 // --- Types ---
 
@@ -30,16 +31,16 @@ interface ProjectItem {
   lastCommit: string;
   lastAccessTime: number; // timestamp for MRU ordering
   branch: string;
-  status: "active" | "archived" | "development";
-  health: "healthy" | "warning" | "error";
+  status: 'active' | 'archived' | 'development';
+  health: 'healthy' | 'warning' | 'error';
   services: number;
-  type: "frontend" | "backend" | "infra" | "library" | "fullstack";
-  group: "starred" | "figma" | "recent";
+  type: 'frontend' | 'backend' | 'infra' | 'library' | 'fullstack';
+  group: 'starred' | 'figma' | 'recent';
 }
 
 interface FileTreeNode {
   name: string;
-  type: "file" | "folder";
+  type: 'file' | 'folder';
   children?: FileTreeNode[];
   size?: string;
   modified?: string;
@@ -49,189 +50,189 @@ interface FileTreeNode {
 
 const INITIAL_PROJECTS: ProjectItem[] = [
   {
-    id: "yyc3-core",
-    name: "yyc3-core",
-    description: "YYC3 Hacker Chatbot 核心平台 — 九层架构主系统",
-    language: "TypeScript",
-    languageColor: "bg-blue-500",
+    id: 'yyc3-core',
+    name: 'yyc3-core',
+    description: 'YYC3 Hacker Chatbot 核心平台 — 九层架构主系统',
+    language: 'TypeScript',
+    languageColor: 'bg-blue-500',
     stars: 42,
-    lastCommit: "2 分钟前",
+    lastCommit: '2 分钟前',
     lastAccessTime: Date.now() - 120000,
-    branch: "main",
-    status: "development",
-    health: "healthy",
+    branch: 'main',
+    status: 'development',
+    health: 'healthy',
     services: 7,
-    type: "fullstack",
-    group: "starred"
+    type: 'fullstack',
+    group: 'starred',
   },
   {
-    id: "yyc3-design-system",
-    name: "yyc3-design-system",
-    description: "赛博朋克设计系统 — 五高五标五化组件库",
-    language: "TypeScript",
-    languageColor: "bg-blue-500",
+    id: 'yyc3-design-system',
+    name: 'yyc3-design-system',
+    description: '赛博朋克设计系统 — 五高五标五化组件库',
+    language: 'TypeScript',
+    languageColor: 'bg-blue-500',
     stars: 35,
-    lastCommit: "12 小时前",
+    lastCommit: '12 小时前',
     lastAccessTime: Date.now() - 43200000,
-    branch: "main",
-    status: "development",
-    health: "healthy",
+    branch: 'main',
+    status: 'development',
+    health: 'healthy',
     services: 1,
-    type: "library",
-    group: "starred"
+    type: 'library',
+    group: 'starred',
   },
   {
-    id: "yyc3-figma-tokens",
-    name: "yyc3-figma-tokens",
-    description: "Figma Design Tokens — 设计变量同步管道",
-    language: "TypeScript",
-    languageColor: "bg-blue-500",
+    id: 'yyc3-figma-tokens',
+    name: 'yyc3-figma-tokens',
+    description: 'Figma Design Tokens — 设计变量同步管道',
+    language: 'TypeScript',
+    languageColor: 'bg-blue-500',
     stars: 18,
-    lastCommit: "6 小时前",
+    lastCommit: '6 小时前',
     lastAccessTime: Date.now() - 21600000,
-    branch: "main",
-    status: "active",
-    health: "healthy",
+    branch: 'main',
+    status: 'active',
+    health: 'healthy',
     services: 1,
-    type: "library",
-    group: "figma"
+    type: 'library',
+    group: 'figma',
   },
   {
-    id: "yyc3-figma-plugin",
-    name: "yyc3-figma-plugin",
-    description: "Figma Plugin — 设计到代码自动化桥接",
-    language: "TypeScript",
-    languageColor: "bg-blue-500",
+    id: 'yyc3-figma-plugin',
+    name: 'yyc3-figma-plugin',
+    description: 'Figma Plugin — 设计到代码自动化桥接',
+    language: 'TypeScript',
+    languageColor: 'bg-blue-500',
     stars: 22,
-    lastCommit: "1 天前",
+    lastCommit: '1 天前',
     lastAccessTime: Date.now() - 86400000,
-    branch: "develop",
-    status: "development",
-    health: "healthy",
+    branch: 'develop',
+    status: 'development',
+    health: 'healthy',
     services: 2,
-    type: "frontend",
-    group: "figma"
+    type: 'frontend',
+    group: 'figma',
   },
   {
-    id: "yyc3-gateway",
-    name: "yyc3-gateway",
-    description: "API 网关 — Nginx 反向代理 + 速率限制 + SSL 终止",
-    language: "Nginx",
-    languageColor: "bg-green-500",
+    id: 'yyc3-gateway',
+    name: 'yyc3-gateway',
+    description: 'API 网关 — Nginx 反向代理 + 速率限制 + SSL 终止',
+    language: 'Nginx',
+    languageColor: 'bg-green-500',
     stars: 12,
-    lastCommit: "3 天前",
+    lastCommit: '3 天前',
     lastAccessTime: Date.now() - 259200000,
-    branch: "main",
-    status: "active",
-    health: "healthy",
+    branch: 'main',
+    status: 'active',
+    health: 'healthy',
     services: 2,
-    type: "infra",
-    group: "recent"
+    type: 'infra',
+    group: 'recent',
   },
   {
-    id: "yyc3-agent-runtime",
-    name: "yyc3-agent-runtime",
-    description: "AI 智能体运行时 — 7 大智能体的推理引擎与工具链",
-    language: "Python",
-    languageColor: "bg-yellow-500",
+    id: 'yyc3-agent-runtime',
+    name: 'yyc3-agent-runtime',
+    description: 'AI 智能体运行时 — 7 大智能体的推理引擎与工具链',
+    language: 'Python',
+    languageColor: 'bg-yellow-500',
     stars: 28,
-    lastCommit: "1 天前",
+    lastCommit: '1 天前',
     lastAccessTime: Date.now() - 86400000,
-    branch: "develop",
-    status: "development",
-    health: "healthy",
+    branch: 'develop',
+    status: 'development',
+    health: 'healthy',
     services: 3,
-    type: "backend",
-    group: "recent"
+    type: 'backend',
+    group: 'recent',
   },
   {
-    id: "yyc3-data-pipeline",
-    name: "yyc3-data-pipeline",
-    description: "数据流水线 — ETL + 向量化 + 知识图谱构建",
-    language: "Python",
-    languageColor: "bg-yellow-500",
+    id: 'yyc3-data-pipeline',
+    name: 'yyc3-data-pipeline',
+    description: '数据流水线 — ETL + 向量化 + 知识图谱构建',
+    language: 'Python',
+    languageColor: 'bg-yellow-500',
     stars: 15,
-    lastCommit: "5 天前",
+    lastCommit: '5 天前',
     lastAccessTime: Date.now() - 432000000,
-    branch: "main",
-    status: "active",
-    health: "warning",
+    branch: 'main',
+    status: 'active',
+    health: 'warning',
     services: 4,
-    type: "backend",
-    group: "recent"
+    type: 'backend',
+    group: 'recent',
   },
   {
-    id: "yyc3-nas-controller",
-    name: "yyc3-nas-controller",
-    description: "YanYuCloud NAS 控制器 — RAID 管理 + 存储调度 + 备份策略",
-    language: "Go",
-    languageColor: "bg-cyan-500",
+    id: 'yyc3-nas-controller',
+    name: 'yyc3-nas-controller',
+    description: 'YanYuCloud NAS 控制器 — RAID 管理 + 存储调度 + 备份策略',
+    language: 'Go',
+    languageColor: 'bg-cyan-500',
     stars: 8,
-    lastCommit: "1 周前",
+    lastCommit: '1 周前',
     lastAccessTime: Date.now() - 604800000,
-    branch: "main",
-    status: "active",
-    health: "healthy",
+    branch: 'main',
+    status: 'active',
+    health: 'healthy',
     services: 2,
-    type: "infra",
-    group: "recent"
+    type: 'infra',
+    group: 'recent',
   },
 ];
 
 const FILE_TREE: FileTreeNode[] = [
   {
-    name: "src", type: "folder", children: [
+    name: 'src', type: 'folder', children: [
       {
-        name: "app", type: "folder", children: [
-          { name: "App.tsx", type: "file", size: "9.9KB", modified: "just now" },
+        name: 'app', type: 'folder', children: [
+          { name: 'App.tsx', type: 'file', size: '9.9KB', modified: 'just now' },
           {
-            name: "components", type: "folder", children: [
-              { name: "chat/", type: "folder" },
-              { name: "console/", type: "folder" },
-              { name: "layout/", type: "folder" },
-              { name: "monitoring/", type: "folder" },
-              { name: "settings/", type: "folder" },
-              { name: "ui/", type: "folder" },
-              { name: "views/", type: "folder" },
-            ]
-          }
-        ]
+            name: 'components', type: 'folder', children: [
+              { name: 'chat/', type: 'folder' },
+              { name: 'console/', type: 'folder' },
+              { name: 'layout/', type: 'folder' },
+              { name: 'monitoring/', type: 'folder' },
+              { name: 'settings/', type: 'folder' },
+              { name: 'ui/', type: 'folder' },
+              { name: 'views/', type: 'folder' },
+            ],
+          },
+        ],
       },
       {
-        name: "lib", type: "folder", children: [
-          { name: "store.ts", type: "file", size: "5.8KB", modified: "just now" },
-          { name: "types.ts", type: "file", size: "8.2KB", modified: "just now" },
-          { name: "api.ts", type: "file", size: "12.4KB", modified: "just now" },
-          { name: "useOllamaDiscovery.ts", type: "file", size: "7.1KB", modified: "just now" },
-        ]
+        name: 'lib', type: 'folder', children: [
+          { name: 'store.ts', type: 'file', size: '5.8KB', modified: 'just now' },
+          { name: 'types.ts', type: 'file', size: '8.2KB', modified: 'just now' },
+          { name: 'api.ts', type: 'file', size: '12.4KB', modified: 'just now' },
+          { name: 'useOllamaDiscovery.ts', type: 'file', size: '7.1KB', modified: 'just now' },
+        ],
       },
       {
-        name: "styles", type: "folder", children: [
-          { name: "theme.css", type: "file", size: "3.2KB", modified: "1 day ago" },
-          { name: "fonts.css", type: "file", size: "0.4KB", modified: "2 weeks ago" },
-          { name: "index.css", type: "file", size: "1.1KB", modified: "1 week ago" },
-        ]
-      }
-    ]
+        name: 'styles', type: 'folder', children: [
+          { name: 'theme.css', type: 'file', size: '3.2KB', modified: '1 day ago' },
+          { name: 'fonts.css', type: 'file', size: '0.4KB', modified: '2 weeks ago' },
+          { name: 'index.css', type: 'file', size: '1.1KB', modified: '1 week ago' },
+        ],
+      },
+    ],
   },
-  { name: "package.json", type: "file", size: "2.4KB", modified: "1 hour ago" },
-  { name: "vite.config.ts", type: "file", size: "0.6KB", modified: "1 week ago" },
-  { name: "tsconfig.json", type: "file", size: "0.3KB", modified: "2 weeks ago" },
+  { name: 'package.json', type: 'file', size: '2.4KB', modified: '1 hour ago' },
+  { name: 'vite.config.ts', type: 'file', size: '0.6KB', modified: '1 week ago' },
+  { name: 'tsconfig.json', type: 'file', size: '0.3KB', modified: '2 weeks ago' },
 ];
 
 const RECENT_COMMITS = [
-  { hash: "f9e1d4a", message: "feat(phase24): project view redesign + Ollama sync", author: "dev_operator", time: "刚刚", branch: "main" },
-  { hash: "c7b2e3f", message: "feat(phase23): Ollama discovery + API docs viewer", author: "dev_operator", time: "1 小时前", branch: "main" },
-  { hash: "a3f7b2e", message: "feat(phase22): remote Docker Compose deployment", author: "dev_operator", time: "2 小时前", branch: "main" },
-  { hash: "8d4c1a9", message: "fix(console): resolve neural link state sync issue", author: "dev_operator", time: "昨天 16:30", branch: "main" },
-  { hash: "2e5f8b3", message: "refactor(theme): implement dark-first CSS variable system", author: "dev_operator", time: "昨天 10:15", branch: "main" },
+  { hash: 'f9e1d4a', message: 'feat(phase24): project view redesign + Ollama sync', author: 'dev_operator', time: '刚刚', branch: 'main' },
+  { hash: 'c7b2e3f', message: 'feat(phase23): Ollama discovery + API docs viewer', author: 'dev_operator', time: '1 小时前', branch: 'main' },
+  { hash: 'a3f7b2e', message: 'feat(phase22): remote Docker Compose deployment', author: 'dev_operator', time: '2 小时前', branch: 'main' },
+  { hash: '8d4c1a9', message: 'fix(console): resolve neural link state sync issue', author: 'dev_operator', time: '昨天 16:30', branch: 'main' },
+  { hash: '2e5f8b3', message: 'refactor(theme): implement dark-first CSS variable system', author: 'dev_operator', time: '昨天 10:15', branch: 'main' },
 ];
 
 // Language color map
 const LANG_COLORS: Record<string, string> = {
-  TypeScript: "bg-blue-500", Python: "bg-yellow-500", Go: "bg-cyan-500",
-  Rust: "bg-orange-500", Java: "bg-red-500", Nginx: "bg-green-500",
-  YAML: "bg-purple-500", Bash: "bg-zinc-400", Dockerfile: "bg-sky-500",
+  TypeScript: 'bg-blue-500', Python: 'bg-yellow-500', Go: 'bg-cyan-500',
+  Rust: 'bg-orange-500', Java: 'bg-red-500', Nginx: 'bg-green-500',
+  YAML: 'bg-purple-500', Bash: 'bg-zinc-400', Dockerfile: 'bg-sky-500',
 };
 
 // --- File Tree Component ---
@@ -239,7 +240,7 @@ const LANG_COLORS: Record<string, string> = {
 function FileTreeItem({ node, depth = 0 }: { node: FileTreeNode; depth?: number }) {
   const [isOpen, setIsOpen] = React.useState(depth < 2);
 
-  if (node.type === "folder") {
+  if (node.type === 'folder') {
     return (
       <div>
         <button
@@ -293,10 +294,10 @@ interface CreateProjectDialogProps {
 }
 
 function CreateProjectDialog({ open, onClose, onCreate }: CreateProjectDialogProps) {
-  const [name, setName] = React.useState("");
-  const [description, setDescription] = React.useState("");
-  const [language, setLanguage] = React.useState("TypeScript");
-  const [projectType, setProjectType] = React.useState<ProjectItem["type"]>("fullstack");
+  const [name, setName] = React.useState('');
+  const [description, setDescription] = React.useState('');
+  const [language, setLanguage] = React.useState('TypeScript');
+  const [projectType, setProjectType] = React.useState<ProjectItem['type']>('fullstack');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -304,24 +305,24 @@ function CreateProjectDialog({ open, onClose, onCreate }: CreateProjectDialogPro
 
     const newProject: ProjectItem = {
       id: `proj-${Date.now()}`,
-      name: name.trim().toLowerCase().replace(/\s+/g, "-"),
+      name: name.trim().toLowerCase().replace(/\s+/g, '-'),
       description: description.trim(),
       language,
-      languageColor: LANG_COLORS[language] ?? "bg-zinc-500",
+      languageColor: LANG_COLORS[language] ?? 'bg-zinc-500',
       stars: 0,
-      lastCommit: "刚刚",
+      lastCommit: '刚刚',
       lastAccessTime: Date.now(),
-      branch: "main",
-      status: "development",
-      health: "healthy",
+      branch: 'main',
+      status: 'development',
+      health: 'healthy',
       services: 0,
       type: projectType,
-      group: "recent",
+      group: 'recent',
     };
 
     onCreate(newProject);
-    setName("");
-    setDescription("");
+    setName('');
+    setDescription('');
     onClose();
   };
 
@@ -369,10 +370,10 @@ function CreateProjectDialog({ open, onClose, onCreate }: CreateProjectDialogPro
                     type="button"
                     onClick={() => setLanguage(lang)}
                     className={cn(
-                      "px-2 py-1 rounded text-[10px] font-mono transition-colors",
+                      'px-2 py-1 rounded text-[10px] font-mono transition-colors',
                       language === lang
-                        ? "bg-primary/20 text-primary border border-primary/30"
-                        : "text-zinc-500 hover:text-zinc-300 bg-white/5"
+                        ? 'bg-primary/20 text-primary border border-primary/30'
+                        : 'text-zinc-500 hover:text-zinc-300 bg-white/5',
                     )}
                   >
                     {lang}
@@ -383,16 +384,16 @@ function CreateProjectDialog({ open, onClose, onCreate }: CreateProjectDialogPro
             <div>
               <label className="text-[10px] uppercase text-zinc-500 font-mono tracking-wider mb-1 block">类型</label>
               <div className="flex flex-wrap gap-1">
-                {(["fullstack", "backend", "frontend", "infra", "library"] as const).map(t => (
+                {(['fullstack', 'backend', 'frontend', 'infra', 'library'] as const).map(t => (
                   <button
                     key={t}
                     type="button"
                     onClick={() => setProjectType(t)}
                     className={cn(
-                      "px-2 py-1 rounded text-[10px] font-mono uppercase transition-colors",
+                      'px-2 py-1 rounded text-[10px] font-mono uppercase transition-colors',
                       projectType === t
-                        ? "bg-primary/20 text-primary border border-primary/30"
-                        : "text-zinc-500 hover:text-zinc-300 bg-white/5"
+                        ? 'bg-primary/20 text-primary border border-primary/30'
+                        : 'text-zinc-500 hover:text-zinc-300 bg-white/5',
                     )}
                   >
                     {t}
@@ -415,9 +416,9 @@ function CreateProjectDialog({ open, onClose, onCreate }: CreateProjectDialogPro
 
 // --- Group Icons ---
 const GROUP_CONFIG: Record<string, { icon: typeof Star; label: string; color: string }> = {
-  starred: { icon: Star, label: "星标项目", color: "text-amber-500" },
-  figma: { icon: Figma, label: "Figma", color: "text-pink-400" },
-  recent: { icon: Clock, label: "近期项目", color: "text-primary" },
+  starred: { icon: Star, label: '星标项目', color: 'text-amber-500' },
+  figma: { icon: Figma, label: 'Figma', color: 'text-pink-400' },
+  recent: { icon: Clock, label: '近期项目', color: 'text-primary' },
 };
 
 const typeIcons: Record<string, typeof Globe> = {
@@ -429,23 +430,23 @@ const typeIcons: Record<string, typeof Globe> = {
 };
 
 const healthConfig: Record<string, { icon: typeof CheckCircle2; className: string }> = {
-  healthy: { icon: CheckCircle2, className: "text-green-500" },
-  warning: { icon: AlertCircle, className: "text-amber-500" },
-  error: { icon: AlertCircle, className: "text-red-500" },
+  healthy: { icon: CheckCircle2, className: 'text-green-500' },
+  warning: { icon: AlertCircle, className: 'text-amber-500' },
+  error: { icon: AlertCircle, className: 'text-red-500' },
 };
 
 const statusConfig: Record<string, { label: string; className: string }> = {
-  active: { label: "ACTIVE", className: "text-green-500 border-green-500/20 bg-green-500/5" },
-  development: { label: "IN_DEV", className: "text-amber-500 border-amber-500/20 bg-amber-500/5" },
-  archived: { label: "ARCHIVED", className: "text-zinc-500 border-zinc-500/20 bg-zinc-500/5" },
+  active: { label: 'ACTIVE', className: 'text-green-500 border-green-500/20 bg-green-500/5' },
+  development: { label: 'IN_DEV', className: 'text-amber-500 border-amber-500/20 bg-amber-500/5' },
+  archived: { label: 'ARCHIVED', className: 'text-zinc-500 border-zinc-500/20 bg-zinc-500/5' },
 };
 
 // --- Main Component ---
 
 export function ProjectsView() {
   const [projects, setProjects] = React.useState<ProjectItem[]>(INITIAL_PROJECTS);
-  const [selectedProject, setSelectedProject] = React.useState<string | null>("yyc3-core");
-  const [searchQuery, setSearchQuery] = React.useState("");
+  const [selectedProject, setSelectedProject] = React.useState<string | null>('yyc3-core');
+  const [searchQuery, setSearchQuery] = React.useState('');
   const [showCreate, setShowCreate] = React.useState(false);
   const [confirmDelete, setConfirmDelete] = React.useState<string | null>(null);
   const [expandedGroups, setExpandedGroups] = React.useState<Record<string, boolean>>({
@@ -455,9 +456,9 @@ export function ProjectsView() {
   });
   const [docPanelOpen, setDocPanelOpen] = React.useState(true);
   const [docViewMode, setDocViewMode] = React.useState<'preview' | 'code' | 'split'>('code');
-  const addLog = useSystemStore((s) => s.addLog);
-  const isMobile = useSystemStore((s) => s.isMobile);
-  const isTablet = useSystemStore((s) => s.isTablet);
+  const addLog = useSystemStore(s => s.addLog);
+  const isMobile = useSystemStore(s => s.isMobile);
+  const isTablet = useSystemStore(s => s.isTablet);
 
   const [mobileShowDetail, setMobileShowDetail] = React.useState(false);
 
@@ -465,7 +466,7 @@ export function ProjectsView() {
     setSelectedProject(id);
     // Update MRU access time
     setProjects(prev => prev.map(p =>
-      p.id === id ? { ...p, lastAccessTime: Date.now() } : p
+      p.id === id ? { ...p, lastAccessTime: Date.now() } : p,
     ));
     if (isMobile) setMobileShowDetail(true);
   };
@@ -478,6 +479,7 @@ export function ProjectsView() {
   const groupedProjects = React.useMemo(() => {
     const filtered = projects.filter(p => {
       if (!searchQuery) return true;
+
       return p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.description.toLowerCase().includes(searchQuery.toLowerCase());
     });
@@ -514,6 +516,7 @@ export function ProjectsView() {
 
   const handleDelete = (id: string) => {
     const proj = projects.find(p => p.id === id);
+
     setProjects(prev => prev.filter(p => p.id !== id));
     if (selectedProject === id) setSelectedProject(null);
     setConfirmDelete(null);
@@ -524,13 +527,14 @@ export function ProjectsView() {
     setProjects(prev => prev.map(p => {
       if (p.id !== id) return p;
       const isStarred = p.group === 'starred';
+
       return { ...p, group: isStarred ? 'recent' : 'starred', stars: isStarred ? 0 : 1 };
     }));
   };
 
-  const handleStatusChange = (id: string, status: ProjectItem["status"]) => {
+  const handleStatusChange = (id: string, status: ProjectItem['status']) => {
     setProjects(prev => prev.map(p =>
-      p.id === id ? { ...p, status } : p
+      p.id === id ? { ...p, status } : p,
     ));
     addLog('info', 'PROJECTS', `Updated project status: ${id} → ${status}`);
   };
@@ -654,7 +658,7 @@ export function ProjectsView() {
         {/* Grouped Project List */}
         <ScrollArea className="flex-1">
           <div className="p-1.5 space-y-1">
-            {(["starred", "figma", "recent"] as const).map(groupKey => {
+            {(['starred', 'figma', 'recent'] as const).map(groupKey => {
               const config = GROUP_CONFIG[groupKey];
               const GroupIcon = config.icon;
               const items = groupedProjects[groupKey] || [];
@@ -672,7 +676,7 @@ export function ProjectsView() {
                     ) : (
                       <ChevronRight className="w-3 h-3 text-zinc-500 shrink-0" />
                     )}
-                    <GroupIcon className={cn("w-3.5 h-3.5 shrink-0", config.color)} />
+                    <GroupIcon className={cn('w-3.5 h-3.5 shrink-0', config.color)} />
                     <span className="text-[11px] font-mono text-zinc-400 flex-1 text-left">{config.label}</span>
                     <span className="text-[9px] text-zinc-600 font-mono">{items.length}</span>
                   </button>
@@ -683,29 +687,30 @@ export function ProjectsView() {
                       {items.map(project => {
                         const TypeIcon = typeIcons[project.type] || Terminal;
                         const HealthIcon = healthConfig[project.health].icon;
+
                         return (
                           <button
                             key={project.id}
                             onClick={() => handleSelectProject(project.id)}
                             className={cn(
-                              "w-full text-left px-2 py-1.5 rounded transition-all group/item",
+                              'w-full text-left px-2 py-1.5 rounded transition-all group/item',
                               selectedProject === project.id
-                                ? "bg-primary/10 border-l-2 border-primary"
-                                : "hover:bg-white/5 border-l-2 border-transparent"
+                                ? 'bg-primary/10 border-l-2 border-primary'
+                                : 'hover:bg-white/5 border-l-2 border-transparent',
                             )}
                           >
                             <div className="flex items-center gap-2">
                               <TypeIcon className={cn(
-                                "w-3 h-3 shrink-0",
-                                selectedProject === project.id ? "text-primary" : "text-zinc-600"
+                                'w-3 h-3 shrink-0',
+                                selectedProject === project.id ? 'text-primary' : 'text-zinc-600',
                               )} />
                               <span className={cn(
-                                "text-xs font-mono truncate flex-1",
-                                selectedProject === project.id ? "text-primary" : "text-zinc-300"
+                                'text-xs font-mono truncate flex-1',
+                                selectedProject === project.id ? 'text-primary' : 'text-zinc-300',
                               )}>
                                 {project.name}
                               </span>
-                              <HealthIcon className={cn("w-2.5 h-2.5 shrink-0", healthConfig[project.health].className)} />
+                              <HealthIcon className={cn('w-2.5 h-2.5 shrink-0', healthConfig[project.health].className)} />
                             </div>
                             <p className="text-[9px] text-zinc-600 mt-0.5 truncate ml-5">{project.description}</p>
                           </button>
@@ -754,13 +759,13 @@ export function ProjectsView() {
             <div className="min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h2 className="text-sm text-white font-mono">{sel.name}</h2>
-                <Badge variant="outline" className={cn("text-[9px]", statusConfig[sel.status].className)}>{statusConfig[sel.status].label}</Badge>
+                <Badge variant="outline" className={cn('text-[9px]', statusConfig[sel.status].className)}>{statusConfig[sel.status].label}</Badge>
               </div>
               <p className="text-[11px] text-zinc-500">{sel.description}</p>
             </div>
             <div className="flex gap-1 shrink-0 items-center">
               <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-zinc-400 hover:text-amber-500" onClick={() => handleToggleStar(sel.id)}>
-                <Star className={cn("w-3.5 h-3.5", sel.group === 'starred' && "fill-amber-500 text-amber-500")} />
+                <Star className={cn('w-3.5 h-3.5', sel.group === 'starred' && 'fill-amber-500 text-amber-500')} />
               </Button>
               {!isMobile && (
                 <Button
@@ -768,7 +773,7 @@ export function ProjectsView() {
                   variant="ghost"
                   className="h-7 w-7 p-0 text-zinc-400 hover:text-primary"
                   onClick={() => setDocPanelOpen(!docPanelOpen)}
-                  title={docPanelOpen ? "收起文档面板" : "展开文档面板"}
+                  title={docPanelOpen ? '收起文档面板' : '展开文档面板'}
                 >
                   {docPanelOpen ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
                 </Button>
@@ -782,10 +787,10 @@ export function ProjectsView() {
           {/* Info Bar */}
           <div className="flex gap-4 mt-3 flex-wrap">
             {[
-              { label: "Lang", value: sel.language, icon: <div className={cn("w-2 h-2 rounded-full", sel.languageColor)} /> },
-              { label: "Branch", value: sel.branch, icon: <GitBranch className="w-3 h-3 text-zinc-500" /> },
-              { label: "Svcs", value: String(sel.services), icon: <Server className="w-3 h-3 text-zinc-500" /> },
-              { label: "Commit", value: sel.lastCommit, icon: <Clock className="w-3 h-3 text-zinc-500" /> },
+              { label: 'Lang', value: sel.language, icon: <div className={cn('w-2 h-2 rounded-full', sel.languageColor)} /> },
+              { label: 'Branch', value: sel.branch, icon: <GitBranch className="w-3 h-3 text-zinc-500" /> },
+              { label: 'Svcs', value: String(sel.services), icon: <Server className="w-3 h-3 text-zinc-500" /> },
+              { label: 'Commit', value: sel.lastCommit, icon: <Clock className="w-3 h-3 text-zinc-500" /> },
             ].map(stat => (
               <div key={stat.label} className="flex items-center gap-1">
                 {stat.icon}
@@ -834,14 +839,14 @@ export function ProjectsView() {
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "Total Files", value: "162", sub: "+15 this week", color: "text-blue-500" },
-                { label: "Lines of Code", value: "31.2K", sub: "+2.8K this week", color: "text-green-500" },
-                { label: "Test Coverage", value: "87.3%", sub: "Phase 23 validated", color: "text-amber-500" },
-                { label: "Build Time", value: "1m 56s", sub: "esbuild optimized", color: "text-purple-500" },
+                { label: 'Total Files', value: '162', sub: '+15 this week', color: 'text-blue-500' },
+                { label: 'Lines of Code', value: '31.2K', sub: '+2.8K this week', color: 'text-green-500' },
+                { label: 'Test Coverage', value: '87.3%', sub: 'Phase 23 validated', color: 'text-amber-500' },
+                { label: 'Build Time', value: '1m 56s', sub: 'esbuild optimized', color: 'text-purple-500' },
               ].map(stat => (
                 <Card key={stat.label} className="bg-zinc-900/40 border-white/5">
                   <CardContent className="p-3">
-                    <div className={cn("text-lg font-mono", stat.color)}>{stat.value}</div>
+                    <div className={cn('text-lg font-mono', stat.color)}>{stat.value}</div>
                     <div className="text-[10px] text-zinc-400 mt-0.5">{stat.label}</div>
                     <div className="text-[9px] text-zinc-600 font-mono">{stat.sub}</div>
                   </CardContent>
@@ -877,7 +882,7 @@ export function ProjectsView() {
           <Button
             variant="ghost"
             size="icon"
-            className={cn("h-7 w-7 transition-colors", docViewMode === 'preview' ? "text-primary bg-primary/10" : "text-zinc-500 hover:text-zinc-300")}
+            className={cn('h-7 w-7 transition-colors', docViewMode === 'preview' ? 'text-primary bg-primary/10' : 'text-zinc-500 hover:text-zinc-300')}
             onClick={() => setDocViewMode('preview')}
             title="预览模式"
           >
@@ -886,7 +891,7 @@ export function ProjectsView() {
           <Button
             variant="ghost"
             size="icon"
-            className={cn("h-7 w-7 transition-colors", docViewMode === 'code' ? "text-primary bg-primary/10" : "text-zinc-500 hover:text-zinc-300")}
+            className={cn('h-7 w-7 transition-colors', docViewMode === 'code' ? 'text-primary bg-primary/10' : 'text-zinc-500 hover:text-zinc-300')}
             onClick={() => setDocViewMode('code')}
             title="代码模式"
           >
@@ -895,7 +900,7 @@ export function ProjectsView() {
           <Button
             variant="ghost"
             size="icon"
-            className={cn("h-7 w-7 transition-colors", docViewMode === 'split' ? "text-primary bg-primary/10" : "text-zinc-500 hover:text-zinc-300")}
+            className={cn('h-7 w-7 transition-colors', docViewMode === 'split' ? 'text-primary bg-primary/10' : 'text-zinc-500 hover:text-zinc-300')}
             onClick={() => setDocViewMode('split')}
             title="分屏模式"
           >
@@ -1032,7 +1037,7 @@ export function ProjectsView() {
               <div className="flex-1 border-r border-white/5 p-3">
                 <div className="text-[10px] text-zinc-600 font-mono mb-2 uppercase">Source</div>
                 <pre className="text-[10px] text-zinc-400 font-mono leading-relaxed overflow-x-auto">
-{`{
+                  {`{
   "name": "${sel.name}",
   "version": "1.0.0",
   "type": "module"

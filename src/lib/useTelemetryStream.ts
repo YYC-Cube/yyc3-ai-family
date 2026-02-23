@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useSystemStore } from './store';
+
 import { eventBus } from './event-bus';
+import { useSystemStore } from './store';
 
 // ============================================================
 // YYC3 — Hardware Telemetry Stream Hook
@@ -76,6 +77,7 @@ function createSimulatedFrame(
   const pCores = Array.from({ length: 16 }, (_, i) => {
     const prev = prevFrame?.pCores[i] ?? (base + (Math.random() - 0.5) * 20);
     const target = base + (Math.random() - 0.5) * 40 + (i < 4 ? 15 : 0);
+
     return Math.max(1, Math.min(100, prev * 0.7 + target * 0.3 + (Math.random() - 0.5) * 10));
   });
 
@@ -83,6 +85,7 @@ function createSimulatedFrame(
   const gpuCores = Array.from({ length: 40 }, (_, i) => {
     const prev = prevFrame?.gpuCores[i] ?? (base * 0.3 + Math.random() * 15);
     const target = base * 0.4 + Math.random() * 25;
+
     return Math.max(0, Math.min(100, prev * 0.75 + target * 0.25 + (Math.random() - 0.5) * 8));
   });
 
@@ -137,8 +140,8 @@ function createSimulatedFrame(
 // --- Main Hook ---
 
 export function useTelemetryStream() {
-  const cpuLoad = useSystemStore((s) => s.cpuLoad);
-  const addLog = useSystemStore((s) => s.addLog);
+  const cpuLoad = useSystemStore(s => s.cpuLoad);
+  const addLog = useSystemStore(s => s.addLog);
 
   const [source, setSource] = useState<TelemetrySource>('simulation');
   const [connected, setConnected] = useState(false);
@@ -152,6 +155,7 @@ export function useTelemetryStream() {
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
   const cpuLoadRef = useRef(cpuLoad);
+
   cpuLoadRef.current = cpuLoad;
 
   // --- Simulation fallback ---
@@ -164,6 +168,7 @@ export function useTelemetryStream() {
     const tick = () => {
       if (!mountedRef.current) return;
       const newFrame = createSimulatedFrame(frameRef.current, cpuLoadRef.current);
+
       frameRef.current = newFrame;
       setFrame(newFrame);
     };
@@ -183,13 +188,16 @@ export function useTelemetryStream() {
   const handleFrame = useCallback((data: unknown) => {
     try {
       const parsed = data as TelemetryFrame;
+
       // Validate minimum required fields
       if (parsed && Array.isArray(parsed.pCores) && parsed.pCores.length > 0) {
         frameRef.current = parsed;
         setFrame(parsed);
+
         return true;
       }
     } catch { /* ignore */ }
+
     return false;
   }, []);
 
@@ -199,10 +207,13 @@ export function useTelemetryStream() {
 
     try {
       const ws = new WebSocket(WS_URL);
+
       wsRef.current = ws;
 
       ws.onopen = () => {
-        if (!mountedRef.current) { ws.close(); return; }
+        if (!mountedRef.current) { ws.close();
+
+          return; }
         stopSimulation();
         setSource('websocket');
         setConnected(true);
@@ -218,9 +229,10 @@ export function useTelemetryStream() {
         ws.send(JSON.stringify({ type: 'subscribe', channel: 'telemetry' }));
       };
 
-      ws.onmessage = (event) => {
+      ws.onmessage = event => {
         try {
           const msg = JSON.parse(event.data as string);
+
           if (msg.type === 'telemetry') {
             handleFrame(msg.data);
           } else if (msg.type === 'heartbeat') {
@@ -255,10 +267,13 @@ export function useTelemetryStream() {
 
     try {
       const es = new EventSource(SSE_URL);
+
       esRef.current = es;
 
       es.onopen = () => {
-        if (!mountedRef.current) { es.close(); return; }
+        if (!mountedRef.current) { es.close();
+
+          return; }
         stopSimulation();
         setSource('sse');
         setConnected(true);
@@ -271,9 +286,10 @@ export function useTelemetryStream() {
         });
       };
 
-      es.addEventListener('telemetry', (event) => {
+      es.addEventListener('telemetry', event => {
         try {
           const data = JSON.parse(event.data);
+
           handleFrame(data);
         } catch { /* ignore */ }
       });
@@ -305,7 +321,7 @@ export function useTelemetryStream() {
 
     const delay = Math.min(
       RECONNECT_BASE_MS * Math.pow(1.5, connectionAttempts),
-      RECONNECT_MAX_MS
+      RECONNECT_MAX_MS,
     );
 
     reconnectTimerRef.current = setTimeout(() => {

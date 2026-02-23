@@ -1,13 +1,13 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
-  Play, CheckCircle2, XCircle, Loader2, Clock,
-  RotateCcw, Download, ChevronDown, ChevronRight,
-  FlaskConical, Zap, Shield, AlertTriangle
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { runAllTests, type TestResult, type TestSuiteReport } from "@/lib/__tests__/core-test-suite";
+  Play, CheckCircle2, XCircle, Loader2, Clock, Download, ChevronDown, ChevronRight,
+  FlaskConical, Zap, Shield, AlertTriangle,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Button } from '@/app/components/ui/button';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { runAllTests, type TestResult, type TestSuiteReport } from '@/lib/__tests__/core-test-suite';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // Phase 25: Core Functionality Test Panel
@@ -35,9 +35,11 @@ export function CoreTestPanel() {
     await new Promise(r => setTimeout(r, 100));
     try {
       const result = await runAllTests();
+
       setReport(result);
       // Auto-expand failed suites
       const failedSuites = new Set<string>();
+
       for (const r of result.results) {
         if (r.status === 'FAIL') failedSuites.add(r.suite);
       }
@@ -52,8 +54,10 @@ export function CoreTestPanel() {
   const toggleSuite = (name: string) => {
     setExpandedSuites(prev => {
       const next = new Set(prev);
+
       if (next.has(name)) next.delete(name);
       else next.add(name);
+
       return next;
     });
   };
@@ -66,6 +70,7 @@ export function CoreTestPanel() {
     const blob = new Blob([text], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
+
     a.href = url;
     a.download = `yyc3-test-report-${new Date().toISOString().slice(0, 10)}.md`;
     a.click();
@@ -153,10 +158,10 @@ export function CoreTestPanel() {
           </div>
           {/* Pass rate badge */}
           <div className={cn(
-            "px-2.5 py-1 rounded-full text-[10px] font-mono font-bold",
+            'px-2.5 py-1 rounded-full text-[10px] font-mono font-bold',
             report.failed === 0
-              ? "bg-green-500/10 text-green-400 border border-green-500/20"
-              : "bg-red-500/10 text-red-400 border border-red-500/20"
+              ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+              : 'bg-red-500/10 text-red-400 border border-red-500/20',
           )}>
             {report.failed === 0 ? 'ALL PASS' : `${report.failed} FAILURES`}
           </div>
@@ -191,8 +196,8 @@ export function CoreTestPanel() {
               <div key={suiteName} className="border border-border rounded-lg overflow-hidden">
                 <button
                   className={cn(
-                    "w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors",
-                    allPass ? "bg-green-500/5 hover:bg-green-500/10" : "bg-red-500/5 hover:bg-red-500/10"
+                    'w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors',
+                    allPass ? 'bg-green-500/5 hover:bg-green-500/10' : 'bg-red-500/5 hover:bg-red-500/10',
                   )}
                   onClick={() => toggleSuite(suiteName)}
                 >
@@ -201,7 +206,7 @@ export function CoreTestPanel() {
                   ) : (
                     <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
                   )}
-                  <Shield className={cn("w-4 h-4 shrink-0", allPass ? "text-green-500" : "text-red-500")} />
+                  <Shield className={cn('w-4 h-4 shrink-0', allPass ? 'text-green-500' : 'text-red-500')} />
                   <span className="text-xs font-mono font-semibold flex-1">{suiteName}</span>
                   <span className="text-[10px] font-mono text-green-500">{passed} pass</span>
                   {failed > 0 && (
@@ -216,8 +221,8 @@ export function CoreTestPanel() {
                       <div
                         key={r.id}
                         className={cn(
-                          "flex items-center gap-3 px-4 py-2 border-b border-border/30 last:border-b-0 text-xs font-mono",
-                          r.status === 'FAIL' && "bg-red-500/5"
+                          'flex items-center gap-3 px-4 py-2 border-b border-border/30 last:border-b-0 text-xs font-mono',
+                          r.status === 'FAIL' && 'bg-red-500/5',
                         )}
                       >
                         {r.status === 'PASS' ? (
@@ -256,16 +261,19 @@ export function CoreTestPanel() {
 
 function groupBySuite(results: TestResult[]): Record<string, TestResult[]> {
   const groups: Record<string, TestResult[]> = {};
+
   for (const r of results) {
     if (!groups[r.suite]) groups[r.suite] = [];
     groups[r.suite].push(r);
   }
+
   return groups;
 }
 
 function generateMarkdownReport(report: TestSuiteReport): string {
   const groups = groupBySuite(report.results);
   let md = `# YYC3 Core Test Report\n\n`;
+
   md += `> Generated: ${report.timestamp}\n`;
   md += `> Duration: ${report.duration.toFixed(1)}ms\n`;
   md += `> Result: **${report.passed}/${report.totalTests} PASSED** | ${report.failed} failed | ${report.skipped} skipped\n\n`;
@@ -281,11 +289,13 @@ function generateMarkdownReport(report: TestSuiteReport): string {
   for (const [suite, results] of Object.entries(groups)) {
     const passed = results.filter(r => r.status === 'PASS').length;
     const failed = results.filter(r => r.status === 'FAIL').length;
+
     md += `### ${suite} (${passed}/${results.length})\n\n`;
     md += `| ID | Test | Status | Time | Error |\n`;
     md += `|---|---|---|---|---|\n`;
     for (const r of results) {
       const status = r.status === 'PASS' ? 'PASS' : r.status === 'FAIL' ? 'FAIL' : 'SKIP';
+
       md += `| ${r.id} | ${r.name} | ${status} | ${r.duration.toFixed(1)}ms | ${r.error || '-'} |\n`;
     }
     md += `\n`;
@@ -293,5 +303,6 @@ function generateMarkdownReport(report: TestSuiteReport): string {
 
   md += `---\n\n`;
   md += `*Report generated by YYC3 Core Test Suite v2.0*\n`;
+
   return md;
 }

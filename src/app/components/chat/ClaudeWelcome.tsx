@@ -1,7 +1,8 @@
-import * as React from "react";
-import { Sparkles, Terminal, Activity } from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { useTranslation } from "@/lib/i18n";
+import { Sparkles, Terminal, Activity } from 'lucide-react';
+import * as React from 'react';
+
+import { Button } from '@/app/components/ui/button';
+import { useTranslation } from '@/lib/i18n';
 
 // ---------------------------------------------------------------------------
 // Inline SVG brand logo — replaces the previous `figma:asset/bbf3e3fa…` import.
@@ -64,41 +65,41 @@ export function ClaudeWelcome({ onQuickAction }: { onQuickAction: (text: string)
 
   return (
     <div className="flex flex-col items-center justify-center text-center space-y-8 animate-in fade-in zoom-in-95 duration-700">
-       <div className="relative">
-         <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/10 to-blue-500/10 border border-white/10 flex items-center justify-center shadow-[0_0_50px_-10px_rgba(14,165,233,0.3)] animate-pulse-slow overflow-hidden">
-            <YYC3Logo className="w-20 h-20" />
-         </div>
-         <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-background rounded-full border border-border flex items-center justify-center">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-         </div>
-       </div>
+      <div className="relative">
+        <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/10 to-blue-500/10 border border-white/10 flex items-center justify-center shadow-[0_0_50px_-10px_rgba(14,165,233,0.3)] animate-pulse-slow overflow-hidden">
+          <YYC3Logo className="w-20 h-20" />
+        </div>
+        <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-background rounded-full border border-border flex items-center justify-center">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+        </div>
+      </div>
 
-       <div className="space-y-2 max-w-md">
-         <h2 className="text-2xl font-bold font-mono tracking-tight glow-text">{t('chat.welcome_title')}</h2>
-         <p className="text-sm text-muted-foreground font-mono">
-           {t('chat.welcome_subtitle')}
-         </p>
-       </div>
+      <div className="space-y-2 max-w-md">
+        <h2 className="text-2xl font-bold font-mono tracking-tight glow-text">{t('chat.welcome_title')}</h2>
+        <p className="text-sm text-muted-foreground font-mono">
+          {t('chat.welcome_subtitle')}
+        </p>
+      </div>
 
-       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl">
-          <QuickAction
-            icon={Terminal}
-            label={t('chat.quick_action_1')}
-            onClick={() => onQuickAction("Build a React component for a data dashboard")}
-          />
-           <QuickAction
-            icon={Activity}
-            label={t('chat.quick_action_2')}
-            onClick={() => onQuickAction("Deploy microservice to cluster-alpha")}
-          />
-           <QuickAction
-            icon={Sparkles}
-            label={t('chat.quick_action_3')}
-            onClick={() => onQuickAction("Scan current project for security vulnerabilities")}
-          />
-       </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl">
+        <QuickAction
+          icon={Terminal}
+          label={t('chat.quick_action_1')}
+          onClick={() => onQuickAction('Build a React component for a data dashboard')}
+        />
+        <QuickAction
+          icon={Activity}
+          label={t('chat.quick_action_2')}
+          onClick={() => onQuickAction('Deploy microservice to cluster-alpha')}
+        />
+        <QuickAction
+          icon={Sparkles}
+          label={t('chat.quick_action_3')}
+          onClick={() => onQuickAction('Scan current project for security vulnerabilities')}
+        />
+      </div>
     </div>
-  )
+  );
 }
 
 function QuickAction({ icon: Icon, label, onClick }: { icon: React.ComponentType<{ className?: string }>, label: string, onClick: () => void }) {
@@ -111,5 +112,5 @@ function QuickAction({ icon: Icon, label, onClick }: { icon: React.ComponentType
       <Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
       <span className="text-xs font-mono text-muted-foreground group-hover:text-foreground text-center text-wrap">{label}</span>
     </Button>
-  )
+  );
 }

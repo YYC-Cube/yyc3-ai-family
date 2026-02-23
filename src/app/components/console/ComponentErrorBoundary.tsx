@@ -1,7 +1,8 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { AlertTriangle, RefreshCw, ChevronDown, ChevronUp, Bug, Home } from "lucide-react";
-import { Button } from "@/app/components/ui/button";
+import { AlertTriangle, RefreshCw, ChevronDown, ChevronUp, Bug, Home } from 'lucide-react';
+import * as React from 'react';
+
+import { Button } from '@/app/components/ui/button';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // ComponentErrorBoundary — Phase 50
@@ -64,9 +65,9 @@ export class ComponentErrorBoundary extends React.Component<
 
     // Log to console
     console.error(
-      `[ComponentErrorBoundary] ${this.props.componentName || "Unknown"} crashed:`,
+      `[ComponentErrorBoundary] ${this.props.componentName || 'Unknown'} crashed:`,
       error,
-      errorInfo
+      errorInfo,
     );
 
     // Invoke optional callback
@@ -76,7 +77,7 @@ export class ComponentErrorBoundary extends React.Component<
   }
 
   handleRetry = () => {
-    this.setState((prev) => ({
+    this.setState(prev => ({
       hasError: false,
       error: null,
       errorInfo: null,
@@ -86,7 +87,7 @@ export class ComponentErrorBoundary extends React.Component<
   };
 
   toggleDetails = () => {
-    this.setState((prev) => ({ showDetails: !prev.showDetails }));
+    this.setState(prev => ({ showDetails: !prev.showDetails }));
   };
 
   render() {
@@ -97,16 +98,16 @@ export class ComponentErrorBoundary extends React.Component<
       }
 
       const {
-        componentName = "MODULE",
-        accentColor = "text-red-500",
+        componentName = 'MODULE',
+        accentColor = 'text-red-500',
         showHomeAction = false,
         onGoHome,
         compact = false,
       } = this.props;
       const { error, errorInfo, showDetails, retryCount } = this.state;
 
-      const bgAccent = accentColor.replace("text-", "bg-").replace("/", "/");
-      const borderAccent = accentColor.replace("text-", "border-");
+      const bgAccent = accentColor.replace('text-', 'bg-').replace('/', '/');
+      const borderAccent = accentColor.replace('text-', 'border-');
 
       if (compact) {
         return (
@@ -117,7 +118,7 @@ export class ComponentErrorBoundary extends React.Component<
                 {componentName} FAULT
               </span>
               <span className="text-[10px] font-mono text-zinc-600 ml-2 truncate">
-                {error?.message?.slice(0, 60) || "Unknown error"}
+                {error?.message?.slice(0, 60) || 'Unknown error'}
               </span>
             </div>
             <Button
@@ -137,8 +138,8 @@ export class ComponentErrorBoundary extends React.Component<
         <div className="flex items-center justify-center min-h-[200px] p-4 animate-in fade-in duration-300">
           <div className="w-full max-w-md">
             <div className={cn(
-              "rounded-xl border bg-black/60 backdrop-blur-sm overflow-hidden",
-              borderAccent ? `border-red-500/20` : "border-white/10"
+              'rounded-xl border bg-black/60 backdrop-blur-sm overflow-hidden',
+              borderAccent ? `border-red-500/20` : 'border-white/10',
             )}>
               {/* Header */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5 bg-red-500/5">
@@ -159,8 +160,8 @@ export class ComponentErrorBoundary extends React.Component<
               {/* Error Summary */}
               <div className="px-4 py-3 space-y-3">
                 <div className="text-xs font-mono text-zinc-400 bg-zinc-900/50 rounded-lg p-3 border border-white/5">
-                  <span className="text-red-400">ERR:</span>{" "}
-                  <span className="text-zinc-300">{error?.message || "Unknown error"}</span>
+                  <span className="text-red-400">ERR:</span>{' '}
+                  <span className="text-zinc-300">{error?.message || 'Unknown error'}</span>
                 </div>
 
                 {/* Actions */}
@@ -204,9 +205,9 @@ export class ComponentErrorBoundary extends React.Component<
                 {showDetails && errorInfo && (
                   <div className="rounded-lg border border-white/5 bg-black/40 overflow-hidden">
                     <pre className="p-3 text-[9px] font-mono text-zinc-600 overflow-x-auto overflow-y-auto max-h-[200px] whitespace-pre-wrap break-all">
-                      {error?.stack || "No stack trace available"}
-                      {"\n\n--- Component Stack ---\n"}
-                      {errorInfo.componentStack || "N/A"}
+                      {error?.stack || 'No stack trace available'}
+                      {'\n\n--- Component Stack ---\n'}
+                      {errorInfo.componentStack || 'N/A'}
                     </pre>
                   </div>
                 )}

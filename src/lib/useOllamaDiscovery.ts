@@ -12,6 +12,7 @@
 // ============================================================
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+
 import type {
   OllamaModelInfo,
   OllamaTagsResponse,
@@ -27,9 +28,9 @@ import type {
 const OLLAMA_CONFIG_KEY = 'yyc3-ollama-config';
 
 export interface OllamaConfig {
-  endpoint: string;       // default: http://localhost:11434
-  autoDiscover: boolean;  // auto-discover on mount
-  pollInterval: number;   // ms, 0 = no polling
+  endpoint: string; // default: http://localhost:11434
+  autoDiscover: boolean; // auto-discover on mount
+  pollInterval: number; // ms, 0 = no polling
 }
 
 const DEFAULT_CONFIG: OllamaConfig = {
@@ -41,8 +42,10 @@ const DEFAULT_CONFIG: OllamaConfig = {
 export function loadOllamaConfig(): OllamaConfig {
   try {
     const raw = localStorage.getItem(OLLAMA_CONFIG_KEY);
+
     if (raw) return { ...DEFAULT_CONFIG, ...JSON.parse(raw) };
   } catch { /* ignore */ }
+
   return { ...DEFAULT_CONFIG };
 }
 
@@ -59,7 +62,7 @@ export function saveOllamaConfig(config: OllamaConfig): void {
 async function ollamaFetch<T>(
   endpoint: string,
   path: string,
-  options?: RequestInit
+  options?: RequestInit,
 ): Promise<T> {
   const url = `${endpoint.replace(/\/$/, '')}${path}`;
   const controller = new AbortController();
@@ -74,6 +77,7 @@ async function ollamaFetch<T>(
         ...options?.headers,
       },
     });
+
     clearTimeout(timeout);
 
     if (!res.ok) {
@@ -93,12 +97,14 @@ async function ollamaFetch<T>(
 
 export async function ollamaListModels(endpoint: string): Promise<OllamaModelInfo[]> {
   const res = await ollamaFetch<OllamaTagsResponse>(endpoint, '/api/tags');
+
   return res.models || [];
 }
 
 export async function ollamaListRunning(endpoint: string): Promise<OllamaRunningModel[]> {
   try {
     const res = await ollamaFetch<OllamaProcessResponse>(endpoint, '/api/ps');
+
     return res.models || [];
   } catch {
     return [];
@@ -111,7 +117,9 @@ export async function ollamaPing(endpoint: string): Promise<boolean> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
     const res = await fetch(url, { signal: controller.signal });
+
     clearTimeout(timeout);
+
     return res.ok;
   } catch {
     return false;
@@ -129,7 +137,7 @@ export async function ollamaPullModel(
   endpoint: string,
   modelName: string,
   onProgress?: (progress: OllamaPullProgress) => void,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<boolean> {
   const url = `${endpoint.replace(/\/$/, '')}/api/pull`;
 
@@ -149,16 +157,19 @@ export async function ollamaPullModel(
 
     while (true) {
       const { done, value } = await reader.read();
+
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
+
       buffer = lines.pop() || '';
 
       for (const line of lines) {
         if (!line.trim()) continue;
         try {
           const progress = JSON.parse(line) as OllamaPullProgress;
+
           onProgress?.(progress);
         } catch { /* skip */ }
       }
@@ -172,7 +183,7 @@ export async function ollamaPullModel(
 
 export async function ollamaDeleteModel(
   endpoint: string,
-  modelName: string
+  modelName: string,
 ): Promise<boolean> {
   try {
     const url = `${endpoint.replace(/\/$/, '')}/api/delete`;
@@ -181,6 +192,7 @@ export async function ollamaDeleteModel(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: modelName }),
     });
+
     return res.ok;
   } catch {
     return false;
@@ -192,7 +204,7 @@ export async function ollamaGenerate(
   model: string,
   prompt: string,
   onChunk?: (text: string) => void,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<string> {
   const url = `${endpoint.replace(/\/$/, '')}/api/generate`;
 
@@ -214,16 +226,19 @@ export async function ollamaGenerate(
 
   while (true) {
     const { done, value } = await reader.read();
+
     if (done) break;
 
     buffer += decoder.decode(value, { stream: true });
     const lines = buffer.split('\n');
+
     buffer = lines.pop() || '';
 
     for (const line of lines) {
       if (!line.trim()) continue;
       try {
         const data = JSON.parse(line);
+
         if (data.response) {
           result += data.response;
           onChunk?.(data.response);
@@ -267,10 +282,12 @@ export function useOllamaDiscovery(): UseOllamaDiscoveryResult {
 
     try {
       const reachable = await ollamaPing(config.endpoint);
+
       if (!reachable) {
         setStatus('disconnected');
         setModels([]);
         setRunningModels([]);
+
         return;
       }
 
@@ -284,6 +301,7 @@ export function useOllamaDiscovery(): UseOllamaDiscoveryResult {
       setStatus('connected');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
+
       setError(msg);
       setStatus('error');
     }
@@ -315,7 +333,9 @@ export function useOllamaDiscovery(): UseOllamaDiscoveryResult {
   const updateConfig = useCallback((update: Partial<OllamaConfig>) => {
     setConfig(prev => {
       const next = { ...prev, ...update };
+
       saveOllamaConfig(next);
+
       return next;
     });
   }, []);
@@ -326,16 +346,18 @@ export function useOllamaDiscovery(): UseOllamaDiscoveryResult {
 
   const deleteModel = useCallback(async (name: string): Promise<boolean> => {
     const ok = await ollamaDeleteModel(config.endpoint, name);
+
     if (ok) {
       setModels(prev => prev.filter(m => m.name !== name));
     }
+
     return ok;
   }, [config.endpoint]);
 
   const generate = useCallback(async (
     model: string,
     prompt: string,
-    onChunk?: (text: string) => void
+    onChunk?: (text: string) => void,
   ): Promise<string> => {
     return ollamaGenerate(config.endpoint, model, prompt, onChunk);
   }, [config.endpoint]);

@@ -1,20 +1,22 @@
-import * as React from "react";
 import {
   X, Copy, Download, Code2, Eye, ChevronLeft, ChevronRight,
   RefreshCw, ExternalLink, Maximize2, Minimize2,
   ChevronDown, File,
   Globe, MonitorPlay, Smartphone,
   Star, Search, LayoutGrid, MoreHorizontal,
-  Plus, Layers, Server, Bot, Wrench, Rocket, Hash
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+  Plus, Layers, Server, Bot, Wrench, Rocket, Hash,
+} from 'lucide-react';
+import * as React from 'react';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useTranslation } from "@/lib/i18n";
-import { useSystemStore } from "@/lib/store";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+
+import { Button } from '@/app/components/ui/button';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { useTranslation } from '@/lib/i18n';
+import { useSystemStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
+
 
 interface ArtifactsPanelProps {
   isOpen: boolean;
@@ -43,55 +45,55 @@ interface NavItem {
 
 const PROJECT_NAV_DATA: NavCategory[] = [
   {
-    id: "core", label: "核心模块", icon: Layers,
+    id: 'core', label: '核心模块', icon: Layers,
     items: [
-      { id: "chat-engine", label: "ChatEngine", description: "对话引擎核心", type: "module" },
-      { id: "neural-link", label: "NeuralLink", description: "意图解析引擎", type: "module" },
-      { id: "artifact-renderer", label: "ArtifactRenderer", description: "制品渲染器", type: "module" },
-      { id: "state-manager", label: "StateManager", description: "全局状态管理", type: "module" },
-      { id: "event-bus", label: "EventBus", description: "事件总线", type: "module" },
-    ]
+      { id: 'chat-engine', label: 'ChatEngine', description: '对话引擎核心', type: 'module' },
+      { id: 'neural-link', label: 'NeuralLink', description: '意图解析引擎', type: 'module' },
+      { id: 'artifact-renderer', label: 'ArtifactRenderer', description: '制品渲染器', type: 'module' },
+      { id: 'state-manager', label: 'StateManager', description: '全局状态管理', type: 'module' },
+      { id: 'event-bus', label: 'EventBus', description: '事件总线', type: 'module' },
+    ],
   },
   {
-    id: "infra", label: "基础设施", icon: Server,
+    id: 'infra', label: '基础设施', icon: Server,
     items: [
-      { id: "nas-connector", label: "NAS Connector", description: "铁威马F4-423连接", type: "service" },
-      { id: "ws-gateway", label: "WebSocket Gateway", description: "实时数据网关", type: "service" },
-      { id: "metrics-engine", label: "MetricsEngine", description: "集群指标引擎", type: "service" },
-      { id: "persistence", label: "PersistenceEngine", description: "数据持久化层", type: "service" },
-      { id: "docker-runtime", label: "Docker Runtime", description: "容器运行时", type: "service" },
-    ]
+      { id: 'nas-connector', label: 'NAS Connector', description: '铁威马F4-423连接', type: 'service' },
+      { id: 'ws-gateway', label: 'WebSocket Gateway', description: '实时数据网关', type: 'service' },
+      { id: 'metrics-engine', label: 'MetricsEngine', description: '集群指标引擎', type: 'service' },
+      { id: 'persistence', label: 'PersistenceEngine', description: '数据持久化层', type: 'service' },
+      { id: 'docker-runtime', label: 'Docker Runtime', description: '容器运行时', type: 'service' },
+    ],
   },
   {
-    id: "agents", label: "智能体集群", icon: Bot,
+    id: 'agents', label: '智能体集群', icon: Bot,
     items: [
-      { id: "navigator", label: "Navigator 领航员", description: "任务分发与路由", type: "agent" },
-      { id: "sentinel", label: "Sentinel 哨兵", description: "安全审计与监控", type: "agent" },
-      { id: "thinker", label: "Thinker 思想家", description: "深度推理与分析", type: "agent" },
-      { id: "prophet", label: "Prophet 先知", description: "预测与趋势分析", type: "agent" },
-      { id: "bole", label: "Bole 伯乐", description: "人才与资源优化", type: "agent" },
-      { id: "pivot", label: "Pivot 天枢", description: "架构核心枢纽", type: "agent" },
-      { id: "grandmaster", label: "Grandmaster 宗师", description: "总控与决策", type: "agent" },
-    ]
+      { id: 'navigator', label: 'Navigator 领航员', description: '任务分发与路由', type: 'agent' },
+      { id: 'sentinel', label: 'Sentinel 哨兵', description: '安全审计与监控', type: 'agent' },
+      { id: 'thinker', label: 'Thinker 思想家', description: '深度推理与分析', type: 'agent' },
+      { id: 'prophet', label: 'Prophet 先知', description: '预测与趋势分析', type: 'agent' },
+      { id: 'bole', label: 'Bole 伯乐', description: '人才与资源优化', type: 'agent' },
+      { id: 'pivot', label: 'Pivot 天枢', description: '架构核心枢纽', type: 'agent' },
+      { id: 'grandmaster', label: 'Grandmaster 宗师', description: '总控与决策', type: 'agent' },
+    ],
   },
   {
-    id: "tools", label: "工具链", icon: Wrench,
+    id: 'tools', label: '工具链', icon: Wrench,
     items: [
-      { id: "mcp-figma", label: "Figma MCP", description: "设计转代码", type: "tool" },
-      { id: "mcp-github", label: "GitHub MCP", description: "代码仓库接入", type: "tool" },
-      { id: "mcp-docker", label: "Docker MCP", description: "容器编排", type: "tool" },
-      { id: "mcp-filesystem", label: "Filesystem MCP", description: "本地文件操作", type: "tool" },
-      { id: "mcp-postgres", label: "PostgreSQL MCP", description: "数据库查询", type: "tool" },
-    ]
+      { id: 'mcp-figma', label: 'Figma MCP', description: '设计转代码', type: 'tool' },
+      { id: 'mcp-github', label: 'GitHub MCP', description: '代码仓库接入', type: 'tool' },
+      { id: 'mcp-docker', label: 'Docker MCP', description: '容器编排', type: 'tool' },
+      { id: 'mcp-filesystem', label: 'Filesystem MCP', description: '本地文件操作', type: 'tool' },
+      { id: 'mcp-postgres', label: 'PostgreSQL MCP', description: '数据库查询', type: 'tool' },
+    ],
   },
   {
-    id: "deploy", label: "部署与运维", icon: Rocket,
+    id: 'deploy', label: '部署与运维', icon: Rocket,
     items: [
-      { id: "ci-cd", label: "CI/CD Pipeline", description: "持续集成/交付", type: "service" },
-      { id: "smoke-test", label: "Smoke Test", description: "冒烟测试套件", type: "tool" },
-      { id: "test-framework", label: "Test Framework", description: "测试框架管理", type: "tool" },
-      { id: "remote-deploy", label: "Remote Deploy", description: "远程容器部署", type: "service" },
-    ]
+      { id: 'ci-cd', label: 'CI/CD Pipeline', description: '持续集成/交付', type: 'service' },
+      { id: 'smoke-test', label: 'Smoke Test', description: '冒烟测试套件', type: 'tool' },
+      { id: 'test-framework', label: 'Test Framework', description: '测试框架管理', type: 'tool' },
+      { id: 'remote-deploy', label: 'Remote Deploy', description: '远程容器部署', type: 'service' },
+    ],
   },
 ];
 
@@ -144,27 +146,28 @@ function ProjectNavCategory({
           {category.items.map(item => {
             const isFav = favorites.has(item.id);
             const isSelected = selectedId === item.id;
+
             return (
               <div
                 key={item.id}
                 className={cn(
-                  "flex items-center gap-1.5 w-full px-2 py-1.5 rounded-md text-[11px] cursor-pointer group/item transition-all ml-1",
+                  'flex items-center gap-1.5 w-full px-2 py-1.5 rounded-md text-[11px] cursor-pointer group/item transition-all ml-1',
                   isSelected
-                    ? "bg-[#0EA5E9]/10 text-[#0EA5E9]"
-                    : "hover:bg-white/5 text-zinc-400 hover:text-zinc-200"
+                    ? 'bg-[#0EA5E9]/10 text-[#0EA5E9]'
+                    : 'hover:bg-white/5 text-zinc-400 hover:text-zinc-200',
                 )}
                 onClick={() => onSelect(item.id)}
               >
                 {/* Star toggle */}
                 <button
-                  onClick={(e) => { e.stopPropagation(); onToggleFav(item.id); }}
+                  onClick={e => { e.stopPropagation(); onToggleFav(item.id); }}
                   className={cn(
-                    "shrink-0 transition-all hover:scale-125",
-                    isFav ? "text-amber-400" : "text-zinc-700 group-hover/item:text-zinc-500"
+                    'shrink-0 transition-all hover:scale-125',
+                    isFav ? 'text-amber-400' : 'text-zinc-700 group-hover/item:text-zinc-500',
                   )}
-                  title={isFav ? "取消收藏" : "收藏"}
+                  title={isFav ? '取消收藏' : '收藏'}
                 >
-                  <Star className={cn("w-3 h-3", isFav && "fill-amber-400")} />
+                  <Star className={cn('w-3 h-3', isFav && 'fill-amber-400')} />
                 </button>
 
                 {/* Label + Desc */}
@@ -177,8 +180,8 @@ function ProjectNavCategory({
 
                 {/* Type badge */}
                 <span className={cn(
-                  "text-[8px] px-1.5 py-0.5 rounded font-mono shrink-0 hidden group-hover/item:inline-block",
-                  TYPE_COLORS[item.type]
+                  'text-[8px] px-1.5 py-0.5 rounded font-mono shrink-0 hidden group-hover/item:inline-block',
+                  TYPE_COLORS[item.type],
                 )}>
                   {item.type}
                 </span>
@@ -196,22 +199,23 @@ type ViewportSize = 'desktop' | 'tablet' | 'mobile';
 
 export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProps) {
   const { t } = useTranslation();
-  const isMobile = useSystemStore((s) => s.isMobile);
-  const navFavoritesArr = useSystemStore((s) => s.navFavorites);
-  const toggleNavFavorite = useSystemStore((s) => s.toggleNavFavorite);
+  const isMobile = useSystemStore(s => s.isMobile);
+  const navFavoritesArr = useSystemStore(s => s.navFavorites);
+  const toggleNavFavorite = useSystemStore(s => s.toggleNavFavorite);
   const [activeTab, setActiveTab] = React.useState<'code' | 'preview'>('code');
   const [isMaximized, setIsMaximized] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
-  const [selectedNavItem, setSelectedNavItem] = React.useState("chat-engine");
+  const [selectedNavItem, setSelectedNavItem] = React.useState('chat-engine');
   const [previewViewport, setPreviewViewport] = React.useState<ViewportSize>('desktop');
-  const [navSearch, setNavSearch] = React.useState("");
+  const [navSearch, setNavSearch] = React.useState('');
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
   // Derive favorites Set from Zustand array (with defaults for first-time)
   const favorites = React.useMemo(() => {
     if (navFavoritesArr.length === 0) {
-      return new Set(["navigator", "nas-connector", "mcp-figma"]);
+      return new Set(['navigator', 'nas-connector', 'mcp-figma']);
     }
+
     return new Set(navFavoritesArr);
   }, [navFavoritesArr]);
 
@@ -219,9 +223,10 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
   const handleToggleFav = React.useCallback((id: string) => {
     // If using defaults (store empty), initialize store first
     if (navFavoritesArr.length === 0) {
-      const defaults = ["navigator", "nas-connector", "mcp-figma"];
+      const defaults = ['navigator', 'nas-connector', 'mcp-figma'];
       const hasIt = defaults.includes(id);
       const next = hasIt ? defaults.filter(d => d !== id) : [...defaults, id];
+
       useSystemStore.getState().setNavFavorites(next);
     } else {
       toggleNavFavorite(id);
@@ -232,6 +237,7 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
   const navDataWithFavorites = React.useMemo(() => {
     // Gather all favorite items from all categories
     const favItems: NavItem[] = [];
+
     PROJECT_NAV_DATA.forEach(cat => {
       cat.items.forEach(item => {
         if (favorites.has(item.id)) {
@@ -248,22 +254,26 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
     const filterItems = (items: NavItem[]) => {
       if (!navSearch.trim()) return items;
       const q = navSearch.toLowerCase();
+
       return items.filter(i =>
         i.label.toLowerCase().includes(q) ||
-        (i.description?.toLowerCase().includes(q))
+        (i.description?.toLowerCase().includes(q)),
       );
     };
 
     const result: NavCategory[] = [];
+
     if (favCategory && !navSearch.trim()) {
       result.push(favCategory);
     }
     PROJECT_NAV_DATA.forEach(cat => {
       const filtered = filterItems(cat.items);
+
       if (filtered.length > 0) {
         result.push({ ...cat, items: filtered });
       }
     });
+
     return result;
   }, [favorites, navSearch]);
 
@@ -337,9 +347,9 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
 
   return (
     <div className={cn(
-      "flex flex-col h-full bg-background/95 backdrop-blur-xl shadow-2xl transition-all duration-300 ease-in-out z-10 animate-in fade-in duration-200",
-      isMobile ? "w-full" : "w-full",
-      isMaximized && "fixed inset-0 z-50"
+      'flex flex-col h-full bg-background/95 backdrop-blur-xl shadow-2xl transition-all duration-300 ease-in-out z-10 animate-in fade-in duration-200',
+      isMobile ? 'w-full' : 'w-full',
+      isMaximized && 'fixed inset-0 z-50',
     )}>
       {/* === Top Toolbar === */}
       <div className="h-10 border-b border-[#0EA5E9]/20 flex items-center px-2 bg-background/80 backdrop-blur-sm shrink-0">
@@ -362,10 +372,10 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
             variant="ghost"
             size="icon"
             className={cn(
-              "h-7 w-7 transition-all",
+              'h-7 w-7 transition-all',
               activeTab === 'preview'
-                ? "text-[#0EA5E9] bg-[#0EA5E9]/10 shadow-[0_0_8px_rgba(14,165,233,0.2)]"
-                : "text-zinc-500 hover:text-[#0EA5E9]"
+                ? 'text-[#0EA5E9] bg-[#0EA5E9]/10 shadow-[0_0_8px_rgba(14,165,233,0.2)]'
+                : 'text-zinc-500 hover:text-[#0EA5E9]',
             )}
             onClick={() => setActiveTab('preview')}
             title="预览模式"
@@ -376,10 +386,10 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
             variant="ghost"
             size="icon"
             className={cn(
-              "h-7 w-7 transition-all",
+              'h-7 w-7 transition-all',
               activeTab === 'code'
-                ? "text-[#0EA5E9] bg-[#0EA5E9]/10 shadow-[0_0_8px_rgba(14,165,233,0.2)]"
-                : "text-zinc-500 hover:text-[#0EA5E9]"
+                ? 'text-[#0EA5E9] bg-[#0EA5E9]/10 shadow-[0_0_8px_rgba(14,165,233,0.2)]'
+                : 'text-zinc-500 hover:text-[#0EA5E9]',
             )}
             onClick={() => setActiveTab('code')}
             title="源码模式"
@@ -402,10 +412,10 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
                   variant="ghost"
                   size="icon"
                   className={cn(
-                    "h-5 w-5 transition-colors",
+                    'h-5 w-5 transition-colors',
                     previewViewport === vp.key
-                      ? "text-[#0EA5E9] bg-[#0EA5E9]/10"
-                      : "text-zinc-600 hover:text-[#0EA5E9]"
+                      ? 'text-[#0EA5E9] bg-[#0EA5E9]/10'
+                      : 'text-zinc-600 hover:text-[#0EA5E9]',
                   )}
                   onClick={() => setPreviewViewport(vp.key)}
                   title={vp.label}
@@ -436,9 +446,9 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
           <Button
             variant="ghost"
             size="icon"
-            className={cn("h-7 w-7 transition-colors", copied ? "text-green-500" : "text-zinc-500 hover:text-[#0EA5E9]")}
+            className={cn('h-7 w-7 transition-colors', copied ? 'text-green-500' : 'text-zinc-500 hover:text-[#0EA5E9]')}
             onClick={handleCopy}
-            title={copied ? "已复制" : "复制代码"}
+            title={copied ? '已复制' : '复制代码'}
           >
             <Copy className="w-3 h-3" />
           </Button>
@@ -470,7 +480,7 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
               size="icon"
               className="h-7 w-7 text-zinc-500 hover:text-[#0EA5E9]"
               onClick={() => setIsMaximized(!isMaximized)}
-              title={isMaximized ? "还原" : "最大化"}
+              title={isMaximized ? '还原' : '最大化'}
             >
               {isMaximized ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
             </Button>
@@ -510,7 +520,7 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
                         type="text"
                         placeholder="搜索..."
                         value={navSearch}
-                        onChange={(e) => setNavSearch(e.target.value)}
+                        onChange={e => setNavSearch(e.target.value)}
                         className="w-full h-5 pl-5 pr-1 bg-white/5 border border-[#0EA5E9]/10 rounded text-[10px] font-mono text-zinc-400 placeholder:text-zinc-700 focus:outline-none focus:border-[#0EA5E9]/30 transition-colors"
                       />
                     </div>
@@ -594,7 +604,7 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
                         style={vscDarkPlus}
                         customStyle={{ margin: 0, padding: '1rem', background: 'transparent' }}
                         showLineNumbers={true}
-                        lineNumberStyle={{ minWidth: "2.5em", paddingRight: "1em", color: "#333", textAlign: "right" }}
+                        lineNumberStyle={{ minWidth: '2.5em', paddingRight: '1em', color: '#333', textAlign: 'right' }}
                       >
                         {artifact.code}
                       </SyntaxHighlighter>
@@ -618,9 +628,9 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
               <div className="flex-1 flex items-start justify-center overflow-auto p-0 bg-white">
                 <div
                   className={cn(
-                    "h-full transition-all duration-300 border-x border-zinc-200/50",
-                    previewViewport === 'desktop' && "w-full",
-                    previewViewport !== 'desktop' && "shadow-lg rounded-lg my-4"
+                    'h-full transition-all duration-300 border-x border-zinc-200/50',
+                    previewViewport === 'desktop' && 'w-full',
+                    previewViewport !== 'desktop' && 'shadow-lg rounded-lg my-4',
                   )}
                   style={{
                     width: viewportWidths[previewViewport],

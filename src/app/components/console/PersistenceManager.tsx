@@ -1,17 +1,15 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   Database, HardDrive, Download, Upload, Save, Trash2,
-  RefreshCw, Clock, CheckCircle2, AlertCircle, Archive,
-  ArrowRight, Copy, Settings, Wifi, WifiOff, BarChart3,
-  FolderOpen, Shield, Layers, ChevronRight, Check,
-  History, FileText
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { useSystemStore } from "@/lib/store";
+  RefreshCw, Clock, Archive,
+  ArrowRight, Settings, Wifi, WifiOff, BarChart3,
+  FolderOpen, Shield, Layers,
+  History, FileText,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
 import {
   getPersistenceEngine,
   loadEngineConfig,
@@ -21,30 +19,32 @@ import {
   type PersistSnapshot,
   type SyncStrategy,
   type PersistenceEngineConfig,
-} from "@/lib/persistence-engine";
+} from '@/lib/persistence-engine';
+import { useSystemStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
 
 // --- Domain Metadata ---
 const DOMAIN_META: Record<PersistDomain, { label: string; icon: typeof Database; color: string }> = {
-  chat_sessions:    { label: 'Chat Sessions', icon: FileText, color: 'text-blue-400' },
-  chat_messages:    { label: 'Chat Messages', icon: FileText, color: 'text-blue-300' },
-  agent_sessions:   { label: 'Agent Sessions', icon: Database, color: 'text-amber-400' },
-  agent_messages:   { label: 'Agent Messages', icon: Database, color: 'text-amber-300' },
-  metrics_snapshots:{ label: 'Metrics', icon: BarChart3, color: 'text-green-400' },
-  system_logs:      { label: 'System Logs', icon: FileText, color: 'text-zinc-400' },
-  workflows:        { label: 'Workflows', icon: Layers, color: 'text-purple-400' },
-  templates:        { label: 'Templates', icon: FolderOpen, color: 'text-pink-400' },
-  artifacts:        { label: 'Artifacts', icon: Archive, color: 'text-cyan-400' },
-  mcp_registry:     { label: 'MCP Registry', icon: Settings, color: 'text-amber-500' },
-  mcp_call_log:     { label: 'MCP Call Log', icon: Clock, color: 'text-orange-400' },
-  device_configs:   { label: 'Device Configs', icon: HardDrive, color: 'text-green-500' },
-  llm_configs:      { label: 'LLM Configs', icon: Shield, color: 'text-red-400' },
-  llm_usage:        { label: 'LLM Usage', icon: BarChart3, color: 'text-emerald-400' },
-  preferences:      { label: 'Preferences', icon: Settings, color: 'text-zinc-400' },
-  knowledge_base:   { label: 'Knowledge Base', icon: Database, color: 'text-blue-500' },
-  agent_profiles:   { label: 'Agent Profiles', icon: Database, color: 'text-amber-600' },
+  chat_sessions: { label: 'Chat Sessions', icon: FileText, color: 'text-blue-400' },
+  chat_messages: { label: 'Chat Messages', icon: FileText, color: 'text-blue-300' },
+  agent_sessions: { label: 'Agent Sessions', icon: Database, color: 'text-amber-400' },
+  agent_messages: { label: 'Agent Messages', icon: Database, color: 'text-amber-300' },
+  metrics_snapshots: { label: 'Metrics', icon: BarChart3, color: 'text-green-400' },
+  system_logs: { label: 'System Logs', icon: FileText, color: 'text-zinc-400' },
+  workflows: { label: 'Workflows', icon: Layers, color: 'text-purple-400' },
+  templates: { label: 'Templates', icon: FolderOpen, color: 'text-pink-400' },
+  artifacts: { label: 'Artifacts', icon: Archive, color: 'text-cyan-400' },
+  mcp_registry: { label: 'MCP Registry', icon: Settings, color: 'text-amber-500' },
+  mcp_call_log: { label: 'MCP Call Log', icon: Clock, color: 'text-orange-400' },
+  device_configs: { label: 'Device Configs', icon: HardDrive, color: 'text-green-500' },
+  llm_configs: { label: 'LLM Configs', icon: Shield, color: 'text-red-400' },
+  llm_usage: { label: 'LLM Usage', icon: BarChart3, color: 'text-emerald-400' },
+  preferences: { label: 'Preferences', icon: Settings, color: 'text-zinc-400' },
+  knowledge_base: { label: 'Knowledge Base', icon: Database, color: 'text-blue-500' },
+  agent_profiles: { label: 'Agent Profiles', icon: Database, color: 'text-amber-600' },
 };
 
-const STRATEGY_OPTIONS: Array<{ value: SyncStrategy; label: string; desc: string }> = [
+const STRATEGY_OPTIONS: { value: SyncStrategy; label: string; desc: string }[] = [
   { value: 'local-only', label: 'Local Only', desc: 'localStorage only, no NAS sync' },
   { value: 'auto', label: 'Auto', desc: 'Sync to NAS when available, fallback to local' },
   { value: 'dual-write', label: 'Dual Write', desc: 'Always write to both localStorage and NAS' },
@@ -52,8 +52,8 @@ const STRATEGY_OPTIONS: Array<{ value: SyncStrategy; label: string; desc: string
 ];
 
 export function PersistenceManager() {
-  const addLog = useSystemStore((s) => s.addLog);
-  const isMobile = useSystemStore((s) => s.isMobile);
+  const addLog = useSystemStore(s => s.addLog);
+  const isMobile = useSystemStore(s => s.isMobile);
 
   const engine = React.useMemo(() => getPersistenceEngine(), []);
 
@@ -69,6 +69,7 @@ export function PersistenceManager() {
   const refreshStats = React.useCallback(async () => {
     setLoading('stats');
     const s = await engine.getStats();
+
     setStats(s);
     setDomainData(s.domainCounts);
     setLoading(null);
@@ -81,6 +82,7 @@ export function PersistenceManager() {
   const handleCheckNas = async () => {
     setLoading('nas');
     const available = await engine.checkNasHealth();
+
     setNasAvailable(available);
     addLog(available ? 'success' : 'warn', 'PERSIST', `NAS health check: ${available ? 'ONLINE' : 'OFFLINE'}`);
     setLoading(null);
@@ -90,6 +92,7 @@ export function PersistenceManager() {
     setLoading('snapshot');
     try {
       const snap = await engine.createSnapshot();
+
       setSnapshots(engine.getSnapshots());
       addLog('success', 'PERSIST', `Snapshot created: ${snap.id} (${snap.metadata.totalRecords} records)`);
     } catch (e) {
@@ -103,6 +106,7 @@ export function PersistenceManager() {
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
+
     a.href = url;
     a.download = `yyc3-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
@@ -112,14 +116,17 @@ export function PersistenceManager() {
 
   const handleImport = () => {
     const input = document.createElement('input');
+
     input.type = 'file';
     input.accept = '.json';
-    input.onchange = async (e) => {
+    input.onchange = async e => {
       const file = (e.target as HTMLInputElement).files?.[0];
+
       if (!file) return;
       try {
         const text = await file.text();
         const result = engine.importFromJSON(text);
+
         addLog('success', 'PERSIST', `Imported ${result.imported} items, ${result.errors.length} errors`);
         refreshStats();
       } catch (err) {
@@ -137,6 +144,7 @@ export function PersistenceManager() {
 
   const handleUpdateConfig = (updates: Partial<PersistenceEngineConfig>) => {
     const newConfig = { ...config, ...updates };
+
     setConfig(newConfig);
     engine.updateConfig(updates);
     saveEngineConfig(newConfig);
@@ -146,11 +154,12 @@ export function PersistenceManager() {
   const handleFlushQueue = async () => {
     setLoading('flush');
     const result = await engine.flushSyncQueue();
+
     addLog('info', 'PERSIST', `Sync queue flushed: ${result.success} synced, ${result.failed} failed`);
     setLoading(null);
   };
 
-  const sections: Array<{ id: typeof activeSection; label: string; icon: typeof Database }> = [
+  const sections: { id: typeof activeSection; label: string; icon: typeof Database }[] = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
     { id: 'domains', label: 'Domains', icon: Database },
     { id: 'snapshots', label: 'Snapshots', icon: History },
@@ -174,8 +183,8 @@ export function PersistenceManager() {
           <Badge
             variant="outline"
             className={cn(
-              "text-[10px] font-mono gap-1",
-              nasAvailable ? "text-green-400 border-green-500/20" : "text-zinc-500 border-white/10"
+              'text-[10px] font-mono gap-1',
+              nasAvailable ? 'text-green-400 border-green-500/20' : 'text-zinc-500 border-white/10',
             )}
           >
             {nasAvailable ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
@@ -194,10 +203,10 @@ export function PersistenceManager() {
             key={sec.id}
             onClick={() => setActiveSection(sec.id)}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-2 text-xs font-mono rounded-t-lg transition-colors",
+              'flex items-center gap-1.5 px-3 py-2 text-xs font-mono rounded-t-lg transition-colors',
               activeSection === sec.id
-                ? "bg-white/5 text-white border-b-2 border-primary"
-                : "text-zinc-500 hover:text-zinc-300"
+                ? 'bg-white/5 text-white border-b-2 border-primary'
+                : 'text-zinc-500 hover:text-zinc-300',
             )}
           >
             <sec.icon className="w-3.5 h-3.5" />
@@ -210,7 +219,7 @@ export function PersistenceManager() {
       {activeSection === 'overview' && (
         <div className="space-y-4">
           {/* Stats Cards */}
-          <div className={cn("grid gap-3", isMobile ? "grid-cols-2" : "grid-cols-4")}>
+          <div className={cn('grid gap-3', isMobile ? 'grid-cols-2' : 'grid-cols-4')}>
             <Card className="bg-zinc-900/40 border-white/5">
               <CardContent className="p-4">
                 <div className="text-[10px] text-zinc-500 font-mono mb-1">Total Records</div>
@@ -272,14 +281,15 @@ export function PersistenceManager() {
                   const meta = DOMAIN_META[domain as PersistDomain];
                   const maxCount = Math.max(...Object.values(domainData), 1);
                   const pct = (count / maxCount) * 100;
+
                   return (
                     <div key={domain} className="flex items-center gap-3">
-                      <span className={cn("text-[10px] font-mono w-28 truncate", meta?.color || 'text-zinc-400')}>
+                      <span className={cn('text-[10px] font-mono w-28 truncate', meta?.color || 'text-zinc-400')}>
                         {meta?.label || domain}
                       </span>
                       <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
                         <div
-                          className={cn("h-full rounded-full transition-all duration-500", meta?.color?.replace('text-', 'bg-') || 'bg-zinc-500')}
+                          className={cn('h-full rounded-full transition-all duration-500', meta?.color?.replace('text-', 'bg-') || 'bg-zinc-500')}
                           style={{ width: `${pct}%` }}
                         />
                       </div>
@@ -295,16 +305,17 @@ export function PersistenceManager() {
 
       {/* SECTION: Domains */}
       {activeSection === 'domains' && (
-        <div className={cn("grid gap-3", isMobile ? "grid-cols-1" : "grid-cols-2 xl:grid-cols-3")}>
+        <div className={cn('grid gap-3', isMobile ? 'grid-cols-1' : 'grid-cols-2 xl:grid-cols-3')}>
           {(Object.entries(DOMAIN_META) as [PersistDomain, typeof DOMAIN_META[PersistDomain]][]).map(([domain, meta]) => {
             const count = domainData[domain] || 0;
             const Icon = meta.icon;
+
             return (
               <Card key={domain} className="bg-zinc-900/40 border-white/5 group">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <Icon className={cn("w-4 h-4", meta.color)} />
+                      <Icon className={cn('w-4 h-4', meta.color)} />
                       <span className="text-xs font-mono text-zinc-300">{meta.label}</span>
                     </div>
                     <Badge variant="outline" className="text-[9px] font-mono text-zinc-500">{count} records</Badge>
@@ -384,15 +395,15 @@ export function PersistenceManager() {
                   key={opt.value}
                   onClick={() => handleUpdateConfig({ strategy: opt.value })}
                   className={cn(
-                    "w-full flex items-center gap-3 p-3 rounded-lg border transition-colors text-left",
+                    'w-full flex items-center gap-3 p-3 rounded-lg border transition-colors text-left',
                     config.strategy === opt.value
-                      ? "bg-primary/5 border-primary/30 text-white"
-                      : "border-white/5 text-zinc-400 hover:border-white/15"
+                      ? 'bg-primary/5 border-primary/30 text-white'
+                      : 'border-white/5 text-zinc-400 hover:border-white/15',
                   )}
                 >
                   <div className={cn(
-                    "w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0",
-                    config.strategy === opt.value ? "border-primary" : "border-zinc-600"
+                    'w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0',
+                    config.strategy === opt.value ? 'border-primary' : 'border-zinc-600',
                   )}>
                     {config.strategy === opt.value && <div className="w-2 h-2 rounded-full bg-primary" />}
                   </div>
@@ -414,7 +425,7 @@ export function PersistenceManager() {
                 <span className="text-xs text-zinc-400 font-mono">Auto-save interval</span>
                 <select
                   value={config.autoSaveInterval}
-                  onChange={(e) => handleUpdateConfig({ autoSaveInterval: parseInt(e.target.value) })}
+                  onChange={e => handleUpdateConfig({ autoSaveInterval: parseInt(e.target.value) })}
                   className="h-7 bg-zinc-900 border border-white/10 rounded text-[11px] font-mono px-2 text-white"
                 >
                   <option value="0">Disabled</option>
@@ -428,7 +439,7 @@ export function PersistenceManager() {
                 <span className="text-xs text-zinc-400 font-mono">Snapshot interval</span>
                 <select
                   value={config.snapshotInterval}
-                  onChange={(e) => handleUpdateConfig({ snapshotInterval: parseInt(e.target.value) })}
+                  onChange={e => handleUpdateConfig({ snapshotInterval: parseInt(e.target.value) })}
                   className="h-7 bg-zinc-900 border border-white/10 rounded text-[11px] font-mono px-2 text-white"
                 >
                   <option value="0">Disabled</option>
@@ -442,7 +453,7 @@ export function PersistenceManager() {
                 <span className="text-xs text-zinc-400 font-mono">Max retries</span>
                 <select
                   value={config.maxRetries}
-                  onChange={(e) => handleUpdateConfig({ maxRetries: parseInt(e.target.value) })}
+                  onChange={e => handleUpdateConfig({ maxRetries: parseInt(e.target.value) })}
                   className="h-7 bg-zinc-900 border border-white/10 rounded text-[11px] font-mono px-2 text-white"
                 >
                   <option value="1">1</option>

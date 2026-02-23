@@ -12,9 +12,10 @@
 // ============================================================
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+
+import { eventBus } from './event-bus';
 import { testSQLiteConnection, loadDeviceConfigs, type DeviceConfig } from './nas-client';
 import { docker } from './nas-client';
-import { eventBus } from './event-bus';
 import { useSystemStore } from './store';
 
 // ============================================================
@@ -116,6 +117,7 @@ const INITIAL_CHECKS: DiagCheck[] = [
 async function checkSQLite(): Promise<Partial<DiagCheck>> {
   try {
     const result = await testSQLiteConnection();
+
     if (result.success) {
       return {
         status: 'ok',
@@ -123,6 +125,7 @@ async function checkSQLite(): Promise<Partial<DiagCheck>> {
         detail: `v${result.version} | ${result.latencyMs}ms`,
       };
     }
+
     return {
       status: 'fail',
       latencyMs: result.latencyMs,
@@ -138,12 +141,15 @@ async function checkSQLite(): Promise<Partial<DiagCheck>> {
 
 async function checkDocker(): Promise<Partial<DiagCheck>> {
   const start = performance.now();
+
   try {
     const ok = await docker.ping();
     const latency = Math.round(performance.now() - start);
+
     if (ok) {
       return { status: 'ok', latencyMs: latency, detail: `Pong | ${latency}ms` };
     }
+
     return { status: 'fail', latencyMs: latency, detail: 'No response' };
   } catch {
     return {
@@ -156,7 +162,8 @@ async function checkDocker(): Promise<Partial<DiagCheck>> {
 
 async function checkWebSocket(): Promise<Partial<DiagCheck>> {
   const start = performance.now();
-  return new Promise((resolve) => {
+
+  return new Promise(resolve => {
     try {
       const ws = new WebSocket('ws://192.168.3.45:9090/ws/heartbeat');
       const timeout = setTimeout(() => {
@@ -171,6 +178,7 @@ async function checkWebSocket(): Promise<Partial<DiagCheck>> {
       ws.onopen = () => {
         clearTimeout(timeout);
         const latency = Math.round(performance.now() - start);
+
         ws.close();
         resolve({ status: 'ok', latencyMs: latency, detail: `Connected | ${latency}ms` });
       };
@@ -191,10 +199,11 @@ async function checkWebSocket(): Promise<Partial<DiagCheck>> {
 
 async function checkDevice(deviceId: string, devices: DeviceConfig[]): Promise<Partial<DiagCheck>> {
   const device = devices.find(d => d.id === deviceId);
+
   if (!device) return { status: 'fail', detail: 'Device not found in registry' };
 
   const httpService = device.services.find(
-    s => s.enabled && (s.protocol === 'http' || s.protocol === 'https')
+    s => s.enabled && (s.protocol === 'http' || s.protocol === 'https'),
   );
 
   if (!httpService) {
@@ -207,12 +216,15 @@ async function checkDevice(deviceId: string, devices: DeviceConfig[]): Promise<P
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
+
     await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
     clearTimeout(timeout);
     const latency = Math.round(performance.now() - start);
+
     return { status: 'ok', latencyMs: latency, detail: `${device.ip}:${httpService.port} | ${latency}ms` };
   } catch {
     const latency = Math.round(performance.now() - start);
+
     return {
       status: latency > 2800 ? 'warn' : 'fail',
       latencyMs: latency,
@@ -234,7 +246,7 @@ export function useNasDiagnostics(autoRun = true): DiagResult & {
   const [startedAt, setStartedAt] = useState(0);
   const [completedAt, setCompletedAt] = useState(0);
   const ranRef = useRef(false);
-  const addLog = useSystemStore((s) => s.addLog);
+  const addLog = useSystemStore(s => s.addLog);
 
   const updateCheck = useCallback((id: string, update: Partial<DiagCheck>) => {
     setChecks(prev => prev.map(c => c.id === id ? { ...c, ...update } : c));
@@ -242,6 +254,7 @@ export function useNasDiagnostics(autoRun = true): DiagResult & {
 
   const runDiagnostics = useCallback(async () => {
     const start = Date.now();
+
     setStartedAt(start);
     setStatus('running');
     setChecks(INITIAL_CHECKS.map(c => ({ ...c, status: 'checking' as CheckStatus })));
@@ -252,7 +265,7 @@ export function useNasDiagnostics(autoRun = true): DiagResult & {
     const devices = loadDeviceConfigs();
 
     // Run all checks in parallel
-    const checkRunners: Array<{ id: string; runner: () => Promise<Partial<DiagCheck>> }> = [
+    const checkRunners: { id: string; runner: () => Promise<Partial<DiagCheck>> }[] = [
       { id: 'sqlite-proxy', runner: checkSQLite },
       { id: 'docker-engine', runner: checkDocker },
       { id: 'heartbeat-ws', runner: checkWebSocket },
@@ -266,14 +279,17 @@ export function useNasDiagnostics(autoRun = true): DiagResult & {
       checkRunners.map(async ({ id, runner }) => {
         updateCheck(id, { status: 'checking' });
         const result = await runner();
+
         updateCheck(id, result);
+
         return { id, ...result };
-      })
+      }),
     );
 
     // Compute summary
     const finalChecks = results.map(r => {
       if (r.status === 'fulfilled') return r.value;
+
       return { id: 'unknown', status: 'fail' as CheckStatus };
     });
 
@@ -287,6 +303,7 @@ export function useNasDiagnostics(autoRun = true): DiagResult & {
 
     const level = fail > 2 ? 'error' : fail > 0 ? 'warn' : 'success';
     const msg = `Diagnostics complete: ${pass} OK, ${warn} WARN, ${fail} FAIL (${elapsed}ms)`;
+
     eventBus.system('diagnostics_complete', msg, level, { pass, fail, warn, elapsed });
     addLog(level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'success', 'DIAG', msg);
   }, [addLog, updateCheck]);
@@ -306,6 +323,7 @@ export function useNasDiagnostics(autoRun = true): DiagResult & {
       const timer = setTimeout(() => {
         runDiagnostics();
       }, 1200);
+
       return () => clearTimeout(timer);
     }
   }, [autoRun, runDiagnostics]);

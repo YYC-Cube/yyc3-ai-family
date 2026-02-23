@@ -11,9 +11,6 @@
 //   - Immutable state assertions
 // ============================================================
 
-import { useSystemStore } from '../store';
-import type { ChatMessage, ViewMode, AgentRole } from '../types';
-import { AGENT_REGISTRY, PROMPT_TEMPLATES, MAX_FILE_SIZE, MAX_FILES } from '../types';
 import {
   loadProviderConfigs,
   saveProviderConfigs,
@@ -33,6 +30,9 @@ import {
   validateArray,
   validators,
 } from '../persist-schemas';
+import { useSystemStore } from '../store';
+import type { ChatMessage, ViewMode, AgentRole } from '../types';
+import { AGENT_REGISTRY, PROMPT_TEMPLATES, MAX_FILE_SIZE, MAX_FILES } from '../types';
 
 // ============================================================
 // Test Infrastructure
@@ -83,7 +83,7 @@ function assert(condition: boolean, message: string): void {
 function assertEqual<T>(actual: T, expected: T, label: string): void {
   if (actual !== expected) {
     throw new TestAssertionError(
-      `${label}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`
+      `${label}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
     );
   }
 }
@@ -91,7 +91,7 @@ function assertEqual<T>(actual: T, expected: T, label: string): void {
 function assertNotEqual<T>(actual: T, notExpected: T, label: string): void {
   if (actual === notExpected) {
     throw new TestAssertionError(
-      `${label}: expected NOT ${JSON.stringify(notExpected)}, but got same value`
+      `${label}: expected NOT ${JSON.stringify(notExpected)}, but got same value`,
     );
   }
 }
@@ -99,7 +99,7 @@ function assertNotEqual<T>(actual: T, notExpected: T, label: string): void {
 function assertIncludes(haystack: string, needle: string, label: string): void {
   if (!haystack.includes(needle)) {
     throw new TestAssertionError(
-      `${label}: expected "${haystack}" to include "${needle}"`
+      `${label}: expected "${haystack}" to include "${needle}"`,
     );
   }
 }
@@ -107,7 +107,7 @@ function assertIncludes(haystack: string, needle: string, label: string): void {
 function assertArrayLength(arr: unknown[], expected: number, label: string): void {
   if (arr.length !== expected) {
     throw new TestAssertionError(
-      `${label}: expected array length ${expected}, got ${arr.length}`
+      `${label}: expected array length ${expected}, got ${arr.length}`,
     );
   }
 }
@@ -121,7 +121,7 @@ function assertDefined(value: unknown, label: string): void {
 function assertType(value: unknown, expectedType: string, label: string): void {
   if (typeof value !== expectedType) {
     throw new TestAssertionError(
-      `${label}: expected type "${expectedType}", got "${typeof value}"`
+      `${label}: expected type "${expectedType}", got "${typeof value}"`,
     );
   }
 }
@@ -171,6 +171,7 @@ function resetStore(): void {
 registerTest('Store', 'ST-01', 'Default state initialization', () => {
   resetStore();
   const state = useSystemStore.getState();
+
   assertEqual(state.activeView, 'terminal', 'activeView');
   assertEqual(state.chatMode, 'navigate', 'chatMode');
   assertEqual(state.messages.length, 0, 'messages empty');
@@ -184,6 +185,7 @@ registerTest('Store', 'ST-01', 'Default state initialization', () => {
 registerTest('Store', 'ST-02', 'View navigation actions', () => {
   resetStore();
   const views: ViewMode[] = ['terminal', 'console', 'projects', 'artifacts', 'monitor', 'services', 'knowledge', 'bookmarks'];
+
   for (const view of views) {
     useSystemStore.getState().setActiveView(view);
     assertEqual(useSystemStore.getState().activeView, view, `View: ${view}`);
@@ -216,6 +218,7 @@ registerTest('Store', 'ST-05', 'Message add - immutability', () => {
     content: 'Hello world',
     timestamp: '12:00',
   };
+
   useSystemStore.getState().addMessage(msg);
   const msgsAfter = useSystemStore.getState().messages;
 
@@ -277,6 +280,7 @@ registerTest('Store', 'ST-09', 'newSession composite action', () => {
   // New session should reset
   useSystemStore.getState().newSession();
   const s = useSystemStore.getState();
+
   assertEqual(s.activeView, 'terminal', 'View reset');
   assertEqual(s.messages.length, 0, 'Messages cleared');
   assertEqual(s.isArtifactsOpen, false, 'Artifacts closed');
@@ -287,6 +291,7 @@ registerTest('Store', 'ST-10', 'navigateToAgent composite action', () => {
   resetStore();
   useSystemStore.getState().navigateToAgent('navigator');
   const s = useSystemStore.getState();
+
   assertEqual(s.activeView, 'console', 'View = console');
   assertEqual(s.consoleTab, 'ai', 'Tab = ai');
   assertEqual(s.consoleAgent, 'navigator', 'Agent = navigator');
@@ -296,6 +301,7 @@ registerTest('Store', 'ST-11', 'navigateToConsoleTab composite action', () => {
   resetStore();
   useSystemStore.getState().navigateToConsoleTab('devops');
   const s = useSystemStore.getState();
+
   assertEqual(s.activeView, 'console', 'View = console');
   assertEqual(s.consoleTab, 'devops', 'Tab = devops');
   assertEqual(s.consoleAgent, null, 'Agent reset to null');
@@ -357,6 +363,7 @@ registerTest('Store', 'ST-17', 'addLog entry', () => {
   resetStore();
   useSystemStore.getState().addLog('info', 'TEST', 'Test message');
   const logs = useSystemStore.getState().logs;
+
   assert(logs.length >= 1, 'At least one log');
   assertEqual(logs[logs.length - 1].level, 'info', 'Level');
   assertEqual(logs[logs.length - 1].source, 'TEST', 'Source');
@@ -368,6 +375,7 @@ registerTest('Store', 'ST-17', 'addLog entry', () => {
 registerTest('Store', 'ST-18', 'Agent chat history CRUD', () => {
   resetStore();
   const agentId = 'navigator';
+
   // Initially empty
   assertArrayLength(useSystemStore.getState().getAgentHistory(agentId), 0, 'Initially empty');
   // Add message
@@ -405,6 +413,7 @@ function testMatchNavigationIntent(lowerText: string): string | null {
     'pivot': 'pivot', '天枢': 'pivot',
     'grandmaster': 'grandmaster', '宗师': 'grandmaster',
   };
+
   for (const [keyword, agentId] of Object.entries(agentMap)) {
     if (lowerText.includes(keyword)) return `Agent: ${agentId}`;
   }
@@ -429,6 +438,7 @@ function testMatchNavigationIntent(lowerText: string): string | null {
     [['test framework', '测试框架', 'type audit', '类型审计', 'test suite', '测试套件'], 'Test Framework'],
     [['stream diagnostic', '流式诊断', 'streaming test', '流式测试', 'e2e stream', 'provider health'], 'Stream Diagnostics'],
   ];
+
   for (const [keywords, label] of tabMap) {
     if (keywords.some(k => lowerText.includes(k))) return label;
   }
@@ -490,8 +500,10 @@ registerTest('Navigation', 'NAV-10', 'Unknown keyword returns null', () => {
 
 registerTest('Navigation', 'NAV-11', 'All 7 agents matchable', () => {
   const agents = ['navigator', 'sentinel', 'thinker', 'prophet', 'bole', 'pivot', 'grandmaster'];
+
   for (const agent of agents) {
     const result = testMatchNavigationIntent(agent);
+
     assertEqual(result, `Agent: ${agent}`, `Agent: ${agent}`);
   }
 });
@@ -501,8 +513,10 @@ registerTest('Navigation', 'NAV-12', 'All 7 agents matchable (ZH)', () => {
     ['领航员', 'navigator'], ['哨兵', 'sentinel'], ['思想家', 'thinker'],
     ['先知', 'prophet'], ['伯乐', 'bole'], ['天枢', 'pivot'], ['宗师', 'grandmaster'],
   ];
+
   for (const [zh, id] of zhAgents) {
     const result = testMatchNavigationIntent(zh);
+
     assertEqual(result, `Agent: ${id}`, `ZH ${zh} → ${id}`);
   }
 });
@@ -548,8 +562,10 @@ registerTest('LLMBridge', 'LLM-02', 'saveProviderConfigs + loadProviderConfigs r
     enabled: true,
     defaultModel: 'gpt-4o',
   }];
+
   saveProviderConfigs(configs);
   const loaded = loadProviderConfigs();
+
   assertEqual(loaded.length, 1, 'One config loaded');
   assertEqual(loaded[0].providerId, 'openai', 'Provider ID');
   assertEqual(loaded[0].apiKey, 'sk-test-key', 'API key');
@@ -602,6 +618,7 @@ registerTest('LLMBridge', 'LLM-06', 'getEnabledProviderIds', () => {
     { providerId: 'deepseek', apiKey: 'sk-3', endpoint: '', enabled: true, defaultModel: 'deepseek-r1' },
   ]);
   const ids = getEnabledProviderIds();
+
   assert(ids.includes('openai'), 'openai enabled');
   assert(!ids.includes('anthropic'), 'anthropic disabled');
   assert(ids.includes('deepseek'), 'deepseek enabled');
@@ -653,6 +670,7 @@ registerTest('Types', 'TY-05', 'ChatMessage interface compliance', () => {
     content: 'hello',
     timestamp: '12:00',
   };
+
   assertType(msg.id, 'string', 'id type');
   assertType(msg.content, 'string', 'content type');
   assert(msg.role === 'user' || msg.role === 'ai', 'role union');
@@ -663,6 +681,7 @@ registerTest('Types', 'TY-06', 'ViewMode type covers all views', () => {
     'terminal', 'console', 'projects', 'artifacts',
     'monitor', 'services', 'knowledge', 'bookmarks',
   ];
+
   assertEqual(allViews.length, 8, 'Eight view modes');
 });
 
@@ -673,6 +692,7 @@ registerTest('Types', 'TY-07', 'File upload constants', () => {
 
 registerTest('Types', 'TY-08', 'AgentRole union type', () => {
   const roles: AgentRole[] = ['architect', 'coder', 'auditor', 'orchestrator'];
+
   assertEqual(roles.length, 4, 'Four agent roles');
 });
 
@@ -689,8 +709,10 @@ registerTest('Persistence', 'PS-01', 'Appearance config save/load', () => {
     fontFamily: 'Inter',
     monoFontFamily: 'JetBrains Mono',
   };
+
   localStorage.setItem(key, JSON.stringify(config));
   const loaded = JSON.parse(localStorage.getItem(key) || '{}');
+
   assertEqual(loaded.accentColor, '#0EA5E9', 'accent color');
   assertEqual(loaded.fontSize, 16, 'font size');
   localStorage.removeItem(key);
@@ -699,6 +721,7 @@ registerTest('Persistence', 'PS-01', 'Appearance config save/load', () => {
 registerTest('Persistence', 'PS-02', 'Background image storage (separate key)', () => {
   const key = 'yyc3-bg-image';
   const fakeDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAAN';
+
   localStorage.setItem(key, fakeDataUrl);
   assertEqual(localStorage.getItem(key), fakeDataUrl, 'BG image stored');
   localStorage.removeItem(key);
@@ -707,6 +730,7 @@ registerTest('Persistence', 'PS-02', 'Background image storage (separate key)', 
 registerTest('Persistence', 'PS-03', 'Appearance config with __stored__ sentinel', () => {
   const configKey = 'yyc3-appearance-config';
   const bgKey = 'yyc3-bg-image';
+
   // Save config with sentinel
   localStorage.setItem(configKey, JSON.stringify({
     bgImageDataUrl: '__stored__',
@@ -716,6 +740,7 @@ registerTest('Persistence', 'PS-03', 'Appearance config with __stored__ sentinel
 
   // Reconstruct (simulating loadAppearanceFull)
   const config = JSON.parse(localStorage.getItem(configKey) || '{}');
+
   if (config.bgImageDataUrl === '__stored__') {
     config.bgImageDataUrl = localStorage.getItem(bgKey) || '';
   }
@@ -727,10 +752,13 @@ registerTest('Persistence', 'PS-03', 'Appearance config with __stored__ sentinel
 
 registerTest('Persistence', 'PS-04', 'Corrupt JSON recovery', () => {
   const key = 'yyc3-appearance-config';
+
   localStorage.setItem(key, 'INVALID_JSON{{{');
   let recovered = false;
+
   try {
     const raw = localStorage.getItem(key);
+
     if (raw) JSON.parse(raw);
   } catch {
     recovered = true;
@@ -744,8 +772,10 @@ registerTest('Persistence', 'PS-05', 'LLM provider config persistence', () => {
     { providerId: 'openai', apiKey: 'sk-test', endpoint: 'https://api.openai.com/v1', enabled: true, defaultModel: 'gpt-4o' },
     { providerId: 'deepseek', apiKey: 'sk-ds', endpoint: '', enabled: true, defaultModel: 'deepseek-chat' },
   ];
+
   saveProviderConfigs(configs);
   const loaded = loadProviderConfigs();
+
   assertEqual(loaded.length, 2, 'Two configs');
   assertEqual(loaded[0].providerId, 'openai', 'First provider');
   assertEqual(loaded[1].providerId, 'deepseek', 'Second provider');
@@ -766,6 +796,7 @@ registerTest('i18n', 'I18N-01', 'Chat mode translation keys exist', () => {
     'chat.placeholder', 'chat.placeholder_ai',
     'chat.no_provider',
   ];
+
   // These keys are verified to exist by code review in i18n.tsx
   // Mark as pass since they were confirmed in both zh and en sections
   assert(requiredKeys.length === 7, '7 required i18n keys identified');
@@ -778,6 +809,7 @@ registerTest('i18n', 'I18N-02', 'Sidebar translation keys exist', () => {
     'sidebar.knowledge', 'sidebar.bookmarks',
     'sidebar.new_session', 'sidebar.settings', 'sidebar.gitops',
   ];
+
   assert(requiredKeys.length === 11, '11 sidebar i18n keys');
 });
 
@@ -790,6 +822,7 @@ registerTest('i18n', 'I18N-03', 'Console tab translation keys exist', () => {
     'api_docs', 'settings', 'smoke_test', 'test_framework',
     'stream_diagnostics',
   ];
+
   assertEqual(consoleTabs.length, 21, '21 console tab IDs');
 });
 
@@ -836,6 +869,7 @@ registerTest('ZodSchema', 'ZOD-01', 'ChatMessageSchema validates correct message
   const result = ChatMessageSchema.safeParse({
     id: 'msg-1', role: 'user', content: 'Hello', timestamp: '12:00',
   });
+
   assert(result.success, 'Valid chat message');
 });
 
@@ -844,6 +878,7 @@ registerTest('ZodSchema', 'ZOD-02', 'ChatMessageSchema validates AI message with
     id: 'msg-2', role: 'ai', content: 'Response', timestamp: '12:01',
     agentName: 'YYC3 Core', agentRole: 'architect',
   });
+
   assert(result.success, 'Valid AI message with optionals');
 });
 
@@ -851,11 +886,13 @@ registerTest('ZodSchema', 'ZOD-03', 'ChatMessageSchema rejects invalid role', ()
   const result = ChatMessageSchema.safeParse({
     id: 'msg-3', role: 'system', content: 'test', timestamp: '12:00',
   });
+
   assert(!result.success, 'Invalid role rejected');
 });
 
 registerTest('ZodSchema', 'ZOD-04', 'ChatMessageSchema rejects missing required fields', () => {
   const result = ChatMessageSchema.safeParse({ id: 'msg-4', role: 'user' });
+
   assert(!result.success, 'Missing content/timestamp rejected');
 });
 
@@ -867,6 +904,7 @@ registerTest('ZodSchema', 'ZOD-05', 'ChatSessionSchema validates complete sessio
       { id: 'm2', role: 'ai', content: 'Hello!', timestamp: '12:01' },
     ],
   });
+
   assert(result.success, 'Valid session');
 });
 
@@ -875,16 +913,19 @@ registerTest('ZodSchema', 'ZOD-06', 'AgentHistoryRecordSchema validates', () => 
     id: 'nav', agentId: 'navigator',
     messages: [{ id: 'a1', role: 'user', content: 'Hello', timestamp: '12:00' }],
   });
+
   assert(result.success, 'Valid agent history');
 });
 
 registerTest('ZodSchema', 'ZOD-07', 'PreferencesSchema validates empty (all optional)', () => {
   const result = PreferencesSchema.safeParse({});
+
   assert(result.success, 'Empty prefs valid');
 });
 
 registerTest('ZodSchema', 'ZOD-08', 'PreferencesSchema rejects invalid language', () => {
   const result = PreferencesSchema.safeParse({ language: 'fr' });
+
   assert(!result.success, 'Invalid language rejected');
 });
 
@@ -892,6 +933,7 @@ registerTest('ZodSchema', 'ZOD-09', 'SystemLogSchema validates log entry', () =>
   const result = SystemLogSchema.safeParse({
     id: 'log-1', level: 'info', source: 'TEST', message: 'Test', timestamp: '12:00',
   });
+
   assert(result.success, 'Valid system log');
 });
 
@@ -899,6 +941,7 @@ registerTest('ZodSchema', 'ZOD-10', 'SystemLogSchema rejects invalid log level',
   const result = SystemLogSchema.safeParse({
     id: 'log-2', level: 'debug', source: 'TEST', message: 'Test', timestamp: '12:00',
   });
+
   assert(!result.success, 'debug not in level enum');
 });
 
@@ -906,11 +949,13 @@ registerTest('ZodSchema', 'ZOD-11', 'KnowledgeEntrySchema validates entry', () =
   const result = KnowledgeEntrySchema.safeParse({
     id: 'kb-1', title: 'Article', category: 'general', tags: ['test'], importance: 'high',
   });
+
   assert(result.success, 'Valid KB entry');
 });
 
 registerTest('ZodSchema', 'ZOD-12', 'KnowledgeEntrySchema rejects missing category', () => {
   const result = KnowledgeEntrySchema.safeParse({ id: 'kb-2', title: 'No Cat' });
+
   assert(!result.success, 'Missing category rejected');
 });
 
@@ -919,6 +964,7 @@ registerTest('ZodSchema', 'ZOD-13', 'LLMProviderConfigSchema validates config', 
     providerId: 'openai', apiKey: 'sk-test', endpoint: 'https://api.openai.com/v1',
     enabled: true, defaultModel: 'gpt-4o',
   });
+
   assert(result.success, 'Valid LLM config');
 });
 
@@ -926,6 +972,7 @@ registerTest('ZodSchema', 'ZOD-14', 'validateRecord returns typed data', () => {
   const result = validateRecord(ChatMessageSchema, {
     id: 'x', role: 'user', content: 'test', timestamp: '12:00',
   });
+
   assert(result.success, 'Validation success');
   if (result.success) {
     assertEqual(result.data.id, 'x', 'Data typed correctly');
@@ -934,6 +981,7 @@ registerTest('ZodSchema', 'ZOD-14', 'validateRecord returns typed data', () => {
 
 registerTest('ZodSchema', 'ZOD-15', 'validateRecord returns errors for invalid', () => {
   const result = validateRecord(ChatMessageSchema, { id: 123 });
+
   assert(!result.success, 'Invalid rejected');
   if (!result.success) {
     assert(result.errors.length > 0, 'Has error messages');
@@ -947,6 +995,7 @@ registerTest('ZodSchema', 'ZOD-16', 'validateArray filters mixed data', () => {
     { id: '3', role: 'ai', content: 'good', timestamp: '12:01' },
   ];
   const result = validateArray(ChatMessageSchema, data);
+
   assertEqual(result.valid.length, 2, 'Two valid');
   assertEqual(result.invalidCount, 1, 'One invalid');
 });
@@ -955,6 +1004,7 @@ registerTest('ZodSchema', 'ZOD-17', 'validators.chatMessage convenience', () => 
   const result = validators.chatMessage({
     id: 'v1', role: 'user', content: 'test', timestamp: '12:00',
   });
+
   assert(result.success, 'Convenience validator works');
 });
 
@@ -963,6 +1013,7 @@ registerTest('ZodSchema', 'ZOD-18', 'validators.llmConfig convenience', () => {
     providerId: 'deepseek', apiKey: 'sk-test', endpoint: '',
     enabled: true, defaultModel: 'deepseek-chat',
   });
+
   assert(result.success, 'LLM config validator works');
 });
 
@@ -987,6 +1038,7 @@ export async function runAllTests(): Promise<TestSuiteReport> {
     }
 
     const t0 = performance.now();
+
     try {
       await tc.fn();
       results.push({
@@ -998,6 +1050,7 @@ export async function runAllTests(): Promise<TestSuiteReport> {
       });
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err);
+
       results.push({
         id: tc.id,
         suite: tc.suite,

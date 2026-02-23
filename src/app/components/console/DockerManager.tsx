@@ -10,19 +10,18 @@
 // - Fallback to mock data when NAS Docker API unreachable
 // ============================================================
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   Box, Play, Square, RefreshCw, Terminal,
   Server, Cpu, Layers, Clock,
   AlertTriangle, Check,
   X, MemoryStick,
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
-import { Card, CardContent } from "@/app/components/ui/card";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { useSystemStore } from "@/lib/store";
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent } from '@/app/components/ui/card';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
 import {
   docker,
   loadDockerConfig,
@@ -32,7 +31,9 @@ import {
   type DockerConfig,
   MOCK_DOCKER_CONTAINERS,
   MOCK_DOCKER_INFO,
-} from "@/lib/nas-client";
+} from '@/lib/nas-client';
+import { useSystemStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // Helpers
@@ -42,6 +43,7 @@ function formatBytes(bytes: number): string {
   if (bytes >= 1e9) return `${(bytes / 1e9).toFixed(1)} GB`;
   if (bytes >= 1e6) return `${(bytes / 1e6).toFixed(1)} MB`;
   if (bytes >= 1e3) return `${(bytes / 1e3).toFixed(1)} KB`;
+
   return `${bytes} B`;
 }
 
@@ -51,9 +53,9 @@ function containerName(c: DockerContainer): string {
 
 const STATE_COLORS: Record<string, { text: string; bg: string; border: string }> = {
   running: { text: 'text-green-500', bg: 'bg-green-500', border: 'border-green-500/20' },
-  exited:  { text: 'text-red-500',   bg: 'bg-red-500',   border: 'border-red-500/20' },
-  paused:  { text: 'text-amber-500', bg: 'bg-amber-500', border: 'border-amber-500/20' },
-  created: { text: 'text-blue-500',  bg: 'bg-blue-500',  border: 'border-blue-500/20' },
+  exited: { text: 'text-red-500', bg: 'bg-red-500', border: 'border-red-500/20' },
+  paused: { text: 'text-amber-500', bg: 'bg-amber-500', border: 'border-amber-500/20' },
+  created: { text: 'text-blue-500', bg: 'bg-blue-500', border: 'border-blue-500/20' },
 };
 
 function stateColor(state: string) {
@@ -80,10 +82,13 @@ function ContainerRow({
   const isLoading = actionLoading === container.Id;
 
   const handleViewLogs = async () => {
-    if (showLogs) { setShowLogs(false); return; }
+    if (showLogs) { setShowLogs(false);
+
+      return; }
     setShowLogs(true);
     try {
       const text = await docker.containers.logs(container.Id, 50);
+
       setLogs(text);
     } catch {
       setLogs('[Mock] Container logs not available — Docker API unreachable');
@@ -95,13 +100,13 @@ function ContainerRow({
       {/* Main Row */}
       <div className="flex items-center gap-3 px-3 py-2.5">
         {/* Status Dot */}
-        <div className={cn("w-2 h-2 rounded-full shrink-0", sc.bg, container.State === 'running' && 'animate-pulse')} />
+        <div className={cn('w-2 h-2 rounded-full shrink-0', sc.bg, container.State === 'running' && 'animate-pulse')} />
 
         {/* Container Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono text-zinc-200 truncate">{name}</span>
-            <Badge variant="outline" className={cn("text-[8px] uppercase font-mono", sc.text, sc.border)}>
+            <Badge variant="outline" className={cn('text-[8px] uppercase font-mono', sc.text, sc.border)}>
               {container.State}
             </Badge>
           </div>
@@ -137,7 +142,7 @@ function ContainerRow({
                 disabled={isLoading}
                 title="Restart"
               >
-                <RefreshCw className={cn("w-3 h-3", isLoading && "animate-spin")} />
+                <RefreshCw className={cn('w-3 h-3', isLoading && 'animate-spin')} />
               </Button>
               <Button
                 variant="ghost" size="icon"
@@ -212,6 +217,7 @@ export function DockerManager() {
         docker.info(),
         docker.containers.list(true),
       ]);
+
       setSysInfo(info);
       setContainers(ctrs);
       setIsConnected(true);
@@ -249,6 +255,7 @@ export function DockerManager() {
         if (action === 'start') return { ...c, State: 'running', Status: 'Up < 1 second' };
         if (action === 'stop') return { ...c, State: 'exited', Status: 'Exited (0) just now' };
         if (action === 'restart') return { ...c, State: 'running', Status: 'Up < 1 second' };
+
         return c;
       }).filter(c => action !== 'remove' || c.Id !== containerId));
       addLog('info', 'DOCKER', `${action.toUpperCase()} ${name} — simulated (API offline)`);
@@ -283,12 +290,12 @@ export function DockerManager() {
         </div>
         <div className="flex items-center gap-2">
           <div className={cn(
-            "flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-mono border",
+            'flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-mono border',
             isConnected
-              ? "bg-green-500/10 border-green-500/20 text-green-400"
-              : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+              ? 'bg-green-500/10 border-green-500/20 text-green-400'
+              : 'bg-amber-500/10 border-amber-500/20 text-amber-400',
           )}>
-            <div className={cn("w-1.5 h-1.5 rounded-full", isConnected ? "bg-green-500" : "bg-amber-500")} />
+            <div className={cn('w-1.5 h-1.5 rounded-full', isConnected ? 'bg-green-500' : 'bg-amber-500')} />
             {isConnected ? 'LIVE' : 'MOCK'}
           </div>
           <Button
@@ -307,7 +314,7 @@ export function DockerManager() {
             onClick={loadData}
             disabled={isLoading}
           >
-            <RefreshCw className={cn("w-3 h-3", isLoading && "animate-spin")} />
+            <RefreshCw className={cn('w-3 h-3', isLoading && 'animate-spin')} />
             REFRESH
           </Button>
         </div>
@@ -430,11 +437,11 @@ function InfoCard({ icon: Icon, label, value, sub, color }: {
   return (
     <Card className="bg-black/40 border-white/8">
       <CardContent className="p-3">
-        <div className={cn("p-1.5 rounded-lg w-fit mb-2", color.replace('text-', 'bg-').replace('500', '500/10'))}>
-          <Icon className={cn("w-3.5 h-3.5", color)} />
+        <div className={cn('p-1.5 rounded-lg w-fit mb-2', color.replace('text-', 'bg-').replace('500', '500/10'))}>
+          <Icon className={cn('w-3.5 h-3.5', color)} />
         </div>
         <p className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider">{label}</p>
-        <p className={cn("text-lg font-mono mt-0.5", color)}>{value}</p>
+        <p className={cn('text-lg font-mono mt-0.5', color)}>{value}</p>
         <p className="text-[9px] font-mono text-zinc-600 mt-0.5">{sub}</p>
       </CardContent>
     </Card>

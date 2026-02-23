@@ -14,7 +14,7 @@
 //        Mock Runtime → localStorage 持久化
 // ============================================================
 
-import { encryptValue, decryptValue, isCryptoAvailable } from './crypto';
+import { decryptValue, encryptValue, isCryptoAvailable } from './crypto';
 
 // ============================================================
 // 1. MCP JSON-RPC 2.0 Types
@@ -79,13 +79,13 @@ export interface MCPToolCallRequest {
 }
 
 export interface MCPToolCallResult {
-  content: Array<{
+  content: {
     type: 'text' | 'image' | 'resource';
     text?: string;
     data?: string;
     mimeType?: string;
     resource?: { uri: string; text?: string; blob?: string };
-  }>;
+  }[];
   isError?: boolean;
 }
 
@@ -125,11 +125,11 @@ export interface MCPResourceContent {
 export interface MCPPrompt {
   name: string;
   description?: string;
-  arguments?: Array<{
+  arguments?: {
     name: string;
     description?: string;
     required?: boolean;
-  }>;
+  }[];
 }
 
 export interface MCPPromptMessage {
@@ -155,10 +155,10 @@ export interface MCPServerDefinition {
   version: string;
   description: string;
   transport: MCPTransport;
-  command?: string;        // for stdio: e.g., "npx", "node", "python"
-  args?: string[];         // for stdio: arguments
+  command?: string; // for stdio: e.g., "npx", "node", "python"
+  args?: string[]; // for stdio: arguments
   env?: Record<string, string>;
-  url?: string;            // for http transports
+  url?: string; // for http transports
   // Capabilities
   capabilities: {
     tools: boolean;
@@ -183,7 +183,7 @@ export interface MCPServerDefinition {
   color?: string;
   createdAt: string;
   updatedAt: string;
-  encrypted?: boolean;     // Phase 35: encryption status flag for env vars
+  encrypted?: boolean; // Phase 35: encryption status flag for env vars
 }
 
 // ============================================================
@@ -719,8 +719,10 @@ const MCP_REGISTRY_KEY = 'yyc3-mcp-registry';
 export function loadMCPRegistry(): MCPServerDefinition[] {
   try {
     const raw = localStorage.getItem(MCP_REGISTRY_KEY);
+
     if (raw) return JSON.parse(raw);
   } catch { /* ignore */ }
+
   return [];
 }
 
@@ -730,17 +732,21 @@ export function loadMCPRegistry(): MCPServerDefinition[] {
 export async function initMCPRegistry(): Promise<MCPServerDefinition[]> {
   try {
     const raw = localStorage.getItem(MCP_REGISTRY_KEY);
+
     if (!raw) return [];
     const servers = JSON.parse(raw) as MCPServerDefinition[];
-    
+
     return await Promise.all(servers.map(async s => {
       if (s.env && s.encrypted) {
         const decryptedEnv: Record<string, string> = {};
+
         for (const [key, value] of Object.entries(s.env)) {
           decryptedEnv[key] = await decryptValue(value);
         }
+
         return { ...s, env: decryptedEnv, encrypted: false };
       }
+
       return s;
     }));
   } catch { return []; }
@@ -752,22 +758,26 @@ export async function saveMCPRegistry(servers: MCPServerDefinition[]): Promise<v
     const processedServers = await Promise.all(servers.map(async s => {
       // Check if any env value might be a token (heuristic: ALL_CAPS or contains 'TOKEN', 'KEY', 'SECRET')
       const envKeys = s.env ? Object.keys(s.env) : [];
-      const hasSensitiveKeys = envKeys.some(k => 
-        k.toUpperCase().includes('TOKEN') || 
-        k.toUpperCase().includes('KEY') || 
+      const hasSensitiveKeys = envKeys.some(k =>
+        k.toUpperCase().includes('TOKEN') ||
+        k.toUpperCase().includes('KEY') ||
         k.toUpperCase().includes('SECRET') ||
-        (k === k.toUpperCase() && k.length > 2)
+        (k === k.toUpperCase() && k.length > 2),
       );
 
       if (s.env && hasSensitiveKeys && !s.encrypted && encryptEnabled) {
         const encryptedEnv: Record<string, string> = {};
+
         for (const [key, value] of Object.entries(s.env)) {
           encryptedEnv[key] = await encryptValue(value);
         }
+
         return { ...s, env: encryptedEnv, encrypted: true };
       }
+
       return s;
     }));
+
     localStorage.setItem(MCP_REGISTRY_KEY, JSON.stringify(processedServers));
   } catch { /* ignore */ }
 }
@@ -776,12 +786,14 @@ export function getAllMCPServers(): MCPServerDefinition[] {
   const custom = loadMCPRegistry();
   const presetIds = new Set(custom.map(s => s.id));
   const presets = MCP_SERVER_PRESETS.filter(p => !presetIds.has(p.id));
+
   return [...presets, ...custom];
 }
 
 export async function registerMCPServer(server: MCPServerDefinition): Promise<void> {
   const existing = await initMCPRegistry(); // use decrypted versions for manipulation
   const idx = existing.findIndex(s => s.id === server.id);
+
   if (idx >= 0) {
     existing[idx] = server;
   } else {
@@ -792,6 +804,7 @@ export async function registerMCPServer(server: MCPServerDefinition): Promise<vo
 
 export async function removeMCPServer(serverId: string): Promise<void> {
   const existing = (await initMCPRegistry()).filter(s => s.id !== serverId);
+
   await saveMCPRegistry(existing);
 }
 
@@ -813,6 +826,7 @@ const MCP_CALL_LOG_KEY = 'yyc3-mcp-call-log';
 export function logMCPCall(result: MCPCallResult): void {
   try {
     const log: MCPCallResult[] = JSON.parse(localStorage.getItem(MCP_CALL_LOG_KEY) || '[]');
+
     log.unshift(result);
     localStorage.setItem(MCP_CALL_LOG_KEY, JSON.stringify(log.slice(0, 200)));
   } catch { /* ignore */ }
@@ -825,12 +839,240 @@ export function getMCPCallLog(): MCPCallResult[] {
 }
 
 /**
+ * Generate structured mock response for tools
+ */
+function generateMockToolResponse(
+  toolName: string,
+  args: Record<string, unknown> = {},
+): { content: { type: string; text: string }[] } {
+  let responseData: unknown;
+
+  switch (toolName) {
+    case 'cluster_status': {
+      const node = (args.node as string) || 'all';
+
+      responseData = {
+        cluster: 'yyc3-family',
+        node,
+        nodes: [
+          { id: 'm4-max', name: 'M4 Max', role: 'primary', status: 'healthy', ip: '192.168.3.22' },
+          { id: 'imac-m4', name: 'iMac M4', role: 'auxiliary', status: 'healthy', ip: '192.168.3.77' },
+          { id: 'yanyucloud', name: 'YanYuCloud NAS', role: 'storage', status: 'healthy', ip: '192.168.3.45' },
+        ],
+        agents: {
+          navigator: { node: 'm4-max', status: 'active' },
+          thinker: { node: 'm4-max', status: 'active' },
+          prophet: { node: 'm4-max', status: 'active' },
+          bole: { node: 'imac-m4', status: 'active' },
+          pivot: { node: 'imac-m4', status: 'active' },
+          sentinel: { node: 'imac-m4', status: 'active' },
+          grandmaster: { node: 'imac-m4', status: 'active' },
+        },
+        timestamp: new Date().toISOString(),
+      };
+      break;
+    }
+    case 'docker_containers': {
+      responseData = {
+        containers: [
+          { id: 'abc123', name: 'ollama', image: 'ollama/ollama:latest', state: 'running', status: 'Up 7 days', ports: [11434] },
+          { id: 'def456', name: 'postgres14', image: 'postgres:14-alpine', state: 'running', status: 'Up 30 days', ports: [5432] },
+          { id: 'ghi789', name: 'redis', image: 'redis:7-alpine', state: 'running', status: 'Up 5 days', ports: [6379] },
+          { id: 'jkl012', name: 'pgvector', image: 'pgvector/pgvector:pg14', state: 'running', status: 'Up 14 days', ports: [5434] },
+        ],
+        total: 4,
+        running: 4,
+        stopped: 0,
+      };
+      break;
+    }
+    case 'sqlite_query': {
+      responseData = {
+        columns: ['id', 'name', 'value', 'created_at'],
+        rows: [
+          [1, 'yyc3_config', '{"theme":"dark"}', '2026-02-20T10:00:00Z'],
+          [2, 'agent_state', '{"active":"navigator"}', '2026-02-23T08:30:00Z'],
+        ],
+        rowCount: 2,
+        executionTime: 12,
+      };
+      break;
+    }
+    case 'system_diagnostics': {
+      const scope = args.scope as string || 'basic';
+
+      responseData = {
+        scope,
+        timestamp: new Date().toISOString(),
+        network: {
+          interfaces: ['eth0', 'eth1'],
+          latency: { eth0: 2.5, eth1: 3.1 },
+          bandwidth: { up: 450, down: 980 },
+        },
+        storage: {
+          total: 36000,
+          used: 12500,
+          available: 23500,
+          health: 'healthy',
+        },
+        recommendation: 'System operating normally. Consider expanding storage within 30 days.',
+      };
+      break;
+    }
+    case 'read_file': {
+      const path = args.path as string || '/unknown';
+
+      responseData = {
+        path,
+        content: `// Mock file content for ${path}\nimport { Server } from '@modelcontextprotocol/sdk';\n\nexport function main() {\n  console.log('Hello from ${path}');\n}`,
+        mimeType: 'text/typescript',
+        size: 256,
+      };
+      break;
+    }
+    case 'search_repositories': {
+      const query = args.query as string || '';
+
+      responseData = {
+        total_count: 3,
+        items: [
+          { id: 1, name: `yyc3-${query}-core`, full_name: `YanYuCloudCube/yyc3-${query}-core`, stars: 128, language: 'TypeScript' },
+          { id: 2, name: `yyc3-${query}-ui`, full_name: `YanYuCloudCube/yyc3-${query}-ui`, stars: 64, language: 'TypeScript' },
+          { id: 3, name: `yyc3-${query}-docs`, full_name: `YanYuCloudCube/yyc3-${query}-docs`, stars: 32, language: 'Markdown' },
+        ],
+      };
+      break;
+    }
+    case 'brave_web_search': {
+      const query = args.query as string || '';
+
+      responseData = {
+        query,
+        results: [
+          { title: `MCP Protocol Documentation`, url: 'https://modelcontextprotocol.io', snippet: `Official MCP protocol docs for ${query}` },
+          { title: `YYC³ AI Family`, url: 'https://yyc3.dev', snippet: `YYC³ AI Family - ${query} integration` },
+        ],
+        total: 2,
+      };
+      break;
+    }
+    default: {
+      responseData = {
+        tool: toolName,
+        arguments: args,
+        result: 'success',
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }
+
+  return {
+    content: [{ type: 'text', text: JSON.stringify(responseData, null, 2) }],
+  };
+}
+
+/**
+ * Generate structured mock response for resources
+ */
+function generateMockResourceResponse(uri: string): { contents: { uri: string; mimeType: string; text: string }[] } {
+  let data: unknown;
+  const mimeType = 'application/json';
+
+  if (uri.includes('metrics/cluster')) {
+    data = {
+      cluster: 'yyc3-family',
+      nodes: ['m4-max', 'imac-m4', 'yanyucloud'],
+      status: 'healthy',
+      lastUpdated: new Date().toISOString(),
+    };
+  } else if (uri.includes('projects')) {
+    data = { projects: [{ id: 'p1', name: 'AI-Family', status: 'active' }] };
+  } else if (uri.includes('logs')) {
+    data = { logs: [{ level: 'info', message: 'System healthy', timestamp: new Date().toISOString() }] };
+  } else if (uri.includes('docker')) {
+    data = { containers: [{ name: 'ollama', state: 'running' }] };
+  } else if (uri.includes('config')) {
+    data = { devices: [{ id: 'm4-max', ip: '192.168.3.22' }] };
+  } else {
+    data = { uri, data: 'sample resource data' };
+  }
+
+  return {
+    contents: [{ uri, mimeType, text: JSON.stringify(data, null, 2) }],
+  };
+}
+
+/**
+ * Generate structured mock response for prompts
+ */
+function generateMockPromptResponse(
+  promptName: string,
+  args: Record<string, unknown> = {},
+): string {
+  switch (promptName) {
+    case 'cluster_report': {
+      const timeframe = (args.timeframe as string) || '24h';
+      const format = (args.format as string) || 'markdown';
+
+      return `Generate a comprehensive cluster status report for YYC³ AI Family.
+
+Timeframe: ${timeframe}
+Format: ${format}
+
+Cluster Nodes:
+- M4 Max (Main): Primary orchestrator, running Navigator, Thinker, Prophet agents
+- iMac M4 (Aux): Visualization node, running Bole, Pivot, Sentinel, Grandmaster agents
+- YanYuCloud NAS: Data center, PostgreSQL, Redis, Ollama services
+
+Current Status: All systems operational
+Agent Distribution: 3 agents on M4 Max (optimal latency), 4 agents on iMac M4
+
+Report should include:
+1. Node health metrics for the last ${timeframe}
+2. Agent performance summary
+3. Resource utilization
+4. Recommendations for optimization`;
+    }
+    case 'incident_response': {
+      const severity = String(args.severity || 'HIGH').toUpperCase();
+      const affectedNode = (args.affected_node as string) || 'unknown';
+
+      return `INCIDENT RESPONSE PROTOCOL - Severity: ${severity}
+
+Affected Node: ${affectedNode}
+
+Immediate Actions Required:
+1. Assess impact scope and affected services
+2. Notify relevant stakeholders
+3. Isolate affected components if necessary
+4. Begin root cause analysis
+
+For ${severity} severity incidents:
+- Response time: < 15 minutes
+- Escalation path: On-call engineer → Team lead → Management
+- Documentation: All actions must be logged
+
+Current YYC³ Cluster Status:
+- Primary node: M4 Max
+- Backup node: iMac M4
+- Data persistence: YanYuCloud NAS
+- Affected: ${affectedNode}
+
+Provide detailed incident report with timeline and resolution steps.`;
+    }
+    default: {
+      return `Mock prompt "${promptName}" executed with arguments: ${JSON.stringify(args)}`;
+    }
+  }
+}
+
+/**
  * Simulate an MCP call (mock runtime for frontend-only mode)
  */
 export async function executeMCPCall(
   serverId: string,
   method: string,
-  params: Record<string, unknown> = {}
+  params: Record<string, unknown> = {},
 ): Promise<MCPCallResult> {
   const start = performance.now();
   const id = Date.now();
@@ -839,6 +1081,7 @@ export async function executeMCPCall(
   await new Promise(r => setTimeout(r, 200 + Math.random() * 500));
 
   const server = getAllMCPServers().find(s => s.id === serverId);
+
   if (!server) {
     const result: MCPCallResult = {
       success: false,
@@ -852,7 +1095,9 @@ export async function executeMCPCall(
       },
       timestamp: Date.now(),
     };
+
     logMCPCall(result);
+
     return result;
   }
 
@@ -875,10 +1120,9 @@ export async function executeMCPCall(
     case 'tools/call': {
       const toolName = params.name as string;
       const tool = server.tools.find(t => t.name === toolName);
+
       if (tool) {
-        responseResult = {
-          content: [{ type: 'text', text: `[Mock] Tool "${toolName}" executed successfully with args: ${JSON.stringify(params.arguments || {})}` }],
-        };
+        responseResult = generateMockToolResponse(toolName, params.arguments as Record<string, unknown>);
       } else {
         const errResult: MCPCallResult = {
           success: false,
@@ -892,7 +1136,9 @@ export async function executeMCPCall(
           },
           timestamp: Date.now(),
         };
+
         logMCPCall(errResult);
+
         return errResult;
       }
       break;
@@ -902,16 +1148,8 @@ export async function executeMCPCall(
       break;
     case 'resources/read': {
       const uri = params.uri as string;
-      const res = server.resources.find(r => r.uri === uri);
-      if (res) {
-        responseResult = {
-          contents: [{ uri, mimeType: res.mimeType || 'application/json', text: `[Mock] Resource data for ${uri}` }],
-        };
-      } else {
-        responseResult = {
-          contents: [{ uri, mimeType: 'text/plain', text: `[Mock] Resource "${uri}" - sample data` }],
-        };
-      }
+
+      responseResult = generateMockResourceResponse(uri);
       break;
     }
     case 'resources/templates/list':
@@ -923,16 +1161,32 @@ export async function executeMCPCall(
     case 'prompts/get': {
       const promptName = params.name as string;
       const prompt = server.prompts.find(p => p.name === promptName);
+      const promptText = generateMockPromptResponse(promptName, params.arguments as Record<string, unknown>);
+
       responseResult = {
         description: prompt?.description || 'Unknown prompt',
         messages: [
-          { role: 'user', content: { type: 'text', text: `[Mock] Prompt "${promptName}" with args: ${JSON.stringify(params.arguments || {})}` } },
+          { role: 'user', content: { type: 'text', text: promptText } },
         ],
       };
       break;
     }
     default:
-      responseResult = { message: `[Mock] Method "${method}" executed` };
+      responseResult = {
+        message: `Method "${method}" not recognized`,
+        supportedMethods: [
+          'initialize',
+          'ping',
+          'tools/list',
+          'tools/call',
+          'resources/list',
+          'resources/read',
+          'resources/templates/list',
+          'prompts/list',
+          'prompts/get',
+        ],
+        note: 'Method not recognized. Use one of the supported methods above.',
+      };
   }
 
   const result: MCPCallResult = {
@@ -949,6 +1203,7 @@ export async function executeMCPCall(
   };
 
   logMCPCall(result);
+
   return result;
 }
 
@@ -961,6 +1216,7 @@ export function generateMCPServerCode(server: MCPServerDefinition): string {
     const params = Object.entries(tool.inputSchema.properties)
       .map(([key, val]) => `    // ${key}: ${val.description || val.type}`)
       .join('\n');
+
     return `  // Tool: ${tool.name}
   // ${tool.description}
 ${params}`;
@@ -990,7 +1246,7 @@ server.setRequestHandler("tools/list", async () => ({
 
 server.setRequestHandler("tools/call", async (request) => {
   const { name, arguments: args } = request.params;
-  
+
   switch (name) {
 ${server.tools.map(t => `    case "${t.name}":
       // TODO: Implement ${t.name}
@@ -1050,6 +1306,7 @@ export function generateMCPClientConfig(servers: MCPServerDefinition[]): string 
 
   for (const server of servers) {
     const entry: Record<string, unknown> = {};
+
     if (server.transport === 'stdio') {
       entry.command = server.command;
       entry.args = server.args;
@@ -1106,7 +1363,7 @@ export function getAllMCPConnections(): MCPTransportConnection[] {
  * Test connectivity to an HTTP-based MCP server
  */
 export async function testMCPConnection(
-  server: MCPServerDefinition
+  server: MCPServerDefinition,
 ): Promise<{ success: boolean; latencyMs: number; error?: string; serverInfo?: string }> {
   if (server.transport === 'stdio') {
     return {
@@ -1154,6 +1411,7 @@ export async function testMCPConnection(
 
     if (!response.ok) {
       const errText = await response.text().catch(() => '');
+
       return {
         success: false,
         latencyMs,
@@ -1197,18 +1455,20 @@ export async function testMCPConnection(
  * Establishes session and discovers capabilities
  */
 export async function connectMCPServer(
-  server: MCPServerDefinition
+  server: MCPServerDefinition,
 ): Promise<MCPTransportConnection> {
   const conn: MCPTransportConnection = {
     serverId: server.id,
     transport: server.transport,
     status: 'connecting',
   };
+
   _connections.set(server.id, conn);
 
   if (server.transport === 'stdio') {
     conn.status = 'error';
     conn.error = 'stdio transport not available in browser';
+
     return conn;
   }
 
@@ -1253,7 +1513,7 @@ export function disconnectMCPServer(serverId: string): void {
 export async function executeRealMCPCall(
   serverId: string,
   method: string,
-  params: Record<string, unknown> = {}
+  params: Record<string, unknown> = {},
 ): Promise<MCPCallResult> {
   const start = performance.now();
   const id = Date.now();
@@ -1300,7 +1560,9 @@ export async function executeRealMCPCall(
         },
         timestamp: Date.now(),
       };
+
       logMCPCall(result);
+
       return result;
     }
 
@@ -1318,6 +1580,7 @@ export async function executeRealMCPCall(
     logMCPCall(result);
     conn.lastPing = Date.now();
     conn.latencyMs = latencyMs;
+
     return result;
 
   } catch (error) {
@@ -1353,7 +1616,7 @@ export async function executeRealMCPCall(
 export async function smartMCPCall(
   serverId: string,
   method: string,
-  params: Record<string, unknown> = {}
+  params: Record<string, unknown> = {},
 ): Promise<MCPCallResult> {
   const conn = _connections.get(serverId);
 
@@ -1361,6 +1624,7 @@ export async function smartMCPCall(
   try {
     const { eventBus } = await import('./event-bus');
     const mode = conn?.status === 'connected' ? 'REAL' : 'MOCK';
+
     eventBus.mcp('call', `[${mode}] ${method} → ${serverId}`, 'info', { serverId, method, mode });
   } catch { /* bus not available */ }
 

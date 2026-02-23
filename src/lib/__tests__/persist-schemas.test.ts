@@ -6,6 +6,7 @@
 // ============================================================
 
 import { describe, it, expect } from 'vitest';
+
 import {
   ChatMessageSchema,
   ChatSessionSchema,
@@ -35,6 +36,7 @@ describe('ChatMessageSchema', () => {
       timestamp: '12:00',
     };
     const result = ChatMessageSchema.safeParse(msg);
+
     expect(result.success).toBe(true);
   });
 
@@ -48,6 +50,7 @@ describe('ChatMessageSchema', () => {
       agentRole: 'architect',
     };
     const result = ChatMessageSchema.safeParse(msg);
+
     expect(result.success).toBe(true);
   });
 
@@ -59,12 +62,14 @@ describe('ChatMessageSchema', () => {
       timestamp: '12:00',
     };
     const result = ChatMessageSchema.safeParse(msg);
+
     expect(result.success).toBe(false);
   });
 
   it('ZOD-04: rejects message without required fields', () => {
     const msg = { id: 'msg-4', role: 'user' };
     const result = ChatMessageSchema.safeParse(msg);
+
     expect(result.success).toBe(false);
   });
 
@@ -76,6 +81,7 @@ describe('ChatMessageSchema', () => {
       timestamp: '12:00',
     };
     const result = ChatMessageSchema.safeParse(msg);
+
     expect(result.success).toBe(false);
   });
 });
@@ -96,6 +102,7 @@ describe('ChatSessionSchema', () => {
       createdAt: '2026-02-16T00:00:00Z',
     };
     const result = ChatSessionSchema.safeParse(session);
+
     expect(result.success).toBe(true);
   });
 
@@ -107,6 +114,7 @@ describe('ChatSessionSchema', () => {
       createdAt: '2026-02-16',
     };
     const result = ChatSessionSchema.safeParse(session);
+
     expect(result.success).toBe(false);
   });
 });
@@ -125,6 +133,7 @@ describe('AgentHistoryRecordSchema', () => {
       ],
     };
     const result = AgentHistoryRecordSchema.safeParse(record);
+
     expect(result.success).toBe(true);
   });
 });
@@ -145,17 +154,20 @@ describe('PreferencesSchema', () => {
       glowEffect: false,
     };
     const result = PreferencesSchema.safeParse(prefs);
+
     expect(result.success).toBe(true);
   });
 
   it('ZOD-10: validates empty preferences (all optional)', () => {
     const result = PreferencesSchema.safeParse({});
+
     expect(result.success).toBe(true);
   });
 
   it('ZOD-11: rejects invalid language', () => {
     const prefs = { language: 'fr' };
     const result = PreferencesSchema.safeParse(prefs);
+
     expect(result.success).toBe(false);
   });
 });
@@ -174,6 +186,7 @@ describe('SystemLogSchema', () => {
       timestamp: '2026-02-16T12:00:00Z',
     };
     const result = SystemLogSchema.safeParse(log);
+
     expect(result.success).toBe(true);
   });
 
@@ -186,6 +199,7 @@ describe('SystemLogSchema', () => {
       timestamp: '12:00',
     };
     const result = SystemLogSchema.safeParse(log);
+
     expect(result.success).toBe(false);
   });
 });
@@ -205,12 +219,14 @@ describe('KnowledgeEntrySchema', () => {
       importance: 'high',
     };
     const result = KnowledgeEntrySchema.safeParse(entry);
+
     expect(result.success).toBe(true);
   });
 
   it('ZOD-15: rejects entry without required category', () => {
     const entry = { id: 'kb-2', title: 'No Category' };
     const result = KnowledgeEntrySchema.safeParse(entry);
+
     expect(result.success).toBe(false);
   });
 });
@@ -229,6 +245,7 @@ describe('LLMProviderConfigSchema', () => {
       defaultModel: 'gpt-4o',
     };
     const result = LLMProviderConfigSchema.safeParse(config);
+
     expect(result.success).toBe(true);
   });
 
@@ -240,6 +257,7 @@ describe('LLMProviderConfigSchema', () => {
       defaultModel: 'gpt-4o',
     };
     const result = LLMProviderConfigSchema.safeParse(config);
+
     expect(result.success).toBe(false);
   });
 });
@@ -253,6 +271,7 @@ describe('validateRecord helper', () => {
     const result = validateRecord(ChatMessageSchema, {
       id: 'x', role: 'user', content: 'test', timestamp: '12:00',
     });
+
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.id).toBe('x');
@@ -262,6 +281,7 @@ describe('validateRecord helper', () => {
 
   it('ZOD-19: returns errors for invalid data', () => {
     const result = validateRecord(ChatMessageSchema, { id: 123 });
+
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.errors.length).toBeGreaterThan(0);
@@ -277,6 +297,7 @@ describe('validateArray helper', () => {
       { id: '3', role: 'ai', content: 'good', timestamp: '12:01' },
     ];
     const result = validateArray(ChatMessageSchema, data);
+
     expect(result.valid.length).toBe(2);
     expect(result.invalidCount).toBe(1);
     expect(result.errors.length).toBe(1);
@@ -284,6 +305,7 @@ describe('validateArray helper', () => {
 
   it('ZOD-21: handles empty array', () => {
     const result = validateArray(ChatMessageSchema, []);
+
     expect(result.valid.length).toBe(0);
     expect(result.invalidCount).toBe(0);
   });
@@ -298,6 +320,7 @@ describe('Domain validators', () => {
     const result = validators.chatMessage({
       id: 'v1', role: 'user', content: 'test', timestamp: '12:00',
     });
+
     expect(result.success).toBe(true);
   });
 
@@ -309,6 +332,7 @@ describe('Domain validators', () => {
       enabled: true,
       defaultModel: 'deepseek-chat',
     });
+
     expect(result.success).toBe(true);
   });
 
@@ -318,6 +342,7 @@ describe('Domain validators', () => {
       { bad: true },
       { id: '3', role: 'ai', content: 'c', timestamp: '12:02' },
     ]);
+
     expect(result.valid.length).toBe(2);
     expect(result.invalidCount).toBe(1);
   });
@@ -337,24 +362,28 @@ describe('NodeMetricsSchema', () => {
       temperature: 62.3,
     };
     const result = NodeMetricsSchema.safeParse(metrics);
+
     expect(result.success).toBe(true);
   });
 
   it('ZOD-26: validates minimal node metrics (only required fields)', () => {
     const metrics = { cpu: 10, memory: 20, disk: 30 };
     const result = NodeMetricsSchema.safeParse(metrics);
+
     expect(result.success).toBe(true);
   });
 
   it('ZOD-27: rejects node metrics with missing cpu', () => {
     const metrics = { memory: 50, disk: 60 };
     const result = NodeMetricsSchema.safeParse(metrics);
+
     expect(result.success).toBe(false);
   });
 
   it('ZOD-28: rejects node metrics with string value', () => {
     const metrics = { cpu: 'high', memory: 50, disk: 60 };
     const result = NodeMetricsSchema.safeParse(metrics);
+
     expect(result.success).toBe(false);
   });
 });
@@ -374,6 +403,7 @@ describe('MetricsSnapshotSchema', () => {
       },
     };
     const result = MetricsSnapshotSchema.safeParse(snapshot);
+
     expect(result.success).toBe(true);
   });
 
@@ -383,6 +413,7 @@ describe('MetricsSnapshotSchema', () => {
       timestamp: '2026-02-16T12:05:00Z',
     };
     const result = MetricsSnapshotSchema.safeParse(snapshot);
+
     expect(result.success).toBe(true);
   });
 
@@ -391,16 +422,18 @@ describe('MetricsSnapshotSchema', () => {
       id: 'snap-3',
       timestamp: '2026-02-16T12:10:00Z',
       nodes: {
-        'm4-max': { cpu: 'bad' },  // invalid: string instead of number
+        'm4-max': { cpu: 'bad' }, // invalid: string instead of number
       },
     };
     const result = MetricsSnapshotSchema.safeParse(snapshot);
+
     expect(result.success).toBe(false);
   });
 
   it('ZOD-32: rejects snapshot without required id', () => {
     const snapshot = { timestamp: '2026-02-16T12:15:00Z' };
     const result = MetricsSnapshotSchema.safeParse(snapshot);
+
     expect(result.success).toBe(false);
   });
 });
@@ -420,6 +453,7 @@ describe('AgentChatMessageSchema', () => {
       agentRole: 'architect',
     };
     const result = AgentChatMessageSchema.safeParse(msg);
+
     expect(result.success).toBe(true);
   });
 
@@ -431,6 +465,7 @@ describe('AgentChatMessageSchema', () => {
       timestamp: '12:01',
     };
     const result = AgentChatMessageSchema.safeParse(msg);
+
     expect(result.success).toBe(true);
   });
 
@@ -443,6 +478,7 @@ describe('AgentChatMessageSchema', () => {
       agentRole: 'manager', // not in enum
     };
     const result = AgentChatMessageSchema.safeParse(msg);
+
     expect(result.success).toBe(false);
   });
 });
@@ -468,6 +504,7 @@ describe('Edge cases', () => {
   it('ZOD-38: empty string id passes ChatMessage (string type, no min constraint)', () => {
     const msg = { id: '', role: 'user', content: '', timestamp: '' };
     const result = ChatMessageSchema.safeParse(msg);
+
     expect(result.success).toBe(true);
   });
 
@@ -478,6 +515,7 @@ describe('Edge cases', () => {
       42,
     ];
     const result = validateArray(ChatMessageSchema, data);
+
     expect(result.valid.length).toBe(0);
     expect(result.invalidCount).toBe(3);
     expect(result.errors.length).toBe(3);
@@ -493,6 +531,7 @@ describe('Edge cases', () => {
       metadata: { provider: 'openai', retryAfter: 30 },
     };
     const result = SystemLogSchema.safeParse(log);
+
     expect(result.success).toBe(true);
   });
 
@@ -513,6 +552,7 @@ describe('Edge cases', () => {
       bgImageDataUrl: 'data:image/png;base64,ABC',
     };
     const result = PreferencesSchema.safeParse(prefs);
+
     expect(result.success).toBe(true);
   });
 
@@ -532,6 +572,7 @@ describe('Edge cases', () => {
       updatedAt: '2026-02-16T12:00:00Z',
     };
     const result = KnowledgeEntrySchema.safeParse(entry);
+
     expect(result.success).toBe(true);
   });
 
@@ -539,6 +580,7 @@ describe('Edge cases', () => {
     const result = validators.systemLog({
       id: 'sl-1', level: 'error', source: 'MCP', message: 'Timeout', timestamp: '12:00',
     });
+
     expect(result.success).toBe(true);
   });
 
@@ -547,6 +589,7 @@ describe('Edge cases', () => {
       { id: '1', level: 'info', source: 'A', message: 'ok', timestamp: '12:00' },
       { id: '2', level: 'invalid_level', source: 'B', message: 'bad', timestamp: '12:01' },
     ]);
+
     expect(result.valid.length).toBe(1);
     expect(result.invalidCount).toBe(1);
   });

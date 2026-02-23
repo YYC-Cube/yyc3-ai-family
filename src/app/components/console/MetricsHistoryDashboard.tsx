@@ -12,22 +12,23 @@
 //   - Export archived data
 // ============================================================
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   BarChart3, Cpu, HardDrive, Wifi, Thermometer,
   Clock, RefreshCw, Loader2, Download, Layers,
   Monitor, Database as DbIcon, TrendingUp,
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
+} from 'lucide-react';
+import * as React from 'react';
 import {
   LineChart, Line, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
-} from "recharts";
-import { getMetricsArchive, type MetricsArchiveEntry } from "@/lib/persistence-binding";
+} from 'recharts';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
+import { getMetricsArchive, type MetricsArchiveEntry } from '@/lib/persistence-binding';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // Types
@@ -47,24 +48,24 @@ interface ChartDataPoint {
 }
 
 const NODE_META: Record<NodeId, { label: string; color: string; strokeColor: string }> = {
-  'm4-max':     { label: 'M4 Max',    color: '#f59e0b', strokeColor: '#f59e0b' },
-  'imac-m4':    { label: 'iMac M4',   color: '#3b82f6', strokeColor: '#3b82f6' },
-  'matebook':   { label: 'MateBook',  color: '#22c55e', strokeColor: '#22c55e' },
-  'yanyucloud': { label: 'NAS F4',    color: '#06b6d4', strokeColor: '#06b6d4' },
+  'm4-max': { label: 'M4 Max', color: '#f59e0b', strokeColor: '#f59e0b' },
+  'imac-m4': { label: 'iMac M4', color: '#3b82f6', strokeColor: '#3b82f6' },
+  'matebook': { label: 'MateBook', color: '#22c55e', strokeColor: '#22c55e' },
+  'yanyucloud': { label: 'NAS F4', color: '#06b6d4', strokeColor: '#06b6d4' },
 };
 
 const METRIC_META: Record<MetricKey, { label: string; icon: React.ComponentType<{ className?: string }>; unit: string; max: number }> = {
-  cpu:         { label: 'CPU Usage',     icon: Cpu,          unit: '%',  max: 100 },
-  memory:      { label: 'Memory Usage',  icon: Monitor,      unit: '%',  max: 100 },
-  disk:        { label: 'Disk Usage',    icon: HardDrive,    unit: '%',  max: 100 },
-  network:     { label: 'Network I/O',   icon: Wifi,         unit: 'Mbps', max: 1000 },
-  temperature: { label: 'Temperature',   icon: Thermometer,  unit: '°C', max: 100 },
+  cpu: { label: 'CPU Usage', icon: Cpu, unit: '%', max: 100 },
+  memory: { label: 'Memory Usage', icon: Monitor, unit: '%', max: 100 },
+  disk: { label: 'Disk Usage', icon: HardDrive, unit: '%', max: 100 },
+  network: { label: 'Network I/O', icon: Wifi, unit: 'Mbps', max: 1000 },
+  temperature: { label: 'Temperature', icon: Thermometer, unit: '°C', max: 100 },
 };
 
 const TIME_RANGES: { id: TimeRange; label: string; ms: number }[] = [
   { id: '30m', label: '30 min', ms: 30 * 60 * 1000 },
-  { id: '1h',  label: '1 hour', ms: 60 * 60 * 1000 },
-  { id: '6h',  label: '6 hours', ms: 6 * 60 * 60 * 1000 },
+  { id: '1h', label: '1 hour', ms: 60 * 60 * 1000 },
+  { id: '6h', label: '6 hours', ms: 6 * 60 * 60 * 1000 },
   { id: 'all', label: 'All', ms: Infinity },
 ];
 
@@ -84,10 +85,12 @@ function processArchive(
   return archive
     .filter(entry => {
       const ts = new Date(entry.timestamp).getTime();
+
       return ts >= cutoff;
     })
     .map(entry => {
       const ts = new Date(entry.timestamp).getTime();
+
       return {
         time: new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         timestamp: ts,
@@ -104,6 +107,7 @@ function computeStats(data: ChartDataPoint[], nodeId: NodeId): { avg: number; ma
   if (data.length === 0) return { avg: 0, max: 0, min: 0, current: 0 };
   const values = data.map(d => d[nodeId]);
   const sum = values.reduce((a, b) => a + b, 0);
+
   return {
     avg: Math.round((sum / values.length) * 10) / 10,
     max: Math.round(Math.max(...values) * 10) / 10,
@@ -124,6 +128,7 @@ interface TooltipPayloadEntry {
 
 function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: TooltipPayloadEntry[]; label?: string }) {
   if (!active || !payload?.length) return null;
+
   return (
     <div className="bg-zinc-900/95 border border-white/10 rounded-lg p-3 shadow-xl backdrop-blur-sm">
       <p className="text-[10px] text-zinc-400 font-mono mb-2">{label}</p>
@@ -152,7 +157,7 @@ export function MetricsHistoryDashboard() {
   const [activeMetric, setActiveMetric] = React.useState<MetricKey>('cpu');
   const [timeRange, setTimeRange] = React.useState<TimeRange>('all');
   const [enabledNodes, setEnabledNodes] = React.useState<Set<NodeId>>(
-    new Set(['m4-max', 'imac-m4', 'matebook', 'yanyucloud'])
+    new Set(['m4-max', 'imac-m4', 'matebook', 'yanyucloud']),
   );
   const [chartType, setChartType] = React.useState<'line' | 'area'>('area');
 
@@ -161,6 +166,7 @@ export function MetricsHistoryDashboard() {
     setLoading(true);
     try {
       const data = await getMetricsArchive();
+
       setArchive(data);
     } catch {
       setArchive([]);
@@ -174,24 +180,27 @@ export function MetricsHistoryDashboard() {
   // Auto-refresh every 30s
   React.useEffect(() => {
     const interval = setInterval(loadArchive, 30000);
+
     return () => clearInterval(interval);
   }, [loadArchive]);
 
   // Process chart data
   const chartData = React.useMemo(
     () => processArchive(archive, activeMetric, timeRange),
-    [archive, activeMetric, timeRange]
+    [archive, activeMetric, timeRange],
   );
 
   // Toggle node
   const toggleNode = (nodeId: NodeId) => {
     setEnabledNodes(prev => {
       const next = new Set(prev);
+
       if (next.has(nodeId)) {
         if (next.size > 1) next.delete(nodeId); // Keep at least 1
       } else {
         next.add(nodeId);
       }
+
       return next;
     });
   };
@@ -208,6 +217,7 @@ export function MetricsHistoryDashboard() {
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
+
     a.href = url;
     a.download = `yyc3-metrics-${activeMetric}-${timeRange}-${Date.now()}.json`;
     a.click();
@@ -241,7 +251,7 @@ export function MetricsHistoryDashboard() {
             onClick={loadArchive}
             disabled={loading}
           >
-            <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
+            <RefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin')} />
           </Button>
         </div>
       </div>
@@ -252,15 +262,16 @@ export function MetricsHistoryDashboard() {
         <div className="flex items-center gap-1 bg-black/30 rounded-lg border border-white/5 p-1">
           {(Object.keys(METRIC_META) as MetricKey[]).map(key => {
             const meta = METRIC_META[key];
+
             return (
               <button
                 key={key}
                 onClick={() => setActiveMetric(key)}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-mono transition-all",
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-mono transition-all',
                   activeMetric === key
-                    ? "bg-white/10 text-white"
-                    : "text-zinc-500 hover:text-zinc-300"
+                    ? 'bg-white/10 text-white'
+                    : 'text-zinc-500 hover:text-zinc-300',
                 )}
               >
                 <meta.icon className="w-3 h-3" />
@@ -278,10 +289,10 @@ export function MetricsHistoryDashboard() {
               key={range.id}
               onClick={() => setTimeRange(range.id)}
               className={cn(
-                "px-2.5 py-1 rounded-md text-[10px] font-mono transition-all",
+                'px-2.5 py-1 rounded-md text-[10px] font-mono transition-all',
                 timeRange === range.id
-                  ? "bg-white/10 text-white"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  ? 'bg-white/10 text-white'
+                  : 'text-zinc-500 hover:text-zinc-300',
               )}
             >
               {range.label}
@@ -294,8 +305,8 @@ export function MetricsHistoryDashboard() {
           <button
             onClick={() => setChartType('area')}
             className={cn(
-              "px-2.5 py-1 rounded-md text-[10px] font-mono transition-all",
-              chartType === 'area' ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300"
+              'px-2.5 py-1 rounded-md text-[10px] font-mono transition-all',
+              chartType === 'area' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300',
             )}
           >
             Area
@@ -303,8 +314,8 @@ export function MetricsHistoryDashboard() {
           <button
             onClick={() => setChartType('line')}
             className={cn(
-              "px-2.5 py-1 rounded-md text-[10px] font-mono transition-all",
-              chartType === 'line' ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300"
+              'px-2.5 py-1 rounded-md text-[10px] font-mono transition-all',
+              chartType === 'line' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300',
             )}
           >
             Line
@@ -316,15 +327,16 @@ export function MetricsHistoryDashboard() {
           {(Object.keys(NODE_META) as NodeId[]).map(nodeId => {
             const meta = NODE_META[nodeId];
             const active = enabledNodes.has(nodeId);
+
             return (
               <button
                 key={nodeId}
                 onClick={() => toggleNode(nodeId)}
                 className={cn(
-                  "px-2.5 py-1 rounded-full text-[9px] font-mono border transition-all",
+                  'px-2.5 py-1 rounded-full text-[9px] font-mono border transition-all',
                   active
-                    ? "border-opacity-30 bg-opacity-10"
-                    : "border-white/5 text-zinc-600 bg-transparent"
+                    ? 'border-opacity-30 bg-opacity-10'
+                    : 'border-white/5 text-zinc-600 bg-transparent',
                 )}
                 style={{
                   borderColor: active ? meta.color : undefined,
@@ -469,6 +481,7 @@ export function MetricsHistoryDashboard() {
           {(Object.keys(NODE_META) as NodeId[]).filter(n => enabledNodes.has(n)).map(nodeId => {
             const meta = NODE_META[nodeId];
             const stats = computeStats(chartData, nodeId);
+
             return (
               <Card key={nodeId} className="bg-zinc-900/40 border-white/5">
                 <CardContent className="p-4">

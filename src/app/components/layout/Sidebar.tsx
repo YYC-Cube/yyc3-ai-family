@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Terminal,
   FolderOpen,
@@ -15,14 +14,16 @@ import {
   Github,
   Globe,
   BookOpen,
-  Bookmark
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/app/components/ui/button";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { useTranslation } from "@/lib/i18n";
-import { useSystemStore } from "@/lib/store";
-import { loadBranding, type BrandingConfig } from "@/lib/branding-config";
+  Bookmark,
+} from 'lucide-react';
+import React from 'react';
+
+import { Button } from '@/app/components/ui/button';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { loadBranding, type BrandingConfig } from '@/lib/branding-config';
+import { useTranslation } from '@/lib/i18n';
+import { useSystemStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
 
 interface SidebarProps {
   activeView: string;
@@ -53,20 +54,23 @@ const W_EXPANDED = 224;
 
 export function Sidebar({ activeView, onViewChange, onNewSession, onOpenSettings }: SidebarProps) {
   const { t } = useTranslation();
-  const collapsed = useSystemStore((s) => s.sidebarCollapsed);
-  const pinned = useSystemStore((s) => s.sidebarPinned);
-  const isMobile = useSystemStore((s) => s.isMobile);
-  const setSidebarCollapsed = useSystemStore((s) => s.setSidebarCollapsed);
-  const toggleSidebarPin = useSystemStore((s) => s.toggleSidebarPin);
+  const collapsed = useSystemStore(s => s.sidebarCollapsed);
+  const pinned = useSystemStore(s => s.sidebarPinned);
+  const isMobile = useSystemStore(s => s.isMobile);
+  const setSidebarCollapsed = useSystemStore(s => s.setSidebarCollapsed);
+  const toggleSidebarPin = useSystemStore(s => s.toggleSidebarPin);
 
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const hoverTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Branding — listen for updates from Settings
   const [branding, setBranding] = React.useState<BrandingConfig>(() => loadBranding());
+
   React.useEffect(() => {
     const handler = () => setBranding(loadBranding());
+
     window.addEventListener('yyc3-branding-update', handler);
+
     return () => window.removeEventListener('yyc3-branding-update', handler);
   }, []);
 
@@ -139,7 +143,7 @@ export function Sidebar({ activeView, onViewChange, onNewSession, onOpenSettings
                 activeView={activeView}
                 onViewChange={handleViewChange}
                 onNewSession={() => { onNewSession(); setMobileOpen(false); }}
-                onOpenSettings={(tab) => { onOpenSettings(tab); setMobileOpen(false); }}
+                onOpenSettings={tab => { onOpenSettings(tab); setMobileOpen(false); }}
                 isExpanded={true}
                 onClose={() => setMobileOpen(false)}
                 t={t}
@@ -195,12 +199,12 @@ interface SidebarContentProps {
 
 function SidebarContent({
   activeView, onViewChange, onNewSession, onOpenSettings,
-  isExpanded, pinned, onTogglePin, onClose, t, branding
+  isExpanded, pinned, onTogglePin, onClose, t, branding,
 }: SidebarContentProps) {
   return (
     <div className={cn(
-      "flex flex-col h-full border-r border-border bg-card/80 backdrop-blur-sm overflow-hidden",
-      isExpanded ? "w-full" : "w-[56px]"
+      'flex flex-col h-full border-r border-border bg-card/80 backdrop-blur-sm overflow-hidden',
+      isExpanded ? 'w-full' : 'w-[56px]',
     )}>
       {/* Logo Area */}
       <div className="p-3 border-b border-border flex items-center gap-2 shrink-0">
@@ -226,9 +230,9 @@ function SidebarContent({
           <Button
             variant="ghost"
             size="icon"
-            className={cn("h-7 w-7 shrink-0 transition-colors", pinned ? "text-primary" : "text-zinc-600 hover:text-zinc-400")}
+            className={cn('h-7 w-7 shrink-0 transition-colors', pinned ? 'text-primary' : 'text-zinc-600 hover:text-zinc-400')}
             onClick={onTogglePin}
-            title={pinned ? "取消固定" : "固定侧边栏"}
+            title={pinned ? '取消固定' : '固定侧边栏'}
           >
             {pinned ? <Pin className="w-3.5 h-3.5" /> : <PinOff className="w-3.5 h-3.5" />}
           </Button>
@@ -236,10 +240,10 @@ function SidebarContent({
       </div>
 
       <ScrollArea className="flex-1">
-        <div className={cn("space-y-4", isExpanded ? "p-2" : "p-1 py-2")}>
+        <div className={cn('space-y-4', isExpanded ? 'p-2' : 'p-1 py-2')}>
 
           {/* Quick Action */}
-          <div className={isExpanded ? "px-1" : "px-0.5"}>
+          <div className={isExpanded ? 'px-1' : 'px-0.5'}>
             {isExpanded ? (
               <Button
                 variant="outline"
@@ -287,7 +291,7 @@ function SidebarContent({
       </ScrollArea>
 
       {/* User Status + Quick Settings */}
-      <div className={cn("border-t border-border mt-auto bg-black/20 shrink-0", isExpanded ? "p-3" : "p-2")}>
+      <div className={cn('border-t border-border mt-auto bg-black/20 shrink-0', isExpanded ? 'p-3' : 'p-2')}>
         {isExpanded ? (
           <div className="space-y-2.5">
             <div className="flex items-center gap-3">
@@ -362,13 +366,13 @@ function NavItem({ icon: Icon, label, active, collapsed, onClick }: NavItemProps
     return (
       <div className="flex justify-center px-1">
         <Button
-          variant={active ? "secondary" : "ghost"}
+          variant={active ? 'secondary' : 'ghost'}
           size="icon"
           className={cn(
-            "w-10 h-10 relative group transition-all duration-200",
+            'w-10 h-10 relative group transition-all duration-200',
             active
-              ? "bg-primary/10 text-primary shadow-[inset_0_0_10px_rgba(14,165,233,0.15)]"
-              : "text-muted-foreground hover:text-foreground"
+              ? 'bg-primary/10 text-primary shadow-[inset_0_0_10px_rgba(14,165,233,0.15)]'
+              : 'text-muted-foreground hover:text-foreground',
           )}
           onClick={onClick}
           title={label}
@@ -386,12 +390,12 @@ function NavItem({ icon: Icon, label, active, collapsed, onClick }: NavItemProps
 
   return (
     <Button
-      variant={active ? "secondary" : "ghost"}
+      variant={active ? 'secondary' : 'ghost'}
       className={cn(
-        "w-full justify-start gap-2 font-mono text-xs h-9 transition-all duration-200",
+        'w-full justify-start gap-2 font-mono text-xs h-9 transition-all duration-200',
         active
-          ? "bg-primary/10 text-primary border-l-2 border-primary rounded-none pl-3 shadow-[inset_10px_0_20px_-10px_rgba(14,165,233,0.3)]"
-          : "text-muted-foreground hover:text-foreground border-l-2 border-transparent pl-3 hover:translate-x-0.5"
+          ? 'bg-primary/10 text-primary border-l-2 border-primary rounded-none pl-3 shadow-[inset_10px_0_20px_-10px_rgba(14,165,233,0.3)]'
+          : 'text-muted-foreground hover:text-foreground border-l-2 border-transparent pl-3 hover:translate-x-0.5',
       )}
       onClick={onClick}
     >

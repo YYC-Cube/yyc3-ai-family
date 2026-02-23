@@ -6,7 +6,7 @@ interface HighlightedTextProps {
 
 export const HighlightedText: React.FC<HighlightedTextProps> = ({
   text,
-  highlights
+  highlights,
 }) => {
   if (highlights.length === 0) return <>{text}</>;
 
@@ -16,9 +16,12 @@ export const HighlightedText: React.FC<HighlightedTextProps> = ({
   // 避免重复高亮和嵌套问题
   highlights.forEach(highlight => {
     const regex = new RegExp(`(${highlight})`, 'gi');
-    processedText = processedText.replace(regex, (match) => {
+
+    processedText = processedText.replace(regex, match => {
       const key = `@@HIGHLIGHT_${match}@@`;
+
       highlightMap.set(key, match);
+
       return key;
     });
   });
@@ -30,8 +33,9 @@ export const HighlightedText: React.FC<HighlightedTextProps> = ({
     <>
       {parts.map((part, index) => {
         if (index % 2 === 1) {
-          return <mark key={index} style={{backgroundColor: '#1890ff', color: 'white'}}>{part}</mark>;
+          return <mark key={index} style={{ backgroundColor: '#1890ff', color: 'white' }}>{part}</mark>;
         }
+
         return <span key={index}>{part}</span>;
       })}
     </>

@@ -27,17 +27,19 @@
 //           → clusterMetrics → 30s interval archive
 // ============================================================
 
-import { useSystemStore } from './store';
-import type { ClusterMetricsSnapshot, ChatMessage, AgentChatMessage } from './store';
-import { getPersistenceEngine } from './persistence-engine';
-import { eventBus } from './event-bus';
 import { useRef, useEffect } from 'react';
+
+import { eventBus } from './event-bus';
 import {
   ChatMessageSchema,
   AgentHistoryRecordSchema,
   SystemLogSchema,
   validateArray,
 } from './persist-schemas';
+import { getPersistenceEngine } from './persistence-engine';
+import { useSystemStore } from './store';
+import type { ClusterMetricsSnapshot, ChatMessage, AgentChatMessage } from './store';
+
 
 // ============================================================
 // 1. Debounce Utility
@@ -45,15 +47,17 @@ import {
 
 function debounce<T extends (...args: unknown[]) => void>(
   fn: T,
-  delayMs: number
+  delayMs: number,
 ): T & { cancel: () => void; flush: () => void } {
   let timer: ReturnType<typeof setTimeout> | null = null;
   const debounced = ((...args: unknown[]) => {
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => { timer = null; fn(...args); }, delayMs);
   }) as T & { cancel: () => void; flush: () => void };
+
   debounced.cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
   debounced.flush = () => { if (timer) { clearTimeout(timer); timer = null; fn(); } };
+
   return debounced;
 }
 
@@ -63,7 +67,7 @@ function debounce<T extends (...args: unknown[]) => void>(
 
 const DEBOUNCE_MS = 2000;
 const METRICS_ARCHIVE_INTERVAL = 30_000; // 30 seconds
-const METRICS_ARCHIVE_MAX = 100;         // rolling window
+const METRICS_ARCHIVE_MAX = 100; // rolling window
 
 interface MetricsArchiveEntry {
   id: string;
@@ -75,6 +79,7 @@ const writers = {
   chat_messages: debounce(async () => {
     const engine = getPersistenceEngine();
     const messages = useSystemStore.getState().messages;
+
     await engine.write('chat_messages', messages);
     eventBus.persist('write', `chat_messages: ${messages.length} records persisted`, 'info', { domain: 'chat_messages', count: messages.length });
   }, DEBOUNCE_MS),
@@ -86,6 +91,7 @@ const writers = {
       id: agentId, agentId, messages, updatedAt: new Date().toISOString(),
     }));
     const totalMsgs = entries.reduce((s, e) => s + (e.messages as unknown[]).length, 0);
+
     await engine.write('agent_messages', entries);
     eventBus.persist('write', `agent_messages: ${entries.length} agents, ${totalMsgs} messages`, 'info', { domain: 'agent_messages', agents: entries.length, messages: totalMsgs });
   }, DEBOUNCE_MS),
@@ -93,6 +99,7 @@ const writers = {
   system_logs: debounce(async () => {
     const engine = getPersistenceEngine();
     const logs = useSystemStore.getState().logs;
+
     await engine.write('system_logs', logs);
     // Don't emit for log writes to avoid recursion
   }, DEBOUNCE_MS * 2.5),
@@ -100,6 +107,7 @@ const writers = {
   preferences: debounce(async () => {
     const engine = getPersistenceEngine();
     const state = useSystemStore.getState();
+
     await engine.write('preferences', [{
       id: 'app-preferences',
       sidebarCollapsed: state.sidebarCollapsed,
@@ -113,6 +121,7 @@ const writers = {
   metrics_snapshots: debounce(async () => {
     const engine = getPersistenceEngine();
     const metrics = useSystemStore.getState().clusterMetrics;
+
     if (!metrics) return;
 
     // Read existing archive, append, trim to rolling window
@@ -123,6 +132,7 @@ const writers = {
       data: metrics,
     };
     const archive = [...existing, newEntry].slice(-METRICS_ARCHIVE_MAX);
+
     await engine.write('metrics_snapshots', archive);
     eventBus.persist('archive', `metrics snapshot archived (${archive.length}/${METRICS_ARCHIVE_MAX})`, 'info', {
       domain: 'metrics_snapshots',
@@ -137,8 +147,10 @@ const writers = {
     // through persistence-engine.ts functions (upsertKnowledgeEntry, etc.)
     // This writer serves as a scheduled sync checkpoint
     const engine = getPersistenceEngine();
+
     try {
       const entries = await engine.read('knowledge_base');
+
       if (entries.length > 0) {
         eventBus.persist('sync', `knowledge_base: ${entries.length} entries synced`, 'debug', {
           domain: 'knowledge_base',
@@ -151,8 +163,10 @@ const writers = {
   // Phase 20: Agent Profiles writer
   agent_profiles: debounce(async () => {
     const engine = getPersistenceEngine();
+
     try {
       const profiles = await engine.read('agent_profiles');
+
       if (profiles.length > 0) {
         eventBus.persist('sync', `agent_profiles: ${profiles.length} profiles synced`, 'debug', {
           domain: 'agent_profiles',
@@ -183,9 +197,11 @@ export async function hydrateStoreFromPersistence(): Promise<{
   try {
     // --- Chat Messages ---
     const chatMsgs = await engine.read('chat_messages');
+
     if (chatMsgs.length > 0) {
       // Phase 27: Zod-validated hydration (replaces manual typeof guards)
       const { valid, invalidCount } = validateArray(ChatMessageSchema, chatMsgs);
+
       if (valid.length > 0) {
         useSystemStore.getState().setMessages(valid as ChatMessage[]);
         hydratedDomains.push('chat_messages');
@@ -198,10 +214,12 @@ export async function hydrateStoreFromPersistence(): Promise<{
 
     // --- Agent Chat Histories ---
     const agentData = await engine.read('agent_messages');
+
     if (agentData.length > 0) {
       // Phase 27: Zod-validated agent history records
       const { valid: validRecords } = validateArray(AgentHistoryRecordSchema, agentData);
       const histories: Record<string, AgentChatMessage[]> = {};
+
       for (const rec of validRecords) {
         histories[rec.agentId] = rec.messages as AgentChatMessage[];
       }
@@ -216,10 +234,12 @@ export async function hydrateStoreFromPersistence(): Promise<{
 
     // --- Preferences ---
     const prefs = await engine.read('preferences');
+
     if (prefs.length > 0) {
       // Phase 27: Zod-validated preferences (PreferencesSchema is all-optional,
       // so we validate and then apply known fields from the record)
       const p = prefs[0] as Record<string, unknown>;
+
       if (p) {
         if (typeof p.sidebarCollapsed === 'boolean') {
           useSystemStore.getState().setSidebarCollapsed(p.sidebarCollapsed);
@@ -237,8 +257,10 @@ export async function hydrateStoreFromPersistence(): Promise<{
 
     // --- Metrics Snapshots (restore last snapshot for display) ---
     const metricsArchive = await engine.read('metrics_snapshots') as MetricsArchiveEntry[];
+
     if (metricsArchive.length > 0) {
       const latest = metricsArchive[metricsArchive.length - 1];
+
       if (latest?.data) {
         // Don't overwrite live metrics — just log that archive exists
         hydratedDomains.push('metrics_snapshots');
@@ -248,11 +270,14 @@ export async function hydrateStoreFromPersistence(): Promise<{
 
     // --- System Logs (restore last session's logs) ---
     const logs = await engine.read('system_logs');
+
     if (logs.length > 0) {
       // Phase 28: Zod-validated system logs hydration
       const { valid, invalidCount } = validateArray(SystemLogSchema, logs);
+
       if (valid.length > 0) {
         const recent = valid.slice(0, 20);
+
         hydratedDomains.push('system_logs');
         totalRecords += recent.length;
         if (invalidCount > 0) {
@@ -270,7 +295,7 @@ export async function hydrateStoreFromPersistence(): Promise<{
   // Emit hydration event
   eventBus.persist('hydrate', `Hydrated ${totalRecords} records from [${hydratedDomains.join(', ')}]`,
     totalRecords > 0 ? 'success' : 'info',
-    { domains: hydratedDomains, recordCount: totalRecords }
+    { domains: hydratedDomains, recordCount: totalRecords },
   );
 
   return { hydrated: true, domains: hydratedDomains, recordCount: totalRecords };
@@ -293,7 +318,7 @@ export function usePersistenceSync() {
         useSystemStore.getState().addLog(
           'info',
           'PERSIST_SYNC',
-          `Hydrated ${result.recordCount} records from [${result.domains.join(', ')}]`
+          `Hydrated ${result.recordCount} records from [${result.domains.join(', ')}]`,
         );
       }
     });
@@ -307,7 +332,7 @@ export function usePersistenceSync() {
     let prevPrefsHash = hashPrefs(useSystemStore.getState());
     let prevMetricsTs = useSystemStore.getState().clusterMetrics?.timestamp ?? 0;
 
-    const unsub = useSystemStore.subscribe((state) => {
+    const unsub = useSystemStore.subscribe(state => {
       // Chat messages changed?
       if (state.messages.length !== prevMessageCount) {
         prevMessageCount = state.messages.length;
@@ -316,6 +341,7 @@ export function usePersistenceSync() {
 
       // Agent histories changed?
       const newAgentHash = hashAgentHistories(state.agentChatHistories);
+
       if (newAgentHash !== prevAgentHistoryHash) {
         prevAgentHistoryHash = newAgentHash;
         writers.agent_messages();
@@ -329,6 +355,7 @@ export function usePersistenceSync() {
 
       // Preferences changed?
       const newPrefsHash = hashPrefs(state);
+
       if (newPrefsHash !== prevPrefsHash) {
         prevPrefsHash = newPrefsHash;
         writers.preferences();
@@ -336,6 +363,7 @@ export function usePersistenceSync() {
 
       // ClusterMetrics changed? (30s debounce for archive)
       const metricsTs = state.clusterMetrics?.timestamp ?? 0;
+
       if (metricsTs !== prevMetricsTs) {
         prevMetricsTs = metricsTs;
         writers.metrics_snapshots();
@@ -381,7 +409,7 @@ export async function persistAllNow(): Promise<void> {
     engine.write('agent_messages',
       Object.entries(state.agentChatHistories).map(([agentId, messages]) => ({
         id: agentId, agentId, messages, updatedAt: new Date().toISOString(),
-      }))
+      })),
     ),
     engine.write('system_logs', state.logs),
     engine.write('preferences', [{
@@ -407,6 +435,7 @@ export async function persistAllNow(): Promise<void> {
  */
 export async function getMetricsArchive(): Promise<MetricsArchiveEntry[]> {
   const engine = getPersistenceEngine();
+
   return (await engine.read('metrics_snapshots')) as MetricsArchiveEntry[];
 }
 

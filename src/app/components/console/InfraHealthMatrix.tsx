@@ -1,24 +1,23 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n";
-import { useInfraHealth, setLastInfraReport, recordLatency, getAllLatencyHistories } from "@/lib/useInfraHealth";
-import type { InfraCheck, InfraStatus, LatencyHistoryEntry } from "@/lib/useInfraHealth";
 import {
-  Server, Box, Database, Cpu, Wifi, WifiOff,
+  Server,
   RefreshCw, Loader2, CheckCircle2, XCircle,
-  AlertTriangle, HelpCircle, Clock, Activity,
-  Shield, HardDrive, Radio, Zap, Network,
-  MemoryStick, Globe, Key, BarChart3, TrendingUp,
-  ChevronDown, ChevronRight
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+  AlertTriangle, HelpCircle, Clock, Activity, Zap, Network, Key,
+  ChevronDown, ChevronRight,
+} from 'lucide-react';
+import * as React from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-} from "recharts";
-import { SafeChartContainer } from "@/app/components/ui/safe-chart-container";
+} from 'recharts';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { SafeChartContainer } from '@/app/components/ui/safe-chart-container';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { useTranslation } from '@/lib/i18n';
+import type { InfraCheck, LatencyHistoryEntry } from '@/lib/useInfraHealth';
+import { useInfraHealth, setLastInfraReport, getAllLatencyHistories } from '@/lib/useInfraHealth';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // Phase 41: Latency Trend Chart (Recharts)
@@ -54,6 +53,7 @@ interface TrendTooltipPayload {
 
 function LatencyTrendTooltip({ active, payload, label }: { active?: boolean; payload?: TrendTooltipPayload[]; label?: string }) {
   if (!active || !payload?.length) return null;
+
   return (
     <div className="bg-zinc-900/95 border border-white/10 rounded-lg p-2 shadow-xl backdrop-blur-sm">
       <p className="text-[9px] text-zinc-500 font-mono mb-1">{label}</p>
@@ -84,6 +84,7 @@ function LatencyTrendChart({ histories }: { histories: Record<string, LatencyHis
 
   // Build unified time series
   const allTimestamps = new Set<number>();
+
   serviceIds.forEach(id => {
     histories[id]?.forEach(e => allTimestamps.add(e.timestamp));
   });
@@ -94,12 +95,15 @@ function LatencyTrendChart({ histories }: { histories: Record<string, LatencyHis
       time: new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
       timestamp: ts,
     };
+
     serviceIds.forEach(id => {
       const entry = histories[id]?.find(e => e.timestamp === ts);
+
       if (entry) {
         point[id] = entry.latencyMs;
       }
     });
+
     return point;
   });
 
@@ -111,6 +115,7 @@ function LatencyTrendChart({ histories }: { histories: Record<string, LatencyHis
     const max = values.length > 0 ? Math.max(...values) : 0;
     const current = values.length > 0 ? values[values.length - 1] : 0;
     const trend = values.length >= 2 ? values[values.length - 1] - values[values.length - 2] : 0;
+
     return { id, label: SERVICE_LABELS[id], avg, max, current, trend, color: SERVICE_COLORS[id] };
   });
 
@@ -124,7 +129,7 @@ function LatencyTrendChart({ histories }: { histories: Record<string, LatencyHis
             <span className="text-[8px] font-mono text-zinc-400">{s.label}</span>
             <span className="text-[8px] font-mono" style={{ color: s.color }}>{s.current}ms</span>
             {s.trend !== 0 && (
-              <span className={cn("text-[7px] font-mono", s.trend > 0 ? "text-red-400" : "text-emerald-400")}>
+              <span className={cn('text-[7px] font-mono', s.trend > 0 ? 'text-red-400' : 'text-emerald-400')}>
                 {s.trend > 0 ? '↑' : '↓'}{Math.abs(s.trend)}
               </span>
             )}
@@ -185,6 +190,7 @@ function LatencyTrendChart({ histories }: { histories: Record<string, LatencyHis
 function SummaryBar({ summary, totalMs }: { summary: { total: number; online: number; degraded: number; offline: number; unknown: number }; totalMs?: number }) {
   const { language } = useTranslation();
   const zh = language === 'zh';
+
   return (
     <div className="flex items-center gap-2 flex-wrap text-[9px] font-mono px-1">
       <div className="flex items-center gap-1">
@@ -240,7 +246,7 @@ function HealthCheckRow({ check, onRecheck }: { check: InfraCheck; onRecheck?: (
   return (
     <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white/[0.02] transition-colors group">
       {statusIcon[check.status]}
-      <span className={cn("text-[10px] font-mono flex-1 truncate", statusColor[check.status])}>
+      <span className={cn('text-[10px] font-mono flex-1 truncate', statusColor[check.status])}>
         {zh ? check.nameZh : check.name}
       </span>
       {check.latencyMs !== undefined && (
@@ -282,16 +288,19 @@ export function InfraHealthMatrix() {
   // Auto-run on mount
   React.useEffect(() => {
     const timer = setTimeout(() => runHealthCheck(), 600);
+
     return () => clearTimeout(timer);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Group by category
   const grouped = React.useMemo(() => {
     const groups: Record<string, InfraCheck[]> = {};
+
     for (const c of checks) {
       if (!groups[c.category]) groups[c.category] = [];
       groups[c.category].push(c);
     }
+
     return groups;
   }, [checks]);
 
@@ -314,17 +323,17 @@ export function InfraHealthMatrix() {
   };
 
   return (
-    <Card className={cn("bg-zinc-900/30 transition-all duration-500", overallColors[overallStatus] || "border-zinc-800/50")}>
+    <Card className={cn('bg-zinc-900/30 transition-all duration-500', overallColors[overallStatus] || 'border-zinc-800/50')}>
       <CardHeader className="pb-2">
         <CardTitle className="text-xs font-mono text-zinc-400 flex items-center gap-2 uppercase tracking-wider">
           <Activity className="w-3.5 h-3.5 text-emerald-400" />
           {zh ? '基础设施健康矩阵' : 'Infrastructure Health Matrix'}
           <Badge variant="outline" className={cn(
-            "text-[8px] font-mono ml-auto",
-            overallStatus === 'optimal' ? "text-emerald-400 border-emerald-500/20" :
-            overallStatus === 'warning' ? "text-amber-400 border-amber-500/20" :
-            overallStatus === 'critical' ? "text-red-400 border-red-500/20" :
-            "text-sky-400 border-sky-500/20"
+            'text-[8px] font-mono ml-auto',
+            overallStatus === 'optimal' ? 'text-emerald-400 border-emerald-500/20' :
+            overallStatus === 'warning' ? 'text-amber-400 border-amber-500/20' :
+            overallStatus === 'critical' ? 'text-red-400 border-red-500/20' :
+            'text-sky-400 border-sky-500/20',
           )}>
             {summary.online}/{summary.total} {zh ? '在线' : 'Online'}
           </Badge>
@@ -352,9 +361,11 @@ export function InfraHealthMatrix() {
           <div className="space-y-3">
             {(['device', 'service', 'runtime', 'provider'] as const).map(cat => {
               const items = grouped[cat];
+
               if (!items) return null;
               const meta = categoryLabels[cat];
               const CatIcon = meta.icon;
+
               return (
                 <div key={cat}>
                   <div className="flex items-center gap-1.5 mb-1">

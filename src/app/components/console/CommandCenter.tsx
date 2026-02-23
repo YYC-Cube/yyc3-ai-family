@@ -1,29 +1,27 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { useSystemStore } from "@/lib/store";
-import { useTranslation } from "@/lib/i18n";
-import { eventBus, useEventBus } from "@/lib/event-bus";
-import { useDAGExecutor, registerGlobalExecutor } from "@/lib/useDAGExecutor";
-import type { PipelineRun, StageStatus } from "@/lib/useDAGExecutor";
-import { getRunnerHealth, checkRunnerHealth, onRunnerHealthChange } from "@/lib/useDAGExecutor";
-import type { RunnerStatus, ExecutionMode } from "@/lib/useDAGExecutor";
-import { AGENT_REGISTRY } from "@/lib/types";
-import { loadAgentCustomConfig, getMergedAgents } from "@/lib/branding-config";
-import { hasConfiguredProvider, loadProviderConfigs } from "@/lib/llm-bridge";
-import { getPgTelemetryState, checkPgTelemetryHealth, getPgTelemetryConfig } from "@/lib/pg-telemetry-client";
-import { PROVIDERS } from "@/lib/llm-providers";
 import {
-  Rocket, Play, RotateCcw, Terminal, Shield, Database,
-  Activity, Zap, Clock, Brain, Radio, CheckCircle2,
-  XCircle, Loader2, AlertTriangle, ChevronRight,
-  GitBranch, Box, Cpu, Eye, Network, Sparkles,
-  RefreshCw, TrendingUp, ArrowRight, Wifi, WifiOff,
-  FileText, Key, Settings
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+  Rocket, Play, Terminal, Shield, Database,
+  Activity, Zap, Brain, Radio, CheckCircle2,
+  XCircle, Loader2, ChevronRight,
+  GitBranch, Cpu, Network,
+  RefreshCw, ArrowRight, Wifi, WifiOff,
+  FileText, Key, Settings,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { loadAgentCustomConfig, getMergedAgents } from '@/lib/branding-config';
+import { eventBus, useEventBus } from '@/lib/event-bus';
+import { useTranslation } from '@/lib/i18n';
+import { loadProviderConfigs } from '@/lib/llm-bridge';
+import { PROVIDERS } from '@/lib/llm-providers';
+import { getPgTelemetryState, checkPgTelemetryHealth, getPgTelemetryConfig } from '@/lib/pg-telemetry-client';
+import { useSystemStore } from '@/lib/store';
+import type { PipelineRun, StageStatus } from '@/lib/useDAGExecutor';
+import { getRunnerHealth, checkRunnerHealth, onRunnerHealthChange, useDAGExecutor, registerGlobalExecutor } from '@/lib/useDAGExecutor';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // CommandCenter — Real-time Dashboard Command Center
@@ -41,18 +39,18 @@ import { ScrollArea } from "@/app/components/ui/scroll-area";
 
 // --- Lazy-load InfraHealthMatrix (Phase 39) ---
 const InfraHealthMatrix = React.lazy(() =>
-  import('./InfraHealthMatrix').then(m => ({ default: m.InfraHealthMatrix }))
+  import('./InfraHealthMatrix').then(m => ({ default: m.InfraHealthMatrix })),
 );
 
 // --- Stage Status Icon ---
 function StageStatusIcon({ status }: { status: StageStatus }) {
   switch (status) {
-    case 'success':   return <CheckCircle2 className="w-3 h-3 text-emerald-400" />;
-    case 'failed':    return <XCircle className="w-3 h-3 text-red-400" />;
-    case 'running':   return <Loader2 className="w-3 h-3 text-sky-400 animate-spin" />;
+    case 'success': return <CheckCircle2 className="w-3 h-3 text-emerald-400" />;
+    case 'failed': return <XCircle className="w-3 h-3 text-red-400" />;
+    case 'running': return <Loader2 className="w-3 h-3 text-sky-400 animate-spin" />;
     case 'cancelled': return <XCircle className="w-3 h-3 text-amber-400" />;
-    case 'skipped':   return <ChevronRight className="w-3 h-3 text-zinc-600" />;
-    default:          return <div className="w-3 h-3 rounded-full bg-zinc-700" />;
+    case 'skipped': return <ChevronRight className="w-3 h-3 text-zinc-600" />;
+    default: return <div className="w-3 h-3 rounded-full bg-zinc-700" />;
   }
 }
 
@@ -73,19 +71,19 @@ function PipelineRunCard({ run, onCancel }: { run: PipelineRun; onCancel: (id: s
 
   return (
     <div className={cn(
-      "border rounded-lg p-3 transition-all",
-      statusColors[run.status] || "border-zinc-700/50 bg-zinc-900/30"
+      'border rounded-lg p-3 transition-all',
+      statusColors[run.status] || 'border-zinc-700/50 bg-zinc-900/30',
     )}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <GitBranch className="w-3.5 h-3.5 text-zinc-400" />
           <span className="text-xs font-mono text-zinc-200">{run.name}</span>
           <Badge variant="outline" className={cn(
-            "text-[8px] font-mono",
-            run.status === 'running' ? "text-sky-400 border-sky-500/30" :
-            run.status === 'success' ? "text-emerald-400 border-emerald-500/30" :
-            run.status === 'failed' ? "text-red-400 border-red-500/30" :
-            "text-amber-400 border-amber-500/30"
+            'text-[8px] font-mono',
+            run.status === 'running' ? 'text-sky-400 border-sky-500/30' :
+            run.status === 'success' ? 'text-emerald-400 border-emerald-500/30' :
+            run.status === 'failed' ? 'text-red-400 border-red-500/30' :
+            'text-amber-400 border-amber-500/30',
           )}>
             {run.status.toUpperCase()}
           </Badge>
@@ -104,10 +102,10 @@ function PipelineRunCard({ run, onCancel }: { run: PipelineRun; onCancel: (id: s
       <div className="w-full h-1 bg-zinc-800 rounded-full mb-2 overflow-hidden">
         <div
           className={cn(
-            "h-full rounded-full transition-all duration-500",
-            run.status === 'running' ? "bg-sky-500" :
-            run.status === 'success' ? "bg-emerald-500" :
-            run.status === 'failed' ? "bg-red-500" : "bg-amber-500"
+            'h-full rounded-full transition-all duration-500',
+            run.status === 'running' ? 'bg-sky-500' :
+            run.status === 'success' ? 'bg-emerald-500' :
+            run.status === 'failed' ? 'bg-red-500' : 'bg-amber-500',
           )}
           style={{ width: `${run.progress}%` }}
         />
@@ -120,11 +118,11 @@ function PipelineRunCard({ run, onCancel }: { run: PipelineRun; onCancel: (id: s
             <div className="flex items-center gap-0.5" title={`${stage.name}: ${stage.status}`}>
               <StageStatusIcon status={stage.status} />
               <span className={cn(
-                "text-[8px] font-mono",
+                'text-[8px] font-mono',
                 stage.status === 'success' ? 'text-emerald-500' :
                 stage.status === 'running' ? 'text-sky-400' :
                 stage.status === 'failed' ? 'text-red-400' :
-                'text-zinc-600'
+                'text-zinc-600',
               )}>
                 {stage.name}
               </span>
@@ -153,13 +151,13 @@ function QuickActionButton({ icon: Icon, label, description, color, onClick, loa
       onClick={onClick}
       disabled={loading}
       className={cn(
-        "flex flex-col items-start gap-1.5 p-3 rounded-lg border border-zinc-800/50 bg-zinc-900/30",
-        "hover:bg-zinc-800/40 hover:border-zinc-700/50 transition-all group",
-        "disabled:opacity-50 disabled:cursor-not-allowed"
+        'flex flex-col items-start gap-1.5 p-3 rounded-lg border border-zinc-800/50 bg-zinc-900/30',
+        'hover:bg-zinc-800/40 hover:border-zinc-700/50 transition-all group',
+        'disabled:opacity-50 disabled:cursor-not-allowed',
       )}
     >
       <div className="flex items-center gap-2 w-full">
-        <div className={cn("w-6 h-6 rounded flex items-center justify-center border border-zinc-700/50 bg-zinc-800/60", color)}>
+        <div className={cn('w-6 h-6 rounded flex items-center justify-center border border-zinc-700/50 bg-zinc-800/60', color)}>
           {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Icon className="w-3 h-3" />}
         </div>
         <span className="text-[10px] font-mono text-zinc-300 group-hover:text-white">{label}</span>
@@ -173,14 +171,14 @@ function QuickActionButton({ icon: Icon, label, description, color, onClick, loa
 export function CommandCenter() {
   const { language } = useTranslation();
   const zh = language === 'zh';
-  const navigateToConsoleTab = useSystemStore((s) => s.navigateToConsoleTab);
-  const navigateToAgent = useSystemStore((s) => s.navigateToAgent);
-  const clusterMetrics = useSystemStore((s) => s.clusterMetrics);
-  const systemStatus = useSystemStore((s) => s.status);
-  const dbConnected = useSystemStore((s) => s.dbConnected);
-  const agentHistories = useSystemStore((s) => s.agentChatHistories);
-  const runDiagnosis = useSystemStore((s) => s.runDiagnosis);
-  const addLog = useSystemStore((s) => s.addLog);
+  const navigateToConsoleTab = useSystemStore(s => s.navigateToConsoleTab);
+  const navigateToAgent = useSystemStore(s => s.navigateToAgent);
+  const clusterMetrics = useSystemStore(s => s.clusterMetrics);
+  const systemStatus = useSystemStore(s => s.status);
+  const dbConnected = useSystemStore(s => s.dbConnected);
+  const agentHistories = useSystemStore(s => s.agentChatHistories);
+  const runDiagnosis = useSystemStore(s => s.runDiagnosis);
+  const addLog = useSystemStore(s => s.addLog);
 
   // DAG Executor
   const dagExecutor = useDAGExecutor();
@@ -193,6 +191,7 @@ export function CommandCenter() {
 
   // Phase 42: Runner health tracking
   const [runnerHealth, setRunnerHealth] = React.useState(getRunnerHealth);
+
   React.useEffect(() => {
     return onRunnerHealthChange(() => setRunnerHealth(getRunnerHealth()));
   }, []);
@@ -207,15 +206,19 @@ export function CommandCenter() {
 
   // Phase 51: Merged agents (built-in + custom) with reactive updates
   const [mergedAgentList, setMergedAgentList] = React.useState(() => getMergedAgents(loadAgentCustomConfig()));
+
   React.useEffect(() => {
     const refresh = () => setMergedAgentList(getMergedAgents(loadAgentCustomConfig()));
+
     window.addEventListener('yyc3-agents-update', refresh);
+
     return () => window.removeEventListener('yyc3-agents-update', refresh);
   }, []);
 
   // Provider status
   const providerStatus = React.useMemo(() => {
     const configs = loadProviderConfigs();
+
     return configs.filter(c => c.enabled && c.apiKey).map(c => ({
       id: c.providerId,
       name: PROVIDERS[c.providerId]?.displayName || c.providerId,
@@ -282,12 +285,15 @@ export function CommandCenter() {
     });
     // Real probe: attempt HTTP to PG15 port
     const start = performance.now();
+
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 3000);
+
       await fetch('http://192.168.3.22:5433/', { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
       clearTimeout(timeout);
       const latency = Math.round(performance.now() - start);
+
       addLog('success', 'CMD_CENTER', `PG15 port probe successful (${latency}ms) — TCP accepting connections`);
       eventBus.emit({
         category: 'system', type: 'system.db_test_result', level: 'success',
@@ -296,6 +302,7 @@ export function CommandCenter() {
       });
     } catch {
       const latency = Math.round(performance.now() - start);
+
       addLog('warn', 'CMD_CENTER', `PG15 probe: ${latency > 2500 ? 'Timeout' : 'Port closed/refused'} (${latency}ms) — using local fallback`);
       eventBus.emit({
         category: 'system', type: 'system.db_test_result', level: 'warn',
@@ -374,12 +381,12 @@ export function CommandCenter() {
               key={mode}
               onClick={() => dagExecutor.setExecutionMode(mode)}
               className={cn(
-                "px-2.5 py-1 rounded-md text-[9px] font-mono transition-all",
+                'px-2.5 py-1 rounded-md text-[9px] font-mono transition-all',
                 dagExecutor.executionMode === mode
                   ? mode === 'real'
-                    ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                    : "bg-white/10 text-white"
-                  : "text-zinc-600 hover:text-zinc-300"
+                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                    : 'bg-white/10 text-white'
+                  : 'text-zinc-600 hover:text-zinc-300',
               )}
             >
               {mode === 'simulated' ? (zh ? '模拟' : 'SIM') : (zh ? '真实' : 'REAL')}
@@ -390,15 +397,15 @@ export function CommandCenter() {
         {/* Runner Service Status */}
         <div className="flex items-center gap-1.5 bg-black/30 rounded-lg border border-white/5 p-0.5 px-2">
           <span className="text-[8px] font-mono text-zinc-600">Runner</span>
-          <div className={cn("w-1.5 h-1.5 rounded-full",
-            runnerHealth.status === 'online' ? "bg-emerald-500" :
-            runnerHealth.status === 'checking' ? "bg-sky-500 animate-pulse" :
-            runnerHealth.status === 'offline' ? "bg-red-500" :
-            runnerHealth.status === 'error' ? "bg-amber-500" : "bg-zinc-600"
+          <div className={cn('w-1.5 h-1.5 rounded-full',
+            runnerHealth.status === 'online' ? 'bg-emerald-500' :
+            runnerHealth.status === 'checking' ? 'bg-sky-500 animate-pulse' :
+            runnerHealth.status === 'offline' ? 'bg-red-500' :
+            runnerHealth.status === 'error' ? 'bg-amber-500' : 'bg-zinc-600',
           )} />
-          <span className={cn("text-[8px] font-mono",
-            runnerHealth.status === 'online' ? "text-emerald-400" :
-            runnerHealth.status === 'offline' ? "text-red-400" : "text-zinc-500"
+          <span className={cn('text-[8px] font-mono',
+            runnerHealth.status === 'online' ? 'text-emerald-400' :
+            runnerHealth.status === 'offline' ? 'text-red-400' : 'text-zinc-500',
           )}>
             {runnerHealth.status === 'online' ? `${runnerHealth.latencyMs}ms` :
              runnerHealth.status === 'checking' ? '...' :
@@ -409,7 +416,7 @@ export function CommandCenter() {
             className="text-zinc-600 hover:text-zinc-300 transition-colors p-0.5"
             title={zh ? '检查 Runner 服务' : 'Check runner health'}
           >
-            <RefreshCw className={cn("w-2.5 h-2.5", runnerHealth.status === 'checking' && "animate-spin")} />
+            <RefreshCw className={cn('w-2.5 h-2.5', runnerHealth.status === 'checking' && 'animate-spin')} />
           </button>
         </div>
 
@@ -417,18 +424,19 @@ export function CommandCenter() {
         {(() => {
           const pg = getPgTelemetryState();
           const pgConfig = getPgTelemetryConfig();
+
           return (
             <div className="flex items-center gap-1.5 bg-black/30 rounded-lg border border-white/5 p-0.5 px-2">
               <span className="text-[8px] font-mono text-zinc-600">PG:Tel</span>
-              <div className={cn("w-1.5 h-1.5 rounded-full",
-                pg.status === 'connected' ? "bg-cyan-500" :
-                pg.status === 'checking' ? "bg-sky-500 animate-pulse" :
-                pg.status === 'disconnected' ? "bg-red-500" :
-                pg.status === 'error' ? "bg-amber-500" : "bg-zinc-600"
+              <div className={cn('w-1.5 h-1.5 rounded-full',
+                pg.status === 'connected' ? 'bg-cyan-500' :
+                pg.status === 'checking' ? 'bg-sky-500 animate-pulse' :
+                pg.status === 'disconnected' ? 'bg-red-500' :
+                pg.status === 'error' ? 'bg-amber-500' : 'bg-zinc-600',
               )} />
-              <span className={cn("text-[8px] font-mono",
-                pg.status === 'connected' ? "text-cyan-400" :
-                pg.status === 'disconnected' ? "text-red-400" : "text-zinc-500"
+              <span className={cn('text-[8px] font-mono',
+                pg.status === 'connected' ? 'text-cyan-400' :
+                pg.status === 'disconnected' ? 'text-red-400' : 'text-zinc-500',
               )}>
                 {pg.status === 'connected' ? `${pg.latencyMs}ms` :
                  pg.status === 'checking' ? '...' :
@@ -439,7 +447,7 @@ export function CommandCenter() {
                 className="text-zinc-600 hover:text-zinc-300 transition-colors p-0.5"
                 title={zh ? '检查 PG Telemetry 连接' : 'Check PG telemetry health'}
               >
-                <RefreshCw className={cn("w-2.5 h-2.5", pg.status === 'checking' && "animate-spin")} />
+                <RefreshCw className={cn('w-2.5 h-2.5', pg.status === 'checking' && 'animate-spin')} />
               </button>
             </div>
           );
@@ -500,20 +508,21 @@ export function CommandCenter() {
               {mergedAgentList.map(agent => {
                 const history = agentHistories[agent.id] || [];
                 const hasSession = history.length > 0;
+
                 return (
                   <button
                     key={agent.id}
                     onClick={() => navigateToAgent(agent.id)}
                     className={cn(
-                      "flex items-center gap-2 p-2 rounded-lg border transition-all hover:-translate-y-0.5",
+                      'flex items-center gap-2 p-2 rounded-lg border transition-all hover:-translate-y-0.5',
                       hasSession
-                        ? "border-zinc-700/50 bg-zinc-800/30 hover:bg-zinc-800/50"
-                        : "border-zinc-800/30 bg-transparent hover:bg-zinc-900/50"
+                        ? 'border-zinc-700/50 bg-zinc-800/30 hover:bg-zinc-800/50'
+                        : 'border-zinc-800/30 bg-transparent hover:bg-zinc-900/50',
                     )}
                   >
-                    <div className={cn("w-2 h-2 rounded-full", hasSession ? "bg-emerald-500 animate-pulse" : "bg-zinc-700")} />
+                    <div className={cn('w-2 h-2 rounded-full', hasSession ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-700')} />
                     <div className="flex-1 text-left">
-                      <div className={cn("text-[10px] font-mono flex items-center gap-1", agent.color)}>
+                      <div className={cn('text-[10px] font-mono flex items-center gap-1', agent.color)}>
                         {zh ? (agent.name.includes('·') ? agent.name.split('·')[1] : agent.name) : agent.nameEn}
                         {(agent as any).isCustom && (
                           <span className="text-[7px] px-0.5 rounded bg-violet-500/15 text-violet-400 border border-violet-500/20">USR</span>
@@ -597,7 +606,7 @@ export function CommandCenter() {
                   key={q.tab}
                   variant="ghost"
                   size="sm"
-                  className={cn("h-6 text-[9px] font-mono gap-1 px-2", q.color)}
+                  className={cn('h-6 text-[9px] font-mono gap-1 px-2', q.color)}
                   onClick={() => navigateToConsoleTab(q.tab)}
                 >
                   <q.icon className="w-3 h-3" />
@@ -638,25 +647,26 @@ export function CommandCenter() {
                   error: '!',
                   debug: '.',
                 };
+
                 return (
                   <div
                     key={event.id}
                     className="flex items-start gap-2 py-1 px-2 rounded hover:bg-zinc-800/20 transition-colors text-[9px] font-mono"
                   >
-                    <span className={cn("shrink-0 mt-0.5 w-2 text-center", levelColors[event.level])}>
+                    <span className={cn('shrink-0 mt-0.5 w-2 text-center', levelColors[event.level])}>
                       {levelIcons[event.level] || '-'}
                     </span>
                     <span className="text-zinc-600 shrink-0 w-[52px]">
                       {new Date(event.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                     </span>
                     <span className={cn(
-                      "shrink-0 w-16 truncate",
+                      'shrink-0 w-16 truncate',
                       event.category === 'system' ? 'text-zinc-500' :
                       event.category === 'orchestrate' ? 'text-cyan-500' :
                       event.category === 'persist' ? 'text-green-500' :
                       event.category === 'mcp' ? 'text-amber-500' :
                       event.category === 'security' ? 'text-red-500' :
-                      'text-purple-500'
+                      'text-purple-500',
                     )}>
                       {event.source.slice(0, 10)}
                     </span>
@@ -681,8 +691,8 @@ export function CommandCenter() {
             <Key className="w-3.5 h-3.5 text-pink-400" />
             {zh ? '模型路由状态' : 'Model Routing'}
             <Badge variant="outline" className={cn(
-              "text-[8px] font-mono ml-auto",
-              providerStatus.length > 0 ? "text-emerald-400 border-emerald-500/20" : "text-zinc-600 border-zinc-700"
+              'text-[8px] font-mono ml-auto',
+              providerStatus.length > 0 ? 'text-emerald-400 border-emerald-500/20' : 'text-zinc-600 border-zinc-700',
             )}>
               {providerStatus.length} {zh ? '活跃' : 'active'}
             </Badge>
@@ -692,19 +702,20 @@ export function CommandCenter() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {Object.values(PROVIDERS).slice(0, 8).map(p => {
               const isActive = providerStatus.some(ps => ps.id === p.id);
+
               return (
                 <div
                   key={p.id}
                   className={cn(
-                    "flex items-center gap-2 p-2 rounded-lg border transition-all",
+                    'flex items-center gap-2 p-2 rounded-lg border transition-all',
                     isActive
-                      ? "border-emerald-500/20 bg-emerald-500/5"
-                      : "border-zinc-800/30 bg-transparent opacity-50"
+                      ? 'border-emerald-500/20 bg-emerald-500/5'
+                      : 'border-zinc-800/30 bg-transparent opacity-50',
                   )}
                 >
-                  <div className={cn("w-2 h-2 rounded-full", isActive ? "bg-emerald-500" : "bg-zinc-700")} />
+                  <div className={cn('w-2 h-2 rounded-full', isActive ? 'bg-emerald-500' : 'bg-zinc-700')} />
                   <div className="flex-1 min-w-0">
-                    <div className={cn("text-[9px] font-mono truncate", isActive ? p.color : "text-zinc-600")}>
+                    <div className={cn('text-[9px] font-mono truncate', isActive ? p.color : 'text-zinc-600')}>
                       {p.displayName}
                     </div>
                     <div className="text-[7px] font-mono text-zinc-700 truncate">
@@ -722,6 +733,7 @@ export function CommandCenter() {
               className="h-6 text-[9px] font-mono gap-1 px-2 text-zinc-500 hover:text-white"
               onClick={() => {
                 const store = useSystemStore.getState();
+
                 store.openSettings('models');
               }}
             >

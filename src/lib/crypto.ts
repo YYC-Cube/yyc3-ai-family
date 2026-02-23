@@ -16,15 +16,19 @@ const KEY_LENGTH = 256;
  */
 function getDeviceSalt(): Uint8Array {
   let saltHex = localStorage.getItem(SALT_KEY);
+
   if (!saltHex) {
     const salt = crypto.getRandomValues(new Uint8Array(16));
+
     saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
     localStorage.setItem(SALT_KEY, saltHex);
   }
   const bytes = new Uint8Array(saltHex.length / 2);
+
   for (let i = 0; i < bytes.length; i++) {
     bytes[i] = parseInt(saltHex.substring(i * 2, i * 2 + 2), 16);
   }
+
   return bytes;
 }
 
@@ -39,7 +43,7 @@ async function deriveKey(passphrase: string): Promise<CryptoKey> {
     new Uint8Array(encoded),
     'PBKDF2',
     false,
-    ['deriveKey']
+    ['deriveKey'],
   );
 
   return crypto.subtle.deriveKey(
@@ -52,7 +56,7 @@ async function deriveKey(passphrase: string): Promise<CryptoKey> {
     keyMaterial,
     { name: 'AES-GCM', length: KEY_LENGTH },
     false,
-    ['encrypt', 'decrypt']
+    ['encrypt', 'decrypt'],
   );
 }
 
@@ -70,11 +74,12 @@ export async function encryptValue(plaintext: string): Promise<string> {
     const ciphertext = await crypto.subtle.encrypt(
       { name: 'AES-GCM', iv },
       key,
-      enc.encode(plaintext)
+      enc.encode(plaintext),
     );
 
     // Pack: IV (12 bytes) + ciphertext
     const packed = new Uint8Array(iv.length + new Uint8Array(ciphertext).length);
+
     packed.set(iv);
     packed.set(new Uint8Array(ciphertext), iv.length);
 
@@ -99,7 +104,7 @@ export async function decryptValue(encrypted: string): Promise<string> {
     const plainBuffer = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv },
       key,
-      ciphertext
+      ciphertext,
     );
 
     return new TextDecoder().decode(plainBuffer);
@@ -114,6 +119,7 @@ export async function decryptValue(encrypted: string): Promise<string> {
  */
 export function maskApiKey(key: string): string {
   if (!key || key.length < 12) return key ? '••••••••' : '';
+
   return `${key.slice(0, 6)}${'•'.repeat(8)}${key.slice(-4)}`;
 }
 

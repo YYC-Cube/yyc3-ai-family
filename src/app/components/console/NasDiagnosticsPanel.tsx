@@ -5,16 +5,16 @@
 // Design: Compact panel showing NAS/Docker/WS/Device health
 // ============================================================
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   CheckCircle2, XCircle, AlertTriangle, Loader2,
   RefreshCw, Zap, Shield, Wifi, Database, Box,
   Server, ChevronDown, ChevronUp,
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
-import { useNasDiagnostics, type DiagCheck, type CheckStatus } from "@/lib/useNasDiagnostics";
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Button } from '@/app/components/ui/button';
+import { useNasDiagnostics, type DiagCheck, type CheckStatus } from '@/lib/useNasDiagnostics';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // Status helpers
@@ -60,6 +60,7 @@ export function NasDiagnosticsPanel() {
   React.useEffect(() => {
     if (diag.status === 'done' && diag.failCount === 0 && diag.warnCount === 0) {
       const timer = setTimeout(() => setExpanded(false), 5000);
+
       return () => clearTimeout(timer);
     }
   }, [diag.status, diag.failCount, diag.warnCount]);
@@ -84,7 +85,7 @@ export function NasDiagnosticsPanel() {
 
   return (
     <div className={cn(
-      "rounded-xl border transition-all duration-500",
+      'rounded-xl border transition-all duration-500',
       colors.border, colors.bg,
     )}>
       {/* Header (always visible) */}
@@ -93,9 +94,9 @@ export function NasDiagnosticsPanel() {
         className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 transition-colors rounded-xl"
       >
         <div className="flex items-center gap-3">
-          <div className={cn("w-2 h-2 rounded-full", colors.dot)} />
-          <Zap className={cn("w-4 h-4", colors.text)} />
-          <span className={cn("text-xs font-mono tracking-wider", colors.text)}>
+          <div className={cn('w-2 h-2 rounded-full', colors.dot)} />
+          <Zap className={cn('w-4 h-4', colors.text)} />
+          <span className={cn('text-xs font-mono tracking-wider', colors.text)}>
             {overallStatus === 'scanning' ? 'DIAGNOSTICS RUNNING...' :
              overallStatus === 'healthy' ? 'INFRASTRUCTURE HEALTHY' :
              overallStatus === 'partial' ? 'PARTIAL CONNECTIVITY' :
@@ -125,7 +126,7 @@ export function NasDiagnosticsPanel() {
         <div className="px-4 pb-3 space-y-1.5 animate-in slide-in-from-top-2 duration-200">
           {/* Check Items */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-1.5">
-            {diag.checks.map((check) => (
+            {diag.checks.map(check => (
               <DiagCheckItem key={check.id} check={check} />
             ))}
           </div>
@@ -142,7 +143,7 @@ export function NasDiagnosticsPanel() {
               onClick={() => { diag.reset(); setTimeout(() => diag.runDiagnostics(), 100); }}
               disabled={diag.status === 'running'}
             >
-              <RefreshCw className={cn("w-3 h-3", diag.status === 'running' && "animate-spin")} />
+              <RefreshCw className={cn('w-3 h-3', diag.status === 'running' && 'animate-spin')} />
               Re-scan
             </Button>
           </div>
@@ -159,18 +160,18 @@ export function NasDiagnosticsPanel() {
 function DiagCheckItem({ check }: { check: DiagCheck }) {
   return (
     <div className={cn(
-      "flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-[10px] font-mono transition-all",
-      check.status === 'ok' ? "bg-green-500/5 border-green-500/10" :
-      check.status === 'fail' ? "bg-red-500/5 border-red-500/10" :
-      check.status === 'warn' ? "bg-amber-500/5 border-amber-500/10" :
-      check.status === 'checking' ? "bg-cyan-500/5 border-cyan-500/10" :
-      "bg-zinc-800/30 border-white/5"
+      'flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-[10px] font-mono transition-all',
+      check.status === 'ok' ? 'bg-green-500/5 border-green-500/10' :
+      check.status === 'fail' ? 'bg-red-500/5 border-red-500/10' :
+      check.status === 'warn' ? 'bg-amber-500/5 border-amber-500/10' :
+      check.status === 'checking' ? 'bg-cyan-500/5 border-cyan-500/10' :
+      'bg-zinc-800/30 border-white/5',
     )}>
       <StatusIcon status={check.status} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1">
           <CategoryIcon category={check.category} />
-          <span className={cn("truncate", statusColors[check.status])}>
+          <span className={cn('truncate', statusColors[check.status])}>
             {check.icon}
           </span>
         </div>

@@ -1,14 +1,14 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   Play, CheckCircle2, XCircle, Loader2, Clock,
   RotateCcw, Zap, Radio, Wifi, WifiOff, Shield,
-  ChevronDown, ChevronRight, Activity, Copy, Globe
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+  ChevronDown, ChevronRight, Activity, Copy, Globe,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
 import {
   loadProviderConfigs,
   hasConfiguredProvider,
@@ -17,8 +17,9 @@ import {
   type ProviderConfig,
   type ProviderHealthResult,
   type LLMMessage,
-} from "@/lib/llm-bridge";
-import { resolveProviderEndpoint, getProxiedProviders, isDevProxyAvailable } from "@/lib/proxy-endpoints";
+} from '@/lib/llm-bridge';
+import { resolveProviderEndpoint, getProxiedProviders, isDevProxyAvailable } from '@/lib/proxy-endpoints';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // Phase 28 — E2E Streaming Diagnostics Panel
@@ -81,6 +82,7 @@ export function StreamDiagnostics() {
       circuitState: 'CLOSED',
       checking: false,
     }));
+
     setProviders(diags);
   };
 
@@ -91,7 +93,7 @@ export function StreamDiagnostics() {
 
     for (const config of configs) {
       setProviders(prev => prev.map(p =>
-        p.config.providerId === config.providerId ? { ...p, checking: true } : p
+        p.config.providerId === config.providerId ? { ...p, checking: true } : p,
       ));
 
       const health = config.enabled && config.apiKey
@@ -108,7 +110,7 @@ export function StreamDiagnostics() {
       setProviders(prev => prev.map(p =>
         p.config.providerId === config.providerId
           ? { ...results.find(r => r.config.providerId === config.providerId)! }
-          : p
+          : p,
       ));
     }
 
@@ -124,6 +126,7 @@ export function StreamDiagnostics() {
         tokenCount: 0, throughput: '0', outputPreview: '', success: false,
         error: 'No configured provider. Go to Settings > AI Models to add an API key.',
       });
+
       return;
     }
 
@@ -134,6 +137,7 @@ export function StreamDiagnostics() {
     const prompt = TEST_PROMPTS.find(p => p.id === selectedPrompt)?.prompt ?? 'Hello';
     const history: LLMMessage[] = [];
     const abortController = new AbortController();
+
     abortRef.current = abortController;
 
     let accumulated = '';
@@ -145,7 +149,7 @@ export function StreamDiagnostics() {
       const response = await generalStreamChat(
         prompt,
         history,
-        (chunk) => {
+        chunk => {
           if (chunk.content) {
             if (tokenCount === 0) {
               firstTokenTime = performance.now() - startTime;
@@ -155,7 +159,7 @@ export function StreamDiagnostics() {
             setStreamOutput(accumulated);
           }
         },
-        abortController.signal
+        abortController.signal,
       );
 
       const totalMs = performance.now() - startTime;
@@ -183,6 +187,7 @@ export function StreamDiagnostics() {
       }
     } catch (err) {
       const totalMs = performance.now() - startTime;
+
       setStreamResult({
         providerId: '-', model: '-', firstTokenMs: 0, totalMs: Math.round(totalMs),
         tokenCount, throughput: '0', outputPreview: accumulated, success: false,
@@ -200,7 +205,9 @@ export function StreamDiagnostics() {
   const toggleSection = (id: string) => {
     setExpandedSections(prev => {
       const next = new Set(prev);
+
       next.has(id) ? next.delete(id) : next.add(id);
+
       return next;
     });
   };
@@ -240,8 +247,8 @@ export function StreamDiagnostics() {
             </Badge>
           )}
           <Badge variant="outline" className={cn(
-            "text-xs font-mono border",
-            enabledCount > 0 ? "border-emerald-500/30 text-emerald-400" : "border-zinc-700 text-zinc-500"
+            'text-xs font-mono border',
+            enabledCount > 0 ? 'border-emerald-500/30 text-emerald-400' : 'border-zinc-700 text-zinc-500',
           )}>
             {enabledCount} provider{enabledCount !== 1 ? 's' : ''} enabled
           </Badge>
@@ -295,11 +302,11 @@ export function StreamDiagnostics() {
                         <div
                           key={p.config.providerId}
                           className={cn(
-                            "flex items-center justify-between p-2.5 rounded-lg border text-xs font-mono",
-                            !p.config.enabled ? "bg-zinc-900/20 border-zinc-800/30 opacity-50" :
-                            p.health?.status === 'ok' ? "bg-emerald-500/5 border-emerald-500/20" :
-                            p.health?.status === 'error' ? "bg-red-500/5 border-red-500/20" :
-                            "bg-zinc-900/30 border-zinc-800/40"
+                            'flex items-center justify-between p-2.5 rounded-lg border text-xs font-mono',
+                            !p.config.enabled ? 'bg-zinc-900/20 border-zinc-800/30 opacity-50' :
+                            p.health?.status === 'ok' ? 'bg-emerald-500/5 border-emerald-500/20' :
+                            p.health?.status === 'error' ? 'bg-red-500/5 border-red-500/20' :
+                            'bg-zinc-900/30 border-zinc-800/40',
                           )}
                         >
                           <div className="flex items-center gap-3">
@@ -327,14 +334,14 @@ export function StreamDiagnostics() {
                               <span className="text-zinc-500">{p.health.latencyMs}ms</span>
                             )}
                             <Badge variant="outline" className={cn(
-                              "text-[10px] font-mono",
-                              p.circuitState === 'CLOSED' ? "border-emerald-500/30 text-emerald-400" : "border-red-500/30 text-red-400"
+                              'text-[10px] font-mono',
+                              p.circuitState === 'CLOSED' ? 'border-emerald-500/30 text-emerald-400' : 'border-red-500/30 text-red-400',
                             )}>
                               CB: {p.circuitState}
                             </Badge>
                             <Badge variant="outline" className={cn(
-                              "text-[10px] font-mono",
-                              p.config.enabled ? "border-emerald-500/30 text-emerald-400" : "border-zinc-700 text-zinc-500"
+                              'text-[10px] font-mono',
+                              p.config.enabled ? 'border-emerald-500/30 text-emerald-400' : 'border-zinc-700 text-zinc-500',
                             )}>
                               {p.config.enabled ? 'ON' : 'OFF'}
                             </Badge>
@@ -363,7 +370,7 @@ export function StreamDiagnostics() {
                   E2E Streaming Test
                 </span>
                 {streamResult && (
-                  <span className={cn("font-mono", streamResult.success ? "text-emerald-400" : "text-red-400")}>
+                  <span className={cn('font-mono', streamResult.success ? 'text-emerald-400' : 'text-red-400')}>
                     {streamResult.success ? 'PASS' : 'FAIL'}
                   </span>
                 )}
@@ -380,10 +387,10 @@ export function StreamDiagnostics() {
                         key={tp.id}
                         onClick={() => setSelectedPrompt(tp.id)}
                         className={cn(
-                          "px-2.5 py-1 rounded text-xs font-mono border transition-all",
+                          'px-2.5 py-1 rounded text-xs font-mono border transition-all',
                           selectedPrompt === tp.id
-                            ? "bg-primary/10 text-primary border-primary/30"
-                            : "bg-zinc-900/30 text-zinc-500 border-zinc-800/30 hover:text-zinc-300"
+                            ? 'bg-primary/10 text-primary border-primary/30'
+                            : 'bg-zinc-900/30 text-zinc-500 border-zinc-800/30 hover:text-zinc-300',
                         )}
                       >
                         {tp.labelEn}
@@ -428,9 +435,9 @@ export function StreamDiagnostics() {
                         </button>
                       </div>
                       <pre className={cn(
-                        "p-3 rounded-lg border text-xs font-mono whitespace-pre-wrap max-h-[200px] overflow-y-auto",
-                        "bg-zinc-950/50 border-zinc-800/50 text-zinc-300",
-                        phase === 'streaming' && "border-amber-500/20"
+                        'p-3 rounded-lg border text-xs font-mono whitespace-pre-wrap max-h-[200px] overflow-y-auto',
+                        'bg-zinc-950/50 border-zinc-800/50 text-zinc-300',
+                        phase === 'streaming' && 'border-amber-500/20',
                       )}>
                         {streamOutput || '(waiting for tokens...)'}
                         {phase === 'streaming' && <span className="inline-block w-1.5 h-3.5 bg-primary animate-pulse ml-0.5" />}
@@ -441,8 +448,8 @@ export function StreamDiagnostics() {
                   {/* Results metrics */}
                   {streamResult && (
                     <div className={cn(
-                      "p-3 rounded-lg border text-xs font-mono",
-                      streamResult.success ? "bg-emerald-500/5 border-emerald-500/20" : "bg-red-500/5 border-red-500/20"
+                      'p-3 rounded-lg border text-xs font-mono',
+                      streamResult.success ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20',
                     )}>
                       <div className="flex items-center gap-2 mb-2">
                         {streamResult.success ? (
@@ -450,7 +457,7 @@ export function StreamDiagnostics() {
                         ) : (
                           <XCircle className="w-4 h-4 text-red-400" />
                         )}
-                        <span className={streamResult.success ? "text-emerald-400" : "text-red-400"}>
+                        <span className={streamResult.success ? 'text-emerald-400' : 'text-red-400'}>
                           {streamResult.success ? 'E2E Stream Test PASSED' : 'E2E Stream Test FAILED'}
                         </span>
                       </div>
@@ -504,7 +511,7 @@ export function StreamDiagnostics() {
             {expandedSections.has('architecture') && (
               <CardContent className="pt-0">
                 <pre className="text-[11px] font-mono text-zinc-500 leading-relaxed whitespace-pre-wrap">
-{`User Input
+                  {`User Input
   -> handleSendMessage()
     -> hasConfiguredProvider() check
     -> Build LLMMessage[] (system + last 30 msgs + user)

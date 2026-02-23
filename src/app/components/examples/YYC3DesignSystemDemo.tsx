@@ -15,7 +15,7 @@ export const YYC3DesignSystemDemo: React.FC<YYC3DesignSystemDemoProps> = () => {
       <div className="space-y-6">
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold text-foreground">设计令牌示例</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-card rounded-lg border border-border">
               <h3 className="text-lg font-medium mb-3">颜色令牌</h3>
@@ -57,16 +57,16 @@ export const YYC3DesignSystemDemo: React.FC<YYC3DesignSystemDemoProps> = () => {
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold text-foreground">动画令牌示例</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 bg-card rounded-lg border border-border">
               <h3 className="text-lg font-medium mb-3">淡入动画</h3>
-              <div 
+              <div
                 className="w-full h-16 bg-primary rounded flex items-center justify-center text-primary-foreground"
-                style={{ 
+                style={{
                   animation: 'fadeIn 0.3s ease-in-out',
                   animationIterationCount: 'infinite',
-                  animationDirection: 'alternate'
+                  animationDirection: 'alternate',
                 }}
               >
                 Fade In
@@ -75,12 +75,12 @@ export const YYC3DesignSystemDemo: React.FC<YYC3DesignSystemDemoProps> = () => {
 
             <div className="p-4 bg-card rounded-lg border border-border">
               <h3 className="text-lg font-medium mb-3">滑入动画</h3>
-              <div 
+              <div
                 className="w-full h-16 bg-secondary rounded flex items-center justify-center text-secondary-foreground"
-                style={{ 
+                style={{
                   animation: 'slideInUp 0.3s ease-out',
                   animationIterationCount: 'infinite',
-                  animationDirection: 'alternate'
+                  animationDirection: 'alternate',
                 }}
               >
                 Slide Up
@@ -89,12 +89,12 @@ export const YYC3DesignSystemDemo: React.FC<YYC3DesignSystemDemoProps> = () => {
 
             <div className="p-4 bg-card rounded-lg border border-border">
               <h3 className="text-lg font-medium mb-3">缩放动画</h3>
-              <div 
+              <div
                 className="w-full h-16 bg-accent rounded flex items-center justify-center text-accent-foreground"
-                style={{ 
+                style={{
                   animation: 'scaleIn 0.3s ease-out',
                   animationIterationCount: 'infinite',
-                  animationDirection: 'alternate'
+                  animationDirection: 'alternate',
                 }}
               >
                 Scale In
@@ -105,11 +105,11 @@ export const YYC3DesignSystemDemo: React.FC<YYC3DesignSystemDemoProps> = () => {
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold text-foreground">阴影令牌示例</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-card rounded-lg border border-border">
               <h3 className="text-lg font-medium mb-3">卡片阴影</h3>
-              <div 
+              <div
                 className="w-full h-24 bg-muted rounded flex items-center justify-center"
                 style={{ boxShadow: 'var(--shadow-card)' }}
               >
@@ -119,7 +119,7 @@ export const YYC3DesignSystemDemo: React.FC<YYC3DesignSystemDemoProps> = () => {
 
             <div className="p-4 bg-card rounded-lg border border-border">
               <h3 className="text-lg font-medium mb-3">弹出层阴影</h3>
-              <div 
+              <div
                 className="w-full h-24 bg-muted rounded flex items-center justify-center"
                 style={{ boxShadow: 'var(--shadow-popover)' }}
               >
@@ -131,7 +131,7 @@ export const YYC3DesignSystemDemo: React.FC<YYC3DesignSystemDemoProps> = () => {
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold text-foreground">字体令牌示例</h2>
-          
+
           <div className="space-y-4">
             <div className="p-4 bg-card rounded-lg border border-border">
               <h3 className="text-lg font-medium mb-3">字体家族</h3>
@@ -170,10 +170,10 @@ export const YYC3DesignSystemDemo: React.FC<YYC3DesignSystemDemoProps> = () => {
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold text-foreground">使用说明</h2>
-          
+
           <div className="p-4 bg-card rounded-lg border border-border space-y-3">
             <h3 className="text-lg font-medium">集成 YYC3 Design System</h3>
-            
+
             <div className="space-y-2">
               <h4 className="font-medium">1. 设计令牌已集成到 theme.css</h4>
               <p className="text-sm text-muted-foreground">

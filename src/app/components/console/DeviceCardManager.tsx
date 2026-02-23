@@ -10,41 +10,42 @@
 // - Sync/maintain capability for future upgrades
 // ============================================================
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   Laptop, Monitor, Server, HardDrive, Cpu, Wifi,
   Edit3, Check, X, RefreshCw, Globe, ChevronDown, ChevronUp,
   ExternalLink, Zap, Save,
   MemoryStick, Thermometer, Activity,
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
-import { useSystemStore } from "@/lib/store";
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
 import {
   loadDeviceConfigs,
   saveDeviceConfigs,
   pingDevice,
   type DeviceConfig,
-} from "@/lib/nas-client";
+} from '@/lib/nas-client';
+import { useSystemStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // Color Mappings
 // ============================================================
 
 const COLOR_MAP: Record<string, { text: string; bg: string; border: string; glow: string }> = {
-  amber:  { text: 'text-amber-500',  bg: 'bg-amber-500',  border: 'border-amber-500/20', glow: 'shadow-amber-500/10' },
-  blue:   { text: 'text-blue-500',   bg: 'bg-blue-500',   border: 'border-blue-500/20',  glow: 'shadow-blue-500/10' },
+  amber: { text: 'text-amber-500', bg: 'bg-amber-500', border: 'border-amber-500/20', glow: 'shadow-amber-500/10' },
+  blue: { text: 'text-blue-500', bg: 'bg-blue-500', border: 'border-blue-500/20', glow: 'shadow-blue-500/10' },
   purple: { text: 'text-purple-500', bg: 'bg-purple-500', border: 'border-purple-500/20', glow: 'shadow-purple-500/10' },
-  zinc:   { text: 'text-zinc-400',   bg: 'bg-zinc-500',   border: 'border-zinc-500/20',  glow: 'shadow-zinc-500/10' },
-  green:  { text: 'text-green-500',  bg: 'bg-green-500',  border: 'border-green-500/20', glow: 'shadow-green-500/10' },
-  cyan:   { text: 'text-cyan-500',   bg: 'bg-cyan-500',   border: 'border-cyan-500/20',  glow: 'shadow-cyan-500/10' },
+  zinc: { text: 'text-zinc-400', bg: 'bg-zinc-500', border: 'border-zinc-500/20', glow: 'shadow-zinc-500/10' },
+  green: { text: 'text-green-500', bg: 'bg-green-500', border: 'border-green-500/20', glow: 'shadow-green-500/10' },
+  cyan: { text: 'text-cyan-500', bg: 'bg-cyan-500', border: 'border-cyan-500/20', glow: 'shadow-cyan-500/10' },
 };
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   MBP: Laptop,
   iMC: Monitor,
-  HW:  Laptop,
+  HW: Laptop,
   NAS: Server,
 };
 
@@ -60,12 +61,14 @@ function StatusDot({ status }: { status: string }) {
     : status === 'offline'
     ? 'bg-red-500'
     : 'bg-zinc-600';
-  return <div className={cn("w-2 h-2 rounded-full shrink-0", cls)} />;
+
+  return <div className={cn('w-2 h-2 rounded-full shrink-0', cls)} />;
 }
 
 function ServiceStatusDot({ status }: { status: string }) {
   const cls = status === 'up' ? 'bg-green-500' : status === 'down' ? 'bg-red-500' : 'bg-zinc-600';
-  return <div className={cn("w-1.5 h-1.5 rounded-full shrink-0", cls)} />;
+
+  return <div className={cn('w-1.5 h-1.5 rounded-full shrink-0', cls)} />;
 }
 
 // ============================================================
@@ -91,10 +94,11 @@ function EditableField({
     return (
       <div>
         <span className="text-[8px] font-mono text-zinc-600 uppercase tracking-widest">{label}</span>
-        <div className={cn("text-xs text-zinc-200 mt-0.5", mono && "font-mono")}>{value || '—'}</div>
+        <div className={cn('text-xs text-zinc-200 mt-0.5', mono && 'font-mono')}>{value || '—'}</div>
       </div>
     );
   }
+
   return (
     <div>
       <span className="text-[8px] font-mono text-primary/70 uppercase tracking-widest flex items-center gap-1">
@@ -157,20 +161,20 @@ function DeviceCard({
 
   return (
     <div className={cn(
-      "relative overflow-hidden rounded-xl border transition-all",
-      "bg-zinc-900/40 hover:bg-zinc-900/60",
-      isEditing ? "border-primary/30 shadow-lg shadow-primary/5" : colors.border,
+      'relative overflow-hidden rounded-xl border transition-all',
+      'bg-zinc-900/40 hover:bg-zinc-900/60',
+      isEditing ? 'border-primary/30 shadow-lg shadow-primary/5' : colors.border,
     )}>
       {/* Background glow */}
       {device.status === 'online' && (
-        <div className={cn("absolute -right-10 -top-10 w-28 h-28 rounded-full blur-3xl opacity-10", colors.bg)} />
+        <div className={cn('absolute -right-10 -top-10 w-28 h-28 rounded-full blur-3xl opacity-10', colors.bg)} />
       )}
 
       {/* Header */}
       <div className="flex items-start justify-between p-4 relative z-10">
         <div className="flex items-center gap-3 min-w-0">
-          <div className={cn("p-2 rounded-lg border shrink-0", colors.border, `${colors.bg}/10`)}>
-            <DevIcon className={cn("w-5 h-5", colors.text)} />
+          <div className={cn('p-2 rounded-lg border shrink-0', colors.border, `${colors.bg}/10`)}>
+            <DevIcon className={cn('w-5 h-5', colors.text)} />
           </div>
           <div className="min-w-0">
             {isEditing ? (
@@ -195,11 +199,11 @@ function DeviceCard({
             <StatusDot status={device.status} />
           )}
           <Badge variant="outline" className={cn(
-            "text-[9px] uppercase font-mono",
+            'text-[9px] uppercase font-mono',
             device.status === 'online' ? 'border-green-500/30 text-green-500 bg-green-500/5'
             : device.status === 'standby' ? 'border-amber-500/30 text-amber-500 bg-amber-500/5'
             : device.status === 'offline' ? 'border-red-500/30 text-red-500 bg-red-500/5'
-            : 'border-zinc-500/30 text-zinc-500'
+            : 'border-zinc-500/30 text-zinc-500',
           )}>
             {device.status}
           </Badge>
@@ -268,10 +272,10 @@ function DeviceCard({
           <div className="space-y-1 animate-in slide-in-from-top-2 duration-200">
             {device.services.map(svc => (
               <div key={svc.id} className={cn(
-                "flex items-center justify-between px-2 py-1.5 rounded border text-[10px] font-mono",
+                'flex items-center justify-between px-2 py-1.5 rounded border text-[10px] font-mono',
                 svc.enabled
-                  ? "bg-black/20 border-white/5"
-                  : "bg-black/10 border-transparent opacity-50"
+                  ? 'bg-black/20 border-white/5'
+                  : 'bg-black/10 border-transparent opacity-50',
               )}>
                 <div className="flex items-center gap-2 min-w-0">
                   <ServiceStatusDot status={svc.enabled ? svc.status : 'down'} />
@@ -282,7 +286,7 @@ function DeviceCard({
                   <span className="text-zinc-600 uppercase text-[8px]">{svc.protocol}</span>
                   {svc.enabled && svc.status === 'up' && (svc.protocol === 'http' || svc.protocol === 'https') && (
                     <button
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         window.open(`${svc.protocol}://${device.ip}:${svc.port}${svc.path || ''}`, '_blank');
                       }}
@@ -294,18 +298,19 @@ function DeviceCard({
                   )}
                   {isEditing && (
                     <button
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         const updated = device.services.map(s =>
-                          s.id === svc.id ? { ...s, enabled: !s.enabled } : s
+                          s.id === svc.id ? { ...s, enabled: !s.enabled } : s,
                         );
+
                         onUpdate({ services: updated });
                       }}
                       className={cn(
-                        "p-0.5 rounded transition-colors",
-                        svc.enabled ? "text-green-500 hover:text-red-500" : "text-zinc-600 hover:text-green-500"
+                        'p-0.5 rounded transition-colors',
+                        svc.enabled ? 'text-green-500 hover:text-red-500' : 'text-zinc-600 hover:text-green-500',
                       )}
-                      title={svc.enabled ? "Disable" : "Enable"}
+                      title={svc.enabled ? 'Disable' : 'Enable'}
                     >
                       {svc.enabled ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
                     </button>
@@ -342,12 +347,13 @@ function DeviceCard({
 
 function MiniMetricBar({ label, value, color }: { label: string; value: number; color: string }) {
   const pct = Math.min(100, Math.max(0, value));
+
   return (
     <div className="flex items-center gap-2">
       <span className="text-[9px] font-mono text-zinc-600 w-6">{label}</span>
       <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
         <div
-          className={cn("h-full rounded-full transition-all duration-1000", color)}
+          className={cn('h-full rounded-full transition-all duration-1000', color)}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -382,7 +388,7 @@ export function DeviceCardManager() {
 
   const handleUpdate = (deviceId: string, updates: Partial<DeviceConfig>) => {
     setDevices(prev => prev.map(d =>
-      d.id === deviceId ? { ...d, ...updates } : d
+      d.id === deviceId ? { ...d, ...updates } : d,
     ));
   };
 
@@ -400,6 +406,7 @@ export function DeviceCardManager() {
 
   const handlePing = async (deviceId: string) => {
     const device = devices.find(d => d.id === deviceId);
+
     if (!device) return;
 
     setPinging(p => ({ ...p, [deviceId]: true }));
@@ -410,12 +417,12 @@ export function DeviceCardManager() {
     setDevices(prev => prev.map(d =>
       d.id === deviceId
         ? {
-            ...d,
-            status: result.reachable ? 'online' : 'offline',
-            lastPing: Date.now(),
-            latencyMs: result.latencyMs,
-          }
-        : d
+          ...d,
+          status: result.reachable ? 'online' : 'offline',
+          lastPing: Date.now(),
+          latencyMs: result.latencyMs,
+        }
+        : d,
     ));
 
     addLog(
@@ -423,7 +430,7 @@ export function DeviceCardManager() {
       'DEVICE_MGR',
       result.reachable
         ? `${device.displayName} ONLINE (${result.latencyMs}ms)`
-        : `${device.displayName} UNREACHABLE`
+        : `${device.displayName} UNREACHABLE`,
     );
 
     setPinging(p => ({ ...p, [deviceId]: false }));
@@ -519,7 +526,7 @@ export function DeviceCardManager() {
               key={device.id}
               device={device}
               isEditing={isEditing}
-              onUpdate={(updates) => handleUpdate(device.id, updates)}
+              onUpdate={updates => handleUpdate(device.id, updates)}
               onPing={() => handlePing(device.id)}
               isPinging={!!pinging[device.id]}
               clusterMetric={metric}

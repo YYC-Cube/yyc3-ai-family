@@ -14,8 +14,8 @@
 // ============================================================
 
 import type { KnowledgeEntry, KnowledgeCategory } from './agent-identity';
-import { generalStreamChat, hasConfiguredProvider, type StreamChunk, type LLMMessage } from './llm-bridge';
 import { eventBus } from './event-bus';
+import { generalStreamChat, hasConfiguredProvider, type StreamChunk, type LLMMessage } from './llm-bridge';
 
 // ============================================================
 // 1. JSON Export/Import
@@ -44,6 +44,7 @@ export function exportKnowledgeJSON(entries: KnowledgeEntry[]): void {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
+
   a.href = url;
   a.download = `yyc3-kb-export-${new Date().toISOString().slice(0, 10)}.json`;
   document.body.appendChild(a);
@@ -119,6 +120,7 @@ export function parseImportJSON(jsonString: string, existingEntries: KnowledgeEn
       rawEntries = parsed as Record<string, unknown>[];
     } else {
       result.errors.push('Invalid format: expected { version, entries } or an array');
+
       return result;
     }
 
@@ -127,6 +129,7 @@ export function parseImportJSON(jsonString: string, existingEntries: KnowledgeEn
 
     for (let i = 0; i < rawEntries.length; i++) {
       const { entry, error } = validateEntry(rawEntries[i], i);
+
       if (error) {
         result.errors.push(error);
         continue;
@@ -146,7 +149,7 @@ export function parseImportJSON(jsonString: string, existingEntries: KnowledgeEn
 
     eventBus.persist('knowledge_import',
       `Imported ${importedEntries.length} entries (${result.added} new, ${result.merged} merged)`,
-      result.errors.length > 0 ? 'warn' : 'info'
+      result.errors.length > 0 ? 'warn' : 'info',
     );
   } catch (err) {
     result.errors.push(`JSON parse error: ${(err as Error).message}`);
@@ -161,13 +164,16 @@ export function parseImportJSON(jsonString: string, existingEntries: KnowledgeEn
  */
 export function mergeEntries(existing: KnowledgeEntry[], imported: KnowledgeEntry[]): KnowledgeEntry[] {
   const map = new Map<string, KnowledgeEntry>();
+
   for (const e of existing) map.set(e.id, e);
   for (const e of imported) {
     const current = map.get(e.id);
+
     if (!current || e.updatedAt > current.updatedAt) {
       map.set(e.id, e);
     }
   }
+
   return Array.from(map.values());
 }
 
@@ -175,14 +181,19 @@ export function mergeEntries(existing: KnowledgeEntry[], imported: KnowledgeEntr
  * Trigger file picker and return selected file content as string.
  */
 export function pickJSONFile(): Promise<string | null> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const input = document.createElement('input');
+
     input.type = 'file';
     input.accept = '.json,application/json';
     input.onchange = () => {
       const file = input.files?.[0];
-      if (!file) { resolve(null); return; }
+
+      if (!file) { resolve(null);
+
+        return; }
       const reader = new FileReader();
+
       reader.onload = () => resolve(reader.result as string);
       reader.onerror = () => resolve(null);
       reader.readAsText(file);
@@ -215,10 +226,11 @@ export function canGenerateSummary(): boolean {
 export async function generateEntrySummary(
   entry: { title: string; content: string; tags: string[] },
   onChunk: (text: string, done: boolean) => void,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<string | null> {
   if (!hasConfiguredProvider()) {
     onChunk('', true);
+
     return null;
   }
 
@@ -245,17 +257,22 @@ ${entry.content.slice(0, 2000)}`;
   try {
     const history: LLMMessage[] = [];
     const response = await generalStreamChat(prompt, history, handleChunk, signal);
+
     if (!response) {
       // All providers failed — return accumulated if any
       onChunk(accumulated || '(LLM unavailable)', true);
+
       return accumulated || null;
     }
+
     return accumulated;
   } catch (err) {
     const msg = (err as Error).message || 'Unknown error';
+
     if (msg !== 'Request aborted') {
       onChunk(`Error: ${msg}`, true);
     }
+
     return null;
   }
 }
@@ -267,7 +284,7 @@ ${entry.content.slice(0, 2000)}`;
 export interface FuzzySearchResult<T> {
   item: T;
   score: number;
-  matches: { field: string; indices: Array<[number, number]> }[];
+  matches: { field: string; indices: [number, number][] }[];
 }
 
 /**
@@ -284,16 +301,19 @@ function tokenizeQuery(query: string): string[] {
 /**
  * Find all match indices for a single token in text.
  */
-function findMatchIndices(text: string, token: string): Array<[number, number]> {
-  const indices: Array<[number, number]> = [];
+function findMatchIndices(text: string, token: string): [number, number][] {
+  const indices: [number, number][] = [];
   const lower = text.toLowerCase();
   let pos = 0;
+
   while (pos < lower.length) {
     const idx = lower.indexOf(token, pos);
+
     if (idx === -1) break;
     indices.push([idx, idx + token.length]);
     pos = idx + 1;
   }
+
   return indices;
 }
 
@@ -303,11 +323,12 @@ function findMatchIndices(text: string, token: string): Array<[number, number]> 
  */
 export function fuzzySearchEntries(
   entries: KnowledgeEntry[],
-  query: string
+  query: string,
 ): FuzzySearchResult<KnowledgeEntry>[] {
   if (!query.trim()) return entries.map(item => ({ item, score: 0, matches: [] }));
 
   const tokens = tokenizeQuery(query);
+
   if (tokens.length === 0) return entries.map(item => ({ item, score: 0, matches: [] }));
 
   const results: FuzzySearchResult<KnowledgeEntry>[] = [];
@@ -319,6 +340,7 @@ export function fuzzySearchEntries(
     for (const token of tokens) {
       // Title matches (5x weight)
       const titleIndices = findMatchIndices(entry.title, token);
+
       if (titleIndices.length > 0) {
         score += titleIndices.length * 5;
         matches.push({ field: 'title', indices: titleIndices });
@@ -326,6 +348,7 @@ export function fuzzySearchEntries(
 
       // Summary matches (3x weight)
       const summaryIndices = findMatchIndices(entry.summary || '', token);
+
       if (summaryIndices.length > 0) {
         score += summaryIndices.length * 3;
         matches.push({ field: 'summary', indices: summaryIndices });
@@ -333,6 +356,7 @@ export function fuzzySearchEntries(
 
       // Content matches (1x weight)
       const contentIndices = findMatchIndices(entry.content, token);
+
       if (contentIndices.length > 0) {
         score += contentIndices.length;
         matches.push({ field: 'content', indices: contentIndices });
@@ -341,6 +365,7 @@ export function fuzzySearchEntries(
       // Tag matches (4x weight)
       for (const tag of entry.tags) {
         const tagIndices = findMatchIndices(tag, token);
+
         if (tagIndices.length > 0) {
           score += tagIndices.length * 4;
           matches.push({ field: 'tag', indices: tagIndices });
@@ -370,11 +395,12 @@ export interface SimpleDoc {
 
 export function fuzzySearchSimpleDocs<T extends SimpleDoc>(
   docs: T[],
-  query: string
+  query: string,
 ): FuzzySearchResult<T>[] {
   if (!query.trim()) return docs.map(item => ({ item, score: 0, matches: [] }));
 
   const tokens = tokenizeQuery(query);
+
   if (tokens.length === 0) return docs.map(item => ({ item, score: 0, matches: [] }));
 
   const results: FuzzySearchResult<T>[] = [];
@@ -385,12 +411,14 @@ export function fuzzySearchSimpleDocs<T extends SimpleDoc>(
 
     for (const token of tokens) {
       const titleIndices = findMatchIndices(doc.title, token);
+
       if (titleIndices.length > 0) {
         score += titleIndices.length * 5;
         matches.push({ field: 'title', indices: titleIndices });
       }
 
       const contentIndices = findMatchIndices(doc.content, token);
+
       if (contentIndices.length > 0) {
         score += contentIndices.length;
         matches.push({ field: 'content', indices: contentIndices });
@@ -398,6 +426,7 @@ export function fuzzySearchSimpleDocs<T extends SimpleDoc>(
 
       for (const tag of doc.tags) {
         const tagIndices = findMatchIndices(tag, token);
+
         if (tagIndices.length > 0) {
           score += tagIndices.length * 4;
           matches.push({ field: 'tag', indices: tagIndices });
@@ -426,12 +455,15 @@ export function getHighlightSegments(text: string, query: string): HighlightSegm
   if (!query.trim() || !text) return [{ text, highlight: false }];
 
   const tokens = tokenizeQuery(query);
+
   if (tokens.length === 0) return [{ text, highlight: false }];
 
   // Collect all match ranges
-  const ranges: Array<[number, number]> = [];
+  const ranges: [number, number][] = [];
+
   for (const token of tokens) {
     const indices = findMatchIndices(text, token);
+
     ranges.push(...indices);
   }
 
@@ -439,9 +471,11 @@ export function getHighlightSegments(text: string, query: string): HighlightSegm
 
   // Merge overlapping ranges
   ranges.sort((a, b) => a[0] - b[0]);
-  const merged: Array<[number, number]> = [ranges[0]];
+  const merged: [number, number][] = [ranges[0]];
+
   for (let i = 1; i < ranges.length; i++) {
     const last = merged[merged.length - 1];
+
     if (ranges[i][0] <= last[1]) {
       last[1] = Math.max(last[1], ranges[i][1]);
     } else {
@@ -452,6 +486,7 @@ export function getHighlightSegments(text: string, query: string): HighlightSegm
   // Build segments
   const segments: HighlightSegment[] = [];
   let pos = 0;
+
   for (const [start, end] of merged) {
     if (pos < start) {
       segments.push({ text: text.slice(pos, start), highlight: false });
@@ -483,16 +518,16 @@ export interface VectorSearchRequest {
 
 export interface VectorSearchResult {
   entryId: string;
-  score: number;           // cosine similarity 0-1
-  snippet: string;         // matching text fragment
-  highlightRanges: Array<[number, number]>;
+  score: number; // cosine similarity 0-1
+  snippet: string; // matching text fragment
+  highlightRanges: [number, number][];
 }
 
 export interface VectorSearchResponse {
   results: VectorSearchResult[];
   queryEmbeddingMs: number;
   searchMs: number;
-  model: string;           // embedding model name
+  model: string; // embedding model name
 }
 
 /**
@@ -502,7 +537,7 @@ export interface VectorSearchResponse {
 export async function vectorSearch(
   nasIp: string,
   request: VectorSearchRequest,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<VectorSearchResponse | null> {
   try {
     const resp = await fetch(`http://${nasIp}:8090/api/v1/kb/vector-search`, {
@@ -511,7 +546,9 @@ export async function vectorSearch(
       body: JSON.stringify(request),
       signal,
     });
+
     if (!resp.ok) return null;
+
     return await resp.json() as VectorSearchResponse;
   } catch {
     return null;
@@ -525,7 +562,7 @@ export async function vectorSearch(
 export async function vectorIndex(
   nasIp: string,
   entry: KnowledgeEntry,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<boolean> {
   try {
     const resp = await fetch(`http://${nasIp}:8090/api/v1/kb/vector-index`, {
@@ -541,6 +578,7 @@ export async function vectorIndex(
       }),
       signal,
     });
+
     return resp.ok;
   } catch {
     return false;
@@ -559,11 +597,11 @@ export interface OCRRequest {
 export interface OCRResult {
   text: string;
   confidence: number;
-  blocks: Array<{
+  blocks: {
     text: string;
     bbox: { x: number; y: number; w: number; h: number };
     confidence: number;
-  }>;
+  }[];
   processingMs: number;
 }
 
@@ -574,7 +612,7 @@ export interface OCRResult {
 export async function ocrRecognize(
   nasIp: string,
   request: OCRRequest,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<OCRResult | null> {
   try {
     const resp = await fetch(`http://${nasIp}:8091/api/v1/ocr/recognize`, {
@@ -583,7 +621,9 @@ export async function ocrRecognize(
       body: JSON.stringify(request),
       signal,
     });
+
     if (!resp.ok) return null;
+
     return await resp.json() as OCRResult;
   } catch {
     return null;
@@ -599,12 +639,12 @@ export interface ASRRequest {
 
 export interface ASRResult {
   text: string;
-  segments: Array<{
+  segments: {
     text: string;
-    start: number;   // seconds
+    start: number; // seconds
     end: number;
     confidence: number;
-  }>;
+  }[];
   processingMs: number;
   model: string;
 }
@@ -616,7 +656,7 @@ export interface ASRResult {
 export async function asrTranscribe(
   nasIp: string,
   request: ASRRequest,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<ASRResult | null> {
   try {
     const resp = await fetch(`http://${nasIp}:8091/api/v1/asr/transcribe`, {
@@ -625,7 +665,9 @@ export async function asrTranscribe(
       body: JSON.stringify(request),
       signal,
     });
+
     if (!resp.ok) return null;
+
     return await resp.json() as ASRResult;
   } catch {
     return null;
@@ -641,7 +683,7 @@ export interface NERRequest {
 
 export interface NEREntity {
   text: string;
-  type: string;        // PERSON, ORG, TECH, CONCEPT, etc.
+  type: string; // PERSON, ORG, TECH, CONCEPT, etc.
   start: number;
   end: number;
   confidence: number;
@@ -649,7 +691,7 @@ export interface NEREntity {
 
 export interface NERRelation {
   subject: NEREntity;
-  predicate: string;   // 'uses', 'depends_on', 'part_of', 'related_to', etc.
+  predicate: string; // 'uses', 'depends_on', 'part_of', 'related_to', etc.
   object: NEREntity;
   confidence: number;
 }
@@ -668,7 +710,7 @@ export interface NERResult {
 export async function nerExtract(
   nasIp: string,
   request: NERRequest,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<NERResult | null> {
   try {
     const resp = await fetch(`http://${nasIp}:8092/api/v1/nlp/ner`, {
@@ -677,7 +719,9 @@ export async function nerExtract(
       body: JSON.stringify(request),
       signal,
     });
+
     if (!resp.ok) return null;
+
     return await resp.json() as NERResult;
   } catch {
     return null;
@@ -691,8 +735,8 @@ export async function nerExtract(
 export interface KGQueryRequest {
   entityId?: string;
   entityText?: string;
-  depth?: number;       // hop count, default 2
-  limit?: number;       // max results, default 50
+  depth?: number; // hop count, default 2
+  limit?: number; // max results, default 50
 }
 
 export interface KGNode {
@@ -718,7 +762,7 @@ export interface KGQueryResult {
 export async function kgQuery(
   nasIp: string,
   request: KGQueryRequest,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<KGQueryResult | null> {
   try {
     const resp = await fetch(`http://${nasIp}:8092/api/v1/kg/query`, {
@@ -727,7 +771,9 @@ export async function kgQuery(
       body: JSON.stringify(request),
       signal,
     });
+
     if (!resp.ok) return null;
+
     return await resp.json() as KGQueryResult;
   } catch {
     return null;
@@ -769,8 +815,9 @@ export async function checkKBBackendHealth(nasIp: string): Promise<KBBackendStat
   const results = await Promise.allSettled(
     checks.map(async ({ key, url }) => {
       const resp = await fetch(url, { signal: AbortSignal.timeout(3000) });
+
       if (resp.ok) status[key] = true;
-    })
+    }),
   );
 
   // Silence unused variable

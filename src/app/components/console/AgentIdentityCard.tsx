@@ -11,28 +11,26 @@
 // - Event Bus integration
 // ============================================================
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   Brain, Sparkles, Activity, Users, Network, Shield, Book,
-  Edit3, Check, X, Heart, Signal, RefreshCw,
-  ChevronRight, Zap, Eye, ArrowLeftRight,
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+  Edit3, Check, X, Heart, Signal, ArrowLeftRight,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import {
   type AgentProfile,
   type AgentIdentity,
   type MoodState,
-  type PresenceStatus,
   MOOD_COLORS,
   PRESENCE_META,
   loadAgentProfiles,
   saveAgentProfiles,
-} from "@/lib/agent-identity";
-import { eventBus } from "@/lib/event-bus";
+} from '@/lib/agent-identity';
+import { eventBus } from '@/lib/event-bus';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // Icon Map
@@ -49,13 +47,13 @@ const AGENT_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>
 };
 
 const AGENT_COLOR_MAP: Record<string, { text: string; bg: string; border: string; glow: string }> = {
-  navigator:   { text: 'text-amber-500',  bg: 'bg-amber-500/10',  border: 'border-amber-500/30', glow: 'shadow-amber-500/20' },
-  thinker:     { text: 'text-blue-500',   bg: 'bg-blue-500/10',   border: 'border-blue-500/30',  glow: 'shadow-blue-500/20' },
-  prophet:     { text: 'text-purple-500', bg: 'bg-purple-500/10', border: 'border-purple-500/30', glow: 'shadow-purple-500/20' },
-  bole:        { text: 'text-pink-500',   bg: 'bg-pink-500/10',   border: 'border-pink-500/30',  glow: 'shadow-pink-500/20' },
-  pivot:       { text: 'text-cyan-500',   bg: 'bg-cyan-500/10',   border: 'border-cyan-500/30',  glow: 'shadow-cyan-500/20' },
-  sentinel:    { text: 'text-red-500',    bg: 'bg-red-500/10',    border: 'border-red-500/30',   glow: 'shadow-red-500/20' },
-  grandmaster: { text: 'text-green-500',  bg: 'bg-green-500/10',  border: 'border-green-500/30', glow: 'shadow-green-500/20' },
+  navigator: { text: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/30', glow: 'shadow-amber-500/20' },
+  thinker: { text: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/30', glow: 'shadow-blue-500/20' },
+  prophet: { text: 'text-purple-500', bg: 'bg-purple-500/10', border: 'border-purple-500/30', glow: 'shadow-purple-500/20' },
+  bole: { text: 'text-pink-500', bg: 'bg-pink-500/10', border: 'border-pink-500/30', glow: 'shadow-pink-500/20' },
+  pivot: { text: 'text-cyan-500', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30', glow: 'shadow-cyan-500/20' },
+  sentinel: { text: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-500/30', glow: 'shadow-red-500/20' },
+  grandmaster: { text: 'text-green-500', bg: 'bg-green-500/10', border: 'border-green-500/30', glow: 'shadow-green-500/20' },
 };
 
 // ============================================================
@@ -95,7 +93,7 @@ function IdentityEditor({
         <input
           className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-primary/50"
           value={draft.title}
-          onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+          onChange={e => setDraft({ ...draft, title: e.target.value })}
         />
       </div>
 
@@ -105,7 +103,7 @@ function IdentityEditor({
         <input
           className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-primary/50"
           value={draft.subtitle}
-          onChange={(e) => setDraft({ ...draft, subtitle: e.target.value })}
+          onChange={e => setDraft({ ...draft, subtitle: e.target.value })}
         />
       </div>
 
@@ -115,7 +113,7 @@ function IdentityEditor({
         <textarea
           className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-primary/50 h-16 resize-none"
           value={draft.description}
-          onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+          onChange={e => setDraft({ ...draft, description: e.target.value })}
         />
       </div>
 
@@ -125,7 +123,7 @@ function IdentityEditor({
         <input
           className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-primary/50"
           value={draft.expertise.join(', ')}
-          onChange={(e) => setDraft({ ...draft, expertise: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+          onChange={e => setDraft({ ...draft, expertise: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
         />
       </div>
 
@@ -138,10 +136,10 @@ function IdentityEditor({
               key={mood}
               onClick={() => setDraft({ ...draft, mood })}
               className={cn(
-                "px-2.5 py-1 rounded-full text-[10px] font-mono border transition-all",
+                'px-2.5 py-1 rounded-full text-[10px] font-mono border transition-all',
                 draft.mood === mood
-                  ? cn(MOOD_COLORS[mood].color, MOOD_COLORS[mood].bg, "border-current")
-                  : "text-zinc-500 border-white/5 hover:border-white/20"
+                  ? cn(MOOD_COLORS[mood].color, MOOD_COLORS[mood].bg, 'border-current')
+                  : 'text-zinc-500 border-white/5 hover:border-white/20',
               )}
             >
               {MOOD_COLORS[mood].labelZh}
@@ -180,6 +178,7 @@ function SingleAgentCard({
       [key]: updated,
       updatedAt: new Date().toISOString(),
     };
+
     onUpdate(newProfile);
     setEditingIdentity(null);
     eventBus.emit({
@@ -194,6 +193,7 @@ function SingleAgentCard({
 
   const handleToggleIdentity = () => {
     const newActive = profile.activeIdentity === 'primary' ? 'secondary' : 'primary';
+
     onUpdate({
       ...profile,
       activeIdentity: newActive as 'primary' | 'secondary',
@@ -216,24 +216,24 @@ function SingleAgentCard({
 
   return (
     <Card className={cn(
-      "bg-zinc-900/40 border transition-all hover:shadow-lg group relative overflow-hidden",
+      'bg-zinc-900/40 border transition-all hover:shadow-lg group relative overflow-hidden',
       colors.border,
-      `hover:${colors.glow}`
+      `hover:${colors.glow}`,
     )}>
       {/* Glow effect */}
       <div className={cn(
-        "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none",
-        colors.bg
+        'absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none',
+        colors.bg,
       )} />
 
       <CardHeader className="relative pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className={cn("p-2.5 rounded-xl", colors.bg)}>
-              <Icon className={cn("w-6 h-6", colors.text)} />
+            <div className={cn('p-2.5 rounded-xl', colors.bg)}>
+              <Icon className={cn('w-6 h-6', colors.text)} />
             </div>
             <div>
-              <CardTitle className={cn("text-base", colors.text)}>
+              <CardTitle className={cn('text-base', colors.text)}>
                 {activeId.title}
               </CardTitle>
               <p className="text-[11px] text-zinc-500 mt-0.5">{activeId.subtitle}</p>
@@ -242,8 +242,8 @@ function SingleAgentCard({
 
           {/* Presence Dot */}
           <div className="flex items-center gap-1.5">
-            <div className={cn("w-2 h-2 rounded-full animate-pulse", presenceMeta.dot)} />
-            <span className={cn("text-[9px] font-mono", presenceMeta.color)}>
+            <div className={cn('w-2 h-2 rounded-full animate-pulse', presenceMeta.dot)} />
+            <span className={cn('text-[9px] font-mono', presenceMeta.color)}>
               {presenceMeta.labelZh}
             </span>
           </div>
@@ -274,7 +274,7 @@ function SingleAgentCard({
             {/* Mood */}
             <div className="flex items-center gap-2">
               <span className="text-[9px] font-mono text-zinc-600">MOOD:</span>
-              <span className={cn("text-[10px] font-mono px-2 py-0.5 rounded-full", moodMeta.color, moodMeta.bg)}>
+              <span className={cn('text-[10px] font-mono px-2 py-0.5 rounded-full', moodMeta.color, moodMeta.bg)}>
                 {moodMeta.labelZh}
               </span>
             </div>
@@ -283,7 +283,7 @@ function SingleAgentCard({
           <IdentityEditor
             identity={editingIdentity === 'primary' ? profile.primary : profile.secondary}
             label={editingIdentity === 'primary' ? 'Primary Identity' : 'Secondary Identity'}
-            onSave={(updated) => handleIdentitySave(editingIdentity, updated)}
+            onSave={updated => handleIdentitySave(editingIdentity, updated)}
             onCancel={() => setEditingIdentity(null)}
           />
         )}
@@ -296,8 +296,8 @@ function SingleAgentCard({
               <input
                 className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1 text-[11px] text-white focus:outline-none"
                 value={signalDraft}
-                onChange={(e) => setSignalDraft(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSignalSave()}
+                onChange={e => setSignalDraft(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSignalSave()}
               />
               <Button size="sm" variant="ghost" className="h-6 px-1.5" onClick={handleSignalSave}>
                 <Check className="w-3 h-3 text-green-400" />
@@ -376,8 +376,10 @@ export function AgentIdentityCards() {
       setProfiles(prev => {
         const now = new Date().toISOString();
         const updated = { ...prev };
+
         for (const [id, p] of Object.entries(updated)) {
           const rand = Math.random();
+
           updated[id] = {
             ...p,
             lastSeen: now,
@@ -385,16 +387,20 @@ export function AgentIdentityCards() {
             presence: rand > 0.85 ? 'busy' : rand > 0.7 ? 'idle' : 'online',
           };
         }
+
         return updated;
       });
     }, 10000);
+
     return () => clearInterval(interval);
   }, []);
 
   const handleUpdate = (updated: AgentProfile) => {
     setProfiles(prev => {
       const next = { ...prev, [updated.agentId]: updated };
+
       saveAgentProfiles(next);
+
       return next;
     });
   };

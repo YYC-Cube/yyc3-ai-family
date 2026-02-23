@@ -1,19 +1,21 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   Terminal, GitBranch, GitCommit, Play, Pause, CheckCircle2,
   XCircle, Clock, RefreshCw, ChevronRight,
   Box, ArrowRight, Loader2, RotateCcw, Rocket,
   Layers, Tag, CircleDot,
-  Workflow, Network
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
-import { McpWorkflowsView } from "./McpWorkflowsView";
-import { WorkflowOrchestrator } from "./WorkflowOrchestrator";
+  Workflow, Network,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
+import { cn } from '@/lib/utils';
+
+import { McpWorkflowsView } from './McpWorkflowsView';
+import { WorkflowOrchestrator } from './WorkflowOrchestrator';
 
 // --- Type Definitions ---
 
@@ -62,7 +64,7 @@ const INITIAL_PIPELINES: PipelineStage[] = [
       { id: 'compile', name: 'Compile TypeScript', status: 'success', duration: '1m 02s' },
       { id: 'lint', name: 'ESLint + Prettier', status: 'success', duration: '32s' },
       { id: 'bundle', name: 'Vite Bundle', status: 'success', duration: '40s' },
-    ]
+    ],
   },
   {
     id: 'test', name: 'Test', status: 'success', duration: '3m 45s',
@@ -70,7 +72,7 @@ const INITIAL_PIPELINES: PipelineStage[] = [
       { id: 'unit', name: 'Unit Tests (Vitest)', status: 'success', duration: '1m 22s' },
       { id: 'integration', name: 'Integration Tests', status: 'success', duration: '2m 01s' },
       { id: 'coverage', name: 'Coverage Report', status: 'success', duration: '22s' },
-    ]
+    ],
   },
   {
     id: 'security', name: 'Security', status: 'running', duration: '1m 12s',
@@ -78,7 +80,7 @@ const INITIAL_PIPELINES: PipelineStage[] = [
       { id: 'sast', name: 'SAST Scan', status: 'success', duration: '45s' },
       { id: 'deps', name: 'Dependency Audit', status: 'running', duration: '27s' },
       { id: 'secrets', name: 'Secret Scanner', status: 'pending', duration: '-' },
-    ]
+    ],
   },
   {
     id: 'deploy', name: 'Deploy', status: 'pending', duration: '-',
@@ -86,7 +88,7 @@ const INITIAL_PIPELINES: PipelineStage[] = [
       { id: 'staging', name: 'Deploy to Staging', status: 'pending', duration: '-' },
       { id: 'smoke', name: 'Smoke Tests', status: 'pending', duration: '-' },
       { id: 'prod', name: 'Deploy to Prod', status: 'pending', duration: '-' },
-    ]
+    ],
   },
 ];
 
@@ -244,7 +246,7 @@ function PipelineView() {
               ...job,
               status: 'success' as PipelineStatus,
               duration: job.id === 'deps' ? '55s' : job.id === 'secrets' ? '25s' : job.duration,
-            }))
+            })),
           };
         }
         if (stage.id === 'deploy') {
@@ -254,9 +256,10 @@ function PipelineView() {
             jobs: stage.jobs.map((job, idx) => ({
               ...job,
               status: idx === 0 ? 'running' as PipelineStatus : 'pending' as PipelineStatus,
-            }))
+            })),
           };
         }
+
         return stage;
       }));
     }, 5000);
@@ -272,9 +275,10 @@ function PipelineView() {
               ...job,
               status: 'success' as PipelineStatus,
               duration: job.id === 'staging' ? '2m 10s' : job.id === 'smoke' ? '1m 05s' : '1m 15s',
-            }))
+            })),
           };
         }
+
         return stage;
       }));
     }, 12000);
@@ -326,12 +330,12 @@ function PipelineView() {
             <button
               onClick={() => setExpandedStage(expandedStage === stage.id ? null : stage.id)}
               className={cn(
-                "flex-1 p-4 rounded-xl border transition-all group cursor-pointer",
-                stage.status === 'success' && "bg-green-500/5 border-green-500/20 hover:border-green-500/40",
-                stage.status === 'running' && "bg-blue-500/5 border-blue-500/20 hover:border-blue-500/40",
-                stage.status === 'failed' && "bg-red-500/5 border-red-500/20 hover:border-red-500/40",
-                stage.status === 'pending' && "bg-zinc-900/50 border-white/5 hover:border-white/10",
-                expandedStage === stage.id && "ring-1 ring-primary/30"
+                'flex-1 p-4 rounded-xl border transition-all group cursor-pointer',
+                stage.status === 'success' && 'bg-green-500/5 border-green-500/20 hover:border-green-500/40',
+                stage.status === 'running' && 'bg-blue-500/5 border-blue-500/20 hover:border-blue-500/40',
+                stage.status === 'failed' && 'bg-red-500/5 border-red-500/20 hover:border-red-500/40',
+                stage.status === 'pending' && 'bg-zinc-900/50 border-white/5 hover:border-white/10',
+                expandedStage === stage.id && 'ring-1 ring-primary/30',
               )}
             >
               <div className="flex items-center gap-2 mb-2">
@@ -342,8 +346,8 @@ function PipelineView() {
             </button>
             {idx < pipeline.length - 1 && (
               <ArrowRight className={cn(
-                "w-4 h-4 shrink-0",
-                pipeline[idx].status === 'success' ? "text-green-500/50" : "text-zinc-700"
+                'w-4 h-4 shrink-0',
+                pipeline[idx].status === 'success' ? 'text-green-500/50' : 'text-zinc-700',
               )} />
             )}
           </div>
@@ -368,7 +372,7 @@ function PipelineView() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-mono text-zinc-500">{job.duration}</span>
-                  <Badge variant="outline" className={cn("text-[10px] capitalize", statusColor(job.status))}>
+                  <Badge variant="outline" className={cn('text-[10px] capitalize', statusColor(job.status))}>
                     {job.status}
                   </Badge>
                 </div>
@@ -392,9 +396,11 @@ function ContainersView() {
         if (c.status !== 'running') return c;
         const cpuVal = parseFloat(c.cpu);
         const newCpu = Math.max(0.1, cpuVal + (Math.random() - 0.5) * 3).toFixed(1);
+
         return { ...c, cpu: `${newCpu}%` };
       }));
     }, 3000);
+
     return () => clearInterval(interval);
   }, []);
 
@@ -413,6 +419,7 @@ function ContainersView() {
       setTimeout(() => {
         setContainers(prev => prev.map(c => {
           if (c.id !== containerId) return c;
+
           return { ...c, status: 'running' as ContainerStatus, cpu: '1.2%', uptime: '0s' };
         }));
       }, 2000);
@@ -430,7 +437,7 @@ function ContainersView() {
           { label: 'Images', value: new Set(containers.map(c => c.image)).size, color: 'text-purple-500' },
         ].map(stat => (
           <div key={stat.label} className="p-3 bg-zinc-900/50 rounded-lg border border-white/5 text-center">
-            <div className={cn("text-lg font-mono", stat.color)}>{stat.value}</div>
+            <div className={cn('text-lg font-mono', stat.color)}>{stat.value}</div>
             <div className="text-[10px] text-zinc-500 uppercase tracking-wider">{stat.label}</div>
           </div>
         ))}
@@ -503,6 +510,7 @@ function InteractiveTerminal() {
   React.useEffect(() => {
     if (scrollRef.current) {
       const viewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
+
       if (viewport) viewport.scrollTop = viewport.scrollHeight;
     }
   }, [lines]);
@@ -528,10 +536,12 @@ function InteractiveTerminal() {
       setLines([
         { id: Math.random().toString(36).substring(2, 11), type: 'system', content: 'Terminal cleared.', timestamp: ts },
       ]);
+
       return;
     }
 
     const response = COMMAND_RESPONSES[trimmed];
+
     if (response) {
       const outputLines: TerminalLine[] = response.map(line => ({
         id: Math.random().toString(36).substring(2, 11),
@@ -539,6 +549,7 @@ function InteractiveTerminal() {
         content: line,
         timestamp: ts,
       }));
+
       setLines(prev => [...prev, inputLine, ...outputLines]);
     } else {
       setLines(prev => [...prev, inputLine, {
@@ -560,6 +571,7 @@ function InteractiveTerminal() {
       e.preventDefault();
       if (history.length > 0 && historyIdx < history.length - 1) {
         const newIdx = historyIdx + 1;
+
         setHistoryIdx(newIdx);
         setInput(history[newIdx]);
       }
@@ -567,6 +579,7 @@ function InteractiveTerminal() {
       e.preventDefault();
       if (historyIdx > 0) {
         const newIdx = historyIdx - 1;
+
         setHistoryIdx(newIdx);
         setInput(history[newIdx]);
       } else {
@@ -596,11 +609,11 @@ function InteractiveTerminal() {
         <div className="p-4 space-y-0.5" onClick={() => inputRef.current?.focus()}>
           {lines.map(line => (
             <div key={line.id} className={cn(
-              "whitespace-pre-wrap",
-              line.type === 'input' && "text-green-400",
-              line.type === 'output' && "text-zinc-300",
-              line.type === 'error' && "text-red-400",
-              line.type === 'system' && "text-cyan-500/70",
+              'whitespace-pre-wrap',
+              line.type === 'input' && 'text-green-400',
+              line.type === 'output' && 'text-zinc-300',
+              line.type === 'error' && 'text-red-400',
+              line.type === 'system' && 'text-cyan-500/70',
             )}>
               {line.type === 'input' ? (
                 <span>
@@ -626,7 +639,7 @@ function InteractiveTerminal() {
               ref={inputRef}
               type="text"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               className="flex-1 bg-transparent outline-none text-green-400 caret-green-400 ml-0.5"
               spellCheck={false}

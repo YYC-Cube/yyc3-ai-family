@@ -22,13 +22,16 @@
 //   CORS_ORIGIN=http://localhost:5173
 // ============================================================
 
-import express from 'express';
+import http from 'http';
+
 import cors from 'cors';
-import { Pool } from 'pg';
 import dotenv from 'dotenv';
+import express from 'express';
+import { Pool } from 'pg';
+
 import { createRoutes } from './routes';
 import { createWebSocketServer } from './ws';
-import http from 'http';
+
 
 dotenv.config();
 
@@ -39,14 +42,14 @@ const pool = new Pool({
   database: process.env.DB_NAME || 'yyc3_devops',
   user: process.env.DB_USER || 'yyc3_admin',
   password: process.env.DB_PASSWORD || '',
-  max: 20,                    // 最大连接数
-  idleTimeoutMillis: 30000,   // 空闲连接超时
+  max: 20, // 最大连接数
+  idleTimeoutMillis: 30000, // 空闲连接超时
   connectionTimeoutMillis: 5000, // 连接超时
 });
 
 // === Connection Test ===
 pool.query('SELECT NOW()')
-  .then((res) => {
+  .then(res => {
     console.log(`[DB] PostgreSQL connected — ${res.rows[0].now}`);
   })
   .catch((err: Error) => {
@@ -75,6 +78,7 @@ app.use((req, _res, next) => {
 app.get('/api/v1/health', async (_req, res) => {
   try {
     const dbResult = await pool.query('SELECT 1');
+
     res.json({
       status: 'ok',
       db: dbResult.rows.length > 0 ? 'connected' : 'error',
@@ -105,6 +109,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 
 // === Start ===
 const PORT = parseInt(process.env.SERVER_PORT || '3001', 10);
+
 server.listen(PORT, () => {
   console.log(`
 ╔══════════════════════════════════════════════════╗

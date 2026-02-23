@@ -1,16 +1,15 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n";
-import { useSystemStore } from "@/lib/store";
 import {
   Server, Database, Key, Sparkles, Briefcase, Monitor, Smartphone,
   Infinity, Settings, Layers, ChevronDown, ChevronRight, ArrowRight,
-  CheckCircle2, Clock, AlertTriangle, FileText, Code, Cpu, Network,
-  Shield, Brain, HardDrive, Activity, Globe, Wrench, Radio, Eye
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+  CheckCircle2, Clock, AlertTriangle, Code, Eye,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
+import { useTranslation } from '@/lib/i18n';
+import { useSystemStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // NineLayerArchitecture — Detailed Nine-Layer Design Blueprint
@@ -32,7 +31,7 @@ interface LayerDetail {
   status: 'complete' | 'in-progress' | 'planned';
   progress: number; // 0-100
   components: { name: string; file: string; status: 'done' | 'wip' | 'todo' }[];
-  dependencies: string[];  // depends on which layers
+  dependencies: string[]; // depends on which layers
   keyFiles: string[];
   roadmap: string[];
   roadmapEn: string[];
@@ -226,7 +225,7 @@ function LayerDetailCard({ layer, zh, onNavigate }: { layer: LayerDetail; zh: bo
     (zh ? '规划中' : 'Planned');
 
   return (
-    <Card className={cn("border overflow-hidden transition-all", layer.borderColor, "bg-black/40")}>
+    <Card className={cn('border overflow-hidden transition-all', layer.borderColor, 'bg-black/40')}>
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full text-left"
@@ -234,11 +233,11 @@ function LayerDetailCard({ layer, zh, onNavigate }: { layer: LayerDetail; zh: bo
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center border", layer.bgColor, layer.borderColor)}>
-                <layer.icon className={cn("w-5 h-5", layer.color)} />
+              <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center border', layer.bgColor, layer.borderColor)}>
+                <layer.icon className={cn('w-5 h-5', layer.color)} />
               </div>
               <div>
-                <CardTitle className={cn("text-sm", layer.color)}>
+                <CardTitle className={cn('text-sm', layer.color)}>
                   {zh ? layer.label : layer.labelEn}
                 </CardTitle>
                 <CardDescription className="text-[10px] mt-0.5">
@@ -249,10 +248,10 @@ function LayerDetailCard({ layer, zh, onNavigate }: { layer: LayerDetail; zh: bo
             <div className="flex items-center gap-2 shrink-0">
               {statusIcon}
               <Badge variant="outline" className={cn(
-                "text-[9px] font-mono",
-                layer.status === 'complete' ? "border-emerald-500/30 text-emerald-400" :
-                layer.status === 'in-progress' ? "border-amber-500/30 text-amber-400" :
-                "border-zinc-700 text-zinc-500"
+                'text-[9px] font-mono',
+                layer.status === 'complete' ? 'border-emerald-500/30 text-emerald-400' :
+                layer.status === 'in-progress' ? 'border-amber-500/30 text-amber-400' :
+                'border-zinc-700 text-zinc-500',
               )}>
                 {layer.progress}%
               </Badge>
@@ -263,9 +262,9 @@ function LayerDetailCard({ layer, zh, onNavigate }: { layer: LayerDetail; zh: bo
           {/* Progress Bar */}
           <div className="mt-3 h-1 bg-zinc-800 rounded-full overflow-hidden">
             <div
-              className={cn("h-full rounded-full transition-all duration-1000",
-                layer.status === 'complete' ? "bg-emerald-500" :
-                layer.status === 'in-progress' ? "bg-amber-500" : "bg-zinc-600"
+              className={cn('h-full rounded-full transition-all duration-1000',
+                layer.status === 'complete' ? 'bg-emerald-500' :
+                layer.status === 'in-progress' ? 'bg-amber-500' : 'bg-zinc-600',
               )}
               style={{ width: `${layer.progress}%` }}
             />
@@ -289,9 +288,9 @@ function LayerDetailCard({ layer, zh, onNavigate }: { layer: LayerDetail; zh: bo
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-mono text-zinc-700">{c.file}</span>
-                    <div className={cn("w-1.5 h-1.5 rounded-full",
-                      c.status === 'done' ? "bg-emerald-500" :
-                      c.status === 'wip' ? "bg-amber-500" : "bg-zinc-600"
+                    <div className={cn('w-1.5 h-1.5 rounded-full',
+                      c.status === 'done' ? 'bg-emerald-500' :
+                      c.status === 'wip' ? 'bg-amber-500' : 'bg-zinc-600',
                     )} />
                   </div>
                 </div>
@@ -308,8 +307,9 @@ function LayerDetailCard({ layer, zh, onNavigate }: { layer: LayerDetail; zh: bo
               <div className="flex flex-wrap gap-1.5">
                 {layer.dependencies.map(dep => {
                   const depLayer = NINE_LAYERS.find(l => l.id === dep);
+
                   return (
-                    <Badge key={dep} variant="outline" className={cn("text-[9px] font-mono", depLayer?.borderColor)}>
+                    <Badge key={dep} variant="outline" className={cn('text-[9px] font-mono', depLayer?.borderColor)}>
                       <span className={depLayer?.color}>{dep}</span>
                     </Badge>
                   );
@@ -355,7 +355,7 @@ function LayerDetailCard({ layer, zh, onNavigate }: { layer: LayerDetail; zh: bo
 export function NineLayerArchitecture() {
   const { language } = useTranslation();
   const zh = language === 'zh';
-  const navigateToConsoleTab = useSystemStore((s) => s.navigateToConsoleTab);
+  const navigateToConsoleTab = useSystemStore(s => s.navigateToConsoleTab);
 
   // Summary stats
   const totalComponents = NINE_LAYERS.reduce((sum, l) => sum + l.components.length, 0);
@@ -385,7 +385,7 @@ export function NineLayerArchitecture() {
         ].map(s => (
           <Card key={s.label} className="bg-zinc-900/50 border-white/5">
             <CardContent className="p-4 text-center">
-              <div className={cn("text-lg font-mono", s.color)}>{s.value}</div>
+              <div className={cn('text-lg font-mono', s.color)}>{s.value}</div>
               <div className="text-[10px] text-zinc-600 font-mono mt-1">{s.label}</div>
             </CardContent>
           </Card>
@@ -402,12 +402,12 @@ export function NineLayerArchitecture() {
             {NINE_LAYERS.map((l, i) => (
               <div key={l.id} className="contents">
                 <div className={cn(
-                  "px-3 py-1.5 rounded-lg border text-[10px] font-mono flex items-center gap-1.5 transition-all hover:scale-105",
-                  l.bgColor, l.borderColor
+                  'px-3 py-1.5 rounded-lg border text-[10px] font-mono flex items-center gap-1.5 transition-all hover:scale-105',
+                  l.bgColor, l.borderColor,
                 )}>
-                  <div className={cn("w-1.5 h-1.5 rounded-full",
-                    l.status === 'complete' ? "bg-emerald-500" :
-                    l.status === 'in-progress' ? "bg-amber-500" : "bg-zinc-600"
+                  <div className={cn('w-1.5 h-1.5 rounded-full',
+                    l.status === 'complete' ? 'bg-emerald-500' :
+                    l.status === 'in-progress' ? 'bg-amber-500' : 'bg-zinc-600',
                   )} />
                   <span className={l.color}>{l.id}</span>
                 </div>
@@ -468,8 +468,8 @@ export function NineLayerArchitecture() {
                   : ['Multi-user WebSocket collaboration', 'Voice interaction mode', 'Custom Agent builder', 'Plugin marketplace', 'Cluster auto-scaling'],
               },
             ].map(p => (
-              <div key={p.phase} className={cn("p-4 rounded-lg border bg-black/30", p.borderColor)}>
-                <div className={cn("text-xs font-mono mb-3", p.color)}>{p.phase}</div>
+              <div key={p.phase} className={cn('p-4 rounded-lg border bg-black/30', p.borderColor)}>
+                <div className={cn('text-xs font-mono mb-3', p.color)}>{p.phase}</div>
                 <div className="space-y-1.5">
                   {p.items.map((item, i) => (
                     <div key={i} className="flex items-start gap-2 text-[10px] text-zinc-500">

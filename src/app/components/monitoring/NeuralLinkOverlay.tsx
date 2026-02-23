@@ -1,16 +1,16 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { useSystemStore } from "@/lib/store";
-import { useTranslation } from "@/lib/i18n";
-import { eventBus } from "@/lib/event-bus";
 import {
-  Brain, Cpu, HardDrive, Wifi, WifiOff,
-  Activity, Shield, Zap, ChevronRight, X,
+  Brain, Cpu, Shield, ChevronRight,
   TerminalSquare, Eye, EyeOff, Maximize2, Minimize2,
-  Network, Sparkles, AlertTriangle, CheckCircle2,
-  ArrowUpRight, Clock, Database, Radio
-} from "lucide-react";
-import { AGENT_REGISTRY } from "@/lib/types";
+  Network,
+  ArrowUpRight, Database, Radio,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { eventBus } from '@/lib/event-bus';
+import { useTranslation } from '@/lib/i18n';
+import { useSystemStore } from '@/lib/store';
+import { AGENT_REGISTRY } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // NeuralLinkOverlay — Real-time Collaboration HUD
@@ -30,12 +30,13 @@ import { AGENT_REGISTRY } from "@/lib/types";
 // --- Compact Mini-Bar Component ---
 function MiniBar({ value, max, color, label }: { value: number; max: number; color: string; label: string }) {
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
+
   return (
     <div className="flex items-center gap-1.5 group" title={`${label}: ${value.toFixed(1)}%`}>
       <span className="text-[8px] font-mono text-zinc-500 w-6 text-right uppercase tracking-wider">{label}</span>
       <div className="w-12 h-1 bg-zinc-800 rounded-full overflow-hidden">
         <div
-          className={cn("h-full rounded-full transition-all duration-700 ease-out", color)}
+          className={cn('h-full rounded-full transition-all duration-700 ease-out', color)}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -47,15 +48,16 @@ function MiniBar({ value, max, color, label }: { value: number; max: number; col
 // --- Pulse Dot ---
 function PulseDot({ status }: { status: 'optimal' | 'warning' | 'critical' | 'booting' }) {
   const colors = {
-    optimal: "bg-emerald-500 shadow-emerald-500/50",
-    warning: "bg-amber-500 shadow-amber-500/50",
-    critical: "bg-red-500 shadow-red-500/50",
-    booting: "bg-sky-500 shadow-sky-500/50",
+    optimal: 'bg-emerald-500 shadow-emerald-500/50',
+    warning: 'bg-amber-500 shadow-amber-500/50',
+    critical: 'bg-red-500 shadow-red-500/50',
+    booting: 'bg-sky-500 shadow-sky-500/50',
   };
+
   return (
     <div className="relative">
-      <div className={cn("w-2 h-2 rounded-full shadow-[0_0_6px]", colors[status])} />
-      <div className={cn("absolute inset-0 w-2 h-2 rounded-full animate-ping opacity-40", colors[status])} />
+      <div className={cn('w-2 h-2 rounded-full shadow-[0_0_6px]', colors[status])} />
+      <div className={cn('absolute inset-0 w-2 h-2 rounded-full animate-ping opacity-40', colors[status])} />
     </div>
   );
 }
@@ -63,15 +65,16 @@ function PulseDot({ status }: { status: 'optimal' | 'warning' | 'critical' | 'bo
 // --- Event Feed Item ---
 function EventItem({ event }: { event: { level: string; source: string; message: string; timestamp: string } }) {
   const levelColors: Record<string, string> = {
-    info: "text-sky-400",
-    success: "text-emerald-400",
-    warn: "text-amber-400",
-    error: "text-red-400",
-    debug: "text-zinc-500",
+    info: 'text-sky-400',
+    success: 'text-emerald-400',
+    warn: 'text-amber-400',
+    error: 'text-red-400',
+    debug: 'text-zinc-500',
   };
+
   return (
     <div className="flex items-start gap-1.5 text-[9px] font-mono leading-tight py-0.5 animate-in fade-in slide-in-from-right-2 duration-300">
-      <span className={cn("shrink-0 mt-0.5", levelColors[event.level] || "text-zinc-500")}>
+      <span className={cn('shrink-0 mt-0.5', levelColors[event.level] || 'text-zinc-500')}>
         {event.level === 'error' ? '!' : event.level === 'warn' ? '~' : event.level === 'success' ? '+' : '-'}
       </span>
       <span className="text-zinc-600 shrink-0">{event.source.slice(0, 8)}</span>
@@ -83,37 +86,38 @@ function EventItem({ event }: { event: { level: string; source: string; message:
 // --- Main Component ---
 export function NeuralLinkOverlay() {
   const { t, language } = useTranslation();
-  const status = useSystemStore((s) => s.status);
-  const cpuLoad = useSystemStore((s) => s.cpuLoad);
-  const latency = useSystemStore((s) => s.latency);
-  const isStreaming = useSystemStore((s) => s.isStreaming);
-  const activeView = useSystemStore((s) => s.activeView);
-  const consoleTab = useSystemStore((s) => s.consoleTab);
-  const consoleAgent = useSystemStore((s) => s.consoleAgent);
-  const chatMode = useSystemStore((s) => s.chatMode);
-  const clusterMetrics = useSystemStore((s) => s.clusterMetrics);
-  const dbConnected = useSystemStore((s) => s.dbConnected);
-  const messages = useSystemStore((s) => s.messages);
-  const isMobile = useSystemStore((s) => s.isMobile);
-  const setActiveView = useSystemStore((s) => s.setActiveView);
-  const navigateToConsoleTab = useSystemStore((s) => s.navigateToConsoleTab);
-  const navigateToAgent = useSystemStore((s) => s.navigateToAgent);
+  const status = useSystemStore(s => s.status);
+  const cpuLoad = useSystemStore(s => s.cpuLoad);
+  const latency = useSystemStore(s => s.latency);
+  const isStreaming = useSystemStore(s => s.isStreaming);
+  const activeView = useSystemStore(s => s.activeView);
+  const consoleTab = useSystemStore(s => s.consoleTab);
+  const consoleAgent = useSystemStore(s => s.consoleAgent);
+  const chatMode = useSystemStore(s => s.chatMode);
+  const clusterMetrics = useSystemStore(s => s.clusterMetrics);
+  const dbConnected = useSystemStore(s => s.dbConnected);
+  const messages = useSystemStore(s => s.messages);
+  const isMobile = useSystemStore(s => s.isMobile);
+  const setActiveView = useSystemStore(s => s.setActiveView);
+  const navigateToConsoleTab = useSystemStore(s => s.navigateToConsoleTab);
+  const navigateToAgent = useSystemStore(s => s.navigateToAgent);
 
   // HUD visibility state
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [isVisible, setIsVisible] = React.useState(true);
-  const [eventFeed, setEventFeed] = React.useState<Array<{
+  const [eventFeed, setEventFeed] = React.useState<{
     id: string; level: string; source: string; message: string; timestamp: string;
-  }>>([]);
+  }[]>([]);
 
   // Subscribe to Event Bus for live feed
   React.useEffect(() => {
-    const subId = eventBus.on((event) => {
+    const subId = eventBus.on(event => {
       setEventFeed(prev => [
         { id: event.id, level: event.level, source: event.source, message: event.message, timestamp: event.timestamp },
         ...prev.slice(0, 4),
       ]);
     });
+
     return () => { eventBus.off(subId); };
   }, []);
 
@@ -125,7 +129,9 @@ export function NeuralLinkOverlay() {
         setIsVisible(prev => !prev);
       }
     };
+
     window.addEventListener('keydown', handleKey);
+
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
@@ -176,18 +182,18 @@ export function NeuralLinkOverlay() {
 
   return (
     <div className={cn(
-      "fixed z-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
+      'fixed z-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]',
       isExpanded
-        ? "bottom-4 right-4 w-[320px]"
-        : "bottom-4 right-4 w-[200px]"
+        ? 'bottom-4 right-4 w-[320px]'
+        : 'bottom-4 right-4 w-[200px]',
     )}>
       {/* Main HUD Panel */}
       <div className={cn(
-        "bg-black/85 backdrop-blur-xl border rounded-xl overflow-hidden transition-all duration-300",
-        status === 'optimal' ? "border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.08)]" :
-        status === 'warning' ? "border-amber-500/20 shadow-[0_0_20px_rgba(245,158,11,0.08)]" :
-        status === 'critical' ? "border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.15)]" :
-        "border-sky-500/20 shadow-[0_0_20px_rgba(14,165,233,0.08)]"
+        'bg-black/85 backdrop-blur-xl border rounded-xl overflow-hidden transition-all duration-300',
+        status === 'optimal' ? 'border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.08)]' :
+        status === 'warning' ? 'border-amber-500/20 shadow-[0_0_20px_rgba(245,158,11,0.08)]' :
+        status === 'critical' ? 'border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.15)]' :
+        'border-sky-500/20 shadow-[0_0_20px_rgba(14,165,233,0.08)]',
       )}>
         {/* Header Bar */}
         <div className="flex items-center justify-between px-3 py-1.5 border-b border-white/5 bg-zinc-900/40">
@@ -207,7 +213,7 @@ export function NeuralLinkOverlay() {
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="p-1 text-zinc-600 hover:text-zinc-300 transition-colors"
-              title={isExpanded ? "Collapse" : "Expand"}
+              title={isExpanded ? 'Collapse' : 'Expand'}
             >
               {isExpanded ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
             </button>
@@ -255,7 +261,7 @@ export function NeuralLinkOverlay() {
                 <>
                   <ChevronRight className="w-2.5 h-2.5 text-zinc-600" />
                   <button
-                    className={cn(activeAgent.color, "hover:opacity-80 transition-opacity cursor-pointer")}
+                    className={cn(activeAgent.color, 'hover:opacity-80 transition-opacity cursor-pointer')}
                     onClick={() => {
                       navigateToAgent(activeAgent.id);
                       eventBus.emit({ category: 'ui', type: 'ui.hud_navigate', level: 'info', source: 'NeuralLink', message: `HUD nav: agent=${activeAgent.id}` });
@@ -271,19 +277,19 @@ export function NeuralLinkOverlay() {
             {/* Status + Mode */}
             <div className="flex items-center gap-2">
               <span className={cn(
-                "text-[8px] font-mono tracking-widest px-1.5 py-0.5 rounded",
-                status === 'optimal' ? "text-emerald-400 bg-emerald-500/10" :
-                status === 'warning' ? "text-amber-400 bg-amber-500/10" :
-                status === 'critical' ? "text-red-400 bg-red-500/10" :
-                "text-sky-400 bg-sky-500/10"
+                'text-[8px] font-mono tracking-widest px-1.5 py-0.5 rounded',
+                status === 'optimal' ? 'text-emerald-400 bg-emerald-500/10' :
+                status === 'warning' ? 'text-amber-400 bg-amber-500/10' :
+                status === 'critical' ? 'text-red-400 bg-red-500/10' :
+                'text-sky-400 bg-sky-500/10',
               )}>
                 {statusLabels[status]}
               </span>
               <span className={cn(
-                "text-[8px] font-mono tracking-wider px-1.5 py-0.5 rounded",
+                'text-[8px] font-mono tracking-wider px-1.5 py-0.5 rounded',
                 chatMode === 'ai'
-                  ? "text-emerald-400 bg-emerald-500/10"
-                  : "text-amber-400 bg-amber-500/10"
+                  ? 'text-emerald-400 bg-emerald-500/10'
+                  : 'text-amber-400 bg-amber-500/10',
               )}>
                 {chatMode === 'ai' ? 'AI_MODE' : 'NAV_MODE'}
               </span>
@@ -306,8 +312,8 @@ export function NeuralLinkOverlay() {
 
         {/* Hardware Vitals Mini-Bars */}
         <div className="px-3 pb-2 space-y-0.5">
-          <MiniBar value={cpuLoad} max={100} color={cpuLoad > 80 ? "bg-red-500" : cpuLoad > 60 ? "bg-amber-500" : "bg-emerald-500"} label="CPU" />
-          <MiniBar value={memUsage} max={100} color={memUsage > 85 ? "bg-red-500" : memUsage > 70 ? "bg-amber-500" : "bg-sky-500"} label="MEM" />
+          <MiniBar value={cpuLoad} max={100} color={cpuLoad > 80 ? 'bg-red-500' : cpuLoad > 60 ? 'bg-amber-500' : 'bg-emerald-500'} label="CPU" />
+          <MiniBar value={memUsage} max={100} color={memUsage > 85 ? 'bg-red-500' : memUsage > 70 ? 'bg-amber-500' : 'bg-sky-500'} label="MEM" />
           {isExpanded && (
             <>
               <MiniBar value={diskUsage} max={100} color="bg-violet-500" label="DSK" />
@@ -315,8 +321,8 @@ export function NeuralLinkOverlay() {
               <div className="flex items-center gap-1.5">
                 <span className="text-[8px] font-mono text-zinc-500 w-6 text-right uppercase tracking-wider">TMP</span>
                 <span className={cn(
-                  "text-[9px] font-mono",
-                  temp > 85 ? "text-red-400" : temp > 70 ? "text-amber-400" : "text-zinc-400"
+                  'text-[9px] font-mono',
+                  temp > 85 ? 'text-red-400' : temp > 70 ? 'text-amber-400' : 'text-zinc-400',
                 )}>
                   {temp}C
                 </span>
@@ -358,13 +364,13 @@ export function NeuralLinkOverlay() {
               title={`Go to ${activeAgent.nameEn} console`}
             >
               <div className={cn(
-                "w-6 h-6 rounded flex items-center justify-center border",
-                activeAgent.bgColor, activeAgent.borderColor
+                'w-6 h-6 rounded flex items-center justify-center border',
+                activeAgent.bgColor, activeAgent.borderColor,
               )}>
-                <Brain className={cn("w-3.5 h-3.5", activeAgent.color)} />
+                <Brain className={cn('w-3.5 h-3.5', activeAgent.color)} />
               </div>
               <div className="flex-1">
-                <div className={cn("text-[10px] font-mono", activeAgent.color)}>
+                <div className={cn('text-[10px] font-mono', activeAgent.color)}>
                   {language === 'zh' ? activeAgent.name : activeAgent.nameEn}
                 </div>
                 <div className="text-[8px] text-zinc-600">
@@ -392,8 +398,8 @@ export function NeuralLinkOverlay() {
                   eventBus.emit({ category: 'ui', type: 'ui.hud_quicknav', level: 'info', source: 'NeuralLink', message: `Quick nav: ${q.tab}` });
                 }}
                 className={cn(
-                  "flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-mono transition-all hover:bg-white/5",
-                  q.color
+                  'flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-mono transition-all hover:bg-white/5',
+                  q.color,
                 )}
                 title={`Open ${q.label}`}
               >

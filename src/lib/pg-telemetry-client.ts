@@ -49,8 +49,10 @@ let _config: PgTelemetryConfig = {
 // Restore config from localStorage
 try {
   const raw = localStorage.getItem('yyc3_pg_telemetry_config');
+
   if (raw) {
     const saved = JSON.parse(raw);
+
     _config = { ..._config, ...saved };
   }
 } catch { /* ignore */ }
@@ -96,6 +98,7 @@ export function getPgTelemetryState(): PgTelemetryState {
 
 export function onPgTelemetryChange(fn: () => void): () => void {
   _pgListeners.add(fn);
+
   return () => { _pgListeners.delete(fn); };
 }
 
@@ -105,6 +108,7 @@ export function onPgTelemetryChange(fn: () => void): () => void {
 
 async function pgFetch<T>(path: string, options?: RequestInit): Promise<{ ok: boolean; data?: T; error?: string; latencyMs: number }> {
   const start = performance.now();
+
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), _config.timeout);
@@ -116,18 +120,22 @@ async function pgFetch<T>(path: string, options?: RequestInit): Promise<{ ok: bo
         ...(options?.headers || {}),
       },
     });
+
     clearTimeout(timeout);
     const latencyMs = Math.round(performance.now() - start);
 
     if (res.ok) {
       const data = await res.json() as T;
+
       return { ok: true, data, latencyMs };
     }
     const errText = await res.text().catch(() => res.statusText);
+
     return { ok: false, error: `HTTP ${res.status}: ${errText}`, latencyMs };
   } catch (err) {
     const latencyMs = Math.round(performance.now() - start);
     const msg = err instanceof Error ? err.message : 'Unknown error';
+
     return { ok: false, error: msg, latencyMs };
   }
 }
@@ -157,6 +165,7 @@ export async function checkPgTelemetryHealth(): Promise<PgTelemetryState> {
       tableCount: result.data.tables,
       rowCount: result.data.rows,
     };
+
     _pgState = state;
     setPgTelemetryConfig({ lastConnected: Date.now(), lastError: undefined });
     eventBus.emit({
@@ -174,6 +183,7 @@ export async function checkPgTelemetryHealth(): Promise<PgTelemetryState> {
       lastChecked: Date.now(),
       error: result.error,
     };
+
     _pgState = state;
     setPgTelemetryConfig({ lastError: result.error });
     eventBus.emit({
@@ -186,6 +196,7 @@ export async function checkPgTelemetryHealth(): Promise<PgTelemetryState> {
   }
 
   _notifyListeners();
+
   return _pgState;
 }
 
@@ -228,6 +239,7 @@ export async function writeLatencyBatch(
   if (result.ok && result.data) {
     return { ok: true, inserted: result.data.inserted };
   }
+
   return { ok: false, inserted: 0, error: result.error };
 }
 
@@ -267,18 +279,20 @@ export async function readLatencyHistory(
   }
 
   const params = new URLSearchParams();
+
   if (checkId) params.set('check_id', checkId);
   if (fromTimestamp) params.set('from', String(fromTimestamp));
   if (toTimestamp) params.set('to', String(toTimestamp));
   if (limit) params.set('limit', String(limit));
 
   const result = await pgFetch<{ records: PgLatencyRecord[] }>(
-    `/telemetry/latency_history?${params.toString()}`
+    `/telemetry/latency_history?${params.toString()}`,
   );
 
   if (result.ok && result.data) {
     return { ok: true, data: result.data.records || [] };
   }
+
   return { ok: false, data: [], error: result.error };
 }
 
@@ -315,6 +329,7 @@ export async function writeMetricsBatch(
   if (result.ok && result.data) {
     return { ok: true, inserted: result.data.inserted };
   }
+
   return { ok: false, inserted: 0, error: result.error };
 }
 
@@ -329,18 +344,20 @@ export async function readMetrics(
   }
 
   const params = new URLSearchParams();
+
   if (nodeId) params.set('node_id', nodeId);
   if (fromTimestamp) params.set('from', String(fromTimestamp));
   if (toTimestamp) params.set('to', String(toTimestamp));
   if (limit) params.set('limit', String(limit));
 
   const result = await pgFetch<{ records: PgMetricsRecord[] }>(
-    `/telemetry/metrics?${params.toString()}`
+    `/telemetry/metrics?${params.toString()}`,
   );
 
   if (result.ok && result.data) {
     return { ok: true, data: result.data.records || [] };
   }
+
   return { ok: false, data: [], error: result.error };
 }
 
@@ -381,15 +398,17 @@ export async function readAlerts(
   }
 
   const params = new URLSearchParams({ limit: String(limit) });
+
   if (severity) params.set('severity', severity);
 
   const result = await pgFetch<{ records: PgAlertRecord[] }>(
-    `/telemetry/alerts?${params.toString()}`
+    `/telemetry/alerts?${params.toString()}`,
   );
 
   if (result.ok && result.data) {
     return { ok: true, data: result.data.records || [] };
   }
+
   return { ok: false, data: [], error: result.error };
 }
 
@@ -442,6 +461,7 @@ export async function migrateLatencyToPostgres(
     totalRecords += entries.length;
 
     const result = await writeLatencyBatch(checkId, entries);
+
     if (result.ok) {
       insertedRecords += result.inserted;
     } else {
@@ -885,6 +905,7 @@ export async function validateTelemetrySchema(): Promise<SchemaValidationResult>
       rowCount: t.row_count || 0,
     }));
     const allExist = tables.length >= 4 && tables.every(t => t.exists);
+
     return {
       valid: allExist,
       tables,
@@ -896,6 +917,7 @@ export async function validateTelemetrySchema(): Promise<SchemaValidationResult>
 
   // Fallback: if /validate endpoint doesn't exist, try /health
   const healthResult = await pgFetch<{ tables?: number }>('/health');
+
   if (healthResult.ok && healthResult.data) {
     return {
       valid: (healthResult.data.tables || 0) >= 4,
@@ -950,6 +972,7 @@ export async function writeThermalBatch(
   if (result.ok && result.data) {
     return { ok: true, inserted: result.data.inserted };
   }
+
   return { ok: false, inserted: 0, error: result.error };
 }
 
@@ -963,16 +986,18 @@ export async function readThermalLog(
   }
 
   const params = new URLSearchParams({ limit: String(limit) });
+
   if (nodeId) params.set('node_id', nodeId);
   if (fromTimestamp) params.set('from', String(fromTimestamp));
 
   const result = await pgFetch<{ records: PgThermalRecord[] }>(
-    `/telemetry/thermal_log?${params.toString()}`
+    `/telemetry/thermal_log?${params.toString()}`,
   );
 
   if (result.ok && result.data) {
     return { ok: true, data: result.data.records || [] };
   }
+
   return { ok: false, data: [], error: result.error };
 }
 
@@ -1012,17 +1037,19 @@ export async function getAggregatedMetrics(
     interval: bucketInterval,
     limit: String(limit),
   });
+
   if (nodeId) params.set('node_id', nodeId);
   if (fromTimestamp) params.set('from', String(fromTimestamp));
   if (toTimestamp) params.set('to', String(toTimestamp));
 
   const result = await pgFetch<{ buckets: AggregatedMetricsBucket[] }>(
-    `/telemetry/metrics/aggregated?${params.toString()}`
+    `/telemetry/metrics/aggregated?${params.toString()}`,
   );
 
   if (result.ok && result.data) {
     return { ok: true, data: result.data.buckets || [] };
   }
+
   return { ok: false, data: [], error: result.error };
 }
 
@@ -1053,16 +1080,18 @@ export async function getAggregatedLatency(
     interval: bucketInterval,
     limit: String(limit),
   });
+
   if (checkId) params.set('check_id', checkId);
   if (fromTimestamp) params.set('from', String(fromTimestamp));
 
   const result = await pgFetch<{ buckets: AggregatedLatencyBucket[] }>(
-    `/telemetry/latency_history/aggregated?${params.toString()}`
+    `/telemetry/latency_history/aggregated?${params.toString()}`,
   );
 
   if (result.ok && result.data) {
     return { ok: true, data: result.data.buckets || [] };
   }
+
   return { ok: false, data: [], error: result.error };
 }
 
@@ -1464,9 +1493,9 @@ PROXY_EOF
 echo "Writing package.json..."
 cat > "$DEPLOY_DIR/package.json" << 'PKG_EOF'
 ${JSON.stringify({
-  name: "yyc3-pg-proxy", version: "2.0.0",
-  dependencies: { express: "^4.18.2", pg: "^8.12.0", cors: "^2.8.5" }
-}, null, 2)}
+    name: 'yyc3-pg-proxy', version: '2.0.0',
+    dependencies: { express: '^4.18.2', pg: '^8.12.0', cors: '^2.8.5' },
+  }, null, 2)}
 PKG_EOF
 
 # 3. Install dependencies

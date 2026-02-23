@@ -1,21 +1,21 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { useSystemStore } from "@/lib/store";
-import { useTranslation } from "@/lib/i18n";
-import { eventBus } from "@/lib/event-bus";
-import { loadProviderConfigs } from "@/lib/llm-bridge";
-import { PROVIDERS } from "@/lib/llm-providers";
 import {
   Compass, MessageSquare, Brain, ArrowRight, ArrowLeftRight,
-  Zap, Settings, ChevronRight, CheckCircle2, AlertTriangle,
-  Clock, Activity, Terminal, Shield, Network, Cpu, Database,
-  Sparkles, Globe, BookOpen, BarChart3, Layers, FileText,
-  Command, Keyboard, Search, Radio, HardDrive, Play, Eye
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { Button } from "@/app/components/ui/button";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+  Zap, Settings, CheckCircle2, AlertTriangle,
+  Clock, Shield,
+  Sparkles, Globe, BookOpen, Layers, FileText, Keyboard, Search, Radio,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { eventBus } from '@/lib/event-bus';
+import { useTranslation } from '@/lib/i18n';
+import { loadProviderConfigs } from '@/lib/llm-bridge';
+import { PROVIDERS } from '@/lib/llm-providers';
+import { useSystemStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // ModeControlPanel — AI/Navigate Mode Multi-Dimensional Closed-Loop
@@ -33,6 +33,7 @@ interface ModeTransition {
 
 // --- Mode Transition History Store (session-scoped) ---
 const modeHistory: ModeTransition[] = [];
+
 function recordTransition(from: 'navigate' | 'ai', to: 'navigate' | 'ai', trigger: string) {
   modeHistory.unshift({
     id: `mt-${Date.now()}`,
@@ -46,19 +47,20 @@ function recordTransition(from: 'navigate' | 'ai', to: 'navigate' | 'ai', trigge
 export function ModeControlPanel() {
   const { language } = useTranslation();
   const zh = language === 'zh';
-  const chatMode = useSystemStore((s) => s.chatMode);
-  const toggleChatMode = useSystemStore((s) => s.toggleChatMode);
-  const messages = useSystemStore((s) => s.messages);
-  const activeView = useSystemStore((s) => s.activeView);
-  const consoleTab = useSystemStore((s) => s.consoleTab);
-  const navigateToConsoleTab = useSystemStore((s) => s.navigateToConsoleTab);
-  const setActiveView = useSystemStore((s) => s.setActiveView);
+  const chatMode = useSystemStore(s => s.chatMode);
+  const toggleChatMode = useSystemStore(s => s.toggleChatMode);
+  const messages = useSystemStore(s => s.messages);
+  const activeView = useSystemStore(s => s.activeView);
+  const consoleTab = useSystemStore(s => s.consoleTab);
+  const navigateToConsoleTab = useSystemStore(s => s.navigateToConsoleTab);
+  const setActiveView = useSystemStore(s => s.setActiveView);
 
   const [transitions, setTransitions] = React.useState<ModeTransition[]>([...modeHistory]);
 
   const handleToggle = () => {
     const from = chatMode;
     const to = chatMode === 'ai' ? 'navigate' : 'ai';
+
     toggleChatMode();
     recordTransition(from, to, 'ModeControlPanel');
     setTransitions([...modeHistory]);
@@ -124,21 +126,21 @@ export function ModeControlPanel() {
             <button
               onClick={() => chatMode !== 'navigate' && handleToggle()}
               className={cn(
-                "flex-1 p-5 rounded-xl border-2 transition-all w-full",
+                'flex-1 p-5 rounded-xl border-2 transition-all w-full',
                 chatMode === 'navigate'
-                  ? "border-amber-500/50 bg-amber-500/5 shadow-[0_0_30px_rgba(245,158,11,0.1)]"
-                  : "border-zinc-800 bg-zinc-900/50 hover:border-zinc-700 hover:bg-zinc-900/80 cursor-pointer"
+                  ? 'border-amber-500/50 bg-amber-500/5 shadow-[0_0_30px_rgba(245,158,11,0.1)]'
+                  : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-700 hover:bg-zinc-900/80 cursor-pointer',
               )}
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn(
-                  "w-10 h-10 rounded-lg flex items-center justify-center",
-                  chatMode === 'navigate' ? "bg-amber-500/20" : "bg-zinc-800"
+                  'w-10 h-10 rounded-lg flex items-center justify-center',
+                  chatMode === 'navigate' ? 'bg-amber-500/20' : 'bg-zinc-800',
                 )}>
-                  <Compass className={cn("w-5 h-5", chatMode === 'navigate' ? "text-amber-400" : "text-zinc-500")} />
+                  <Compass className={cn('w-5 h-5', chatMode === 'navigate' ? 'text-amber-400' : 'text-zinc-500')} />
                 </div>
                 <div className="text-left">
-                  <div className={cn("font-mono text-sm", chatMode === 'navigate' ? "text-amber-400" : "text-zinc-500")}>
+                  <div className={cn('font-mono text-sm', chatMode === 'navigate' ? 'text-amber-400' : 'text-zinc-500')}>
                     {zh ? '导航模式' : 'Navigate Mode'}
                   </div>
                   <div className="text-[10px] text-zinc-600 font-mono">NAV_MODE</div>
@@ -173,21 +175,21 @@ export function ModeControlPanel() {
             <button
               onClick={() => chatMode !== 'ai' && handleToggle()}
               className={cn(
-                "flex-1 p-5 rounded-xl border-2 transition-all w-full",
+                'flex-1 p-5 rounded-xl border-2 transition-all w-full',
                 chatMode === 'ai'
-                  ? "border-emerald-500/50 bg-emerald-500/5 shadow-[0_0_30px_rgba(16,185,129,0.1)]"
-                  : "border-zinc-800 bg-zinc-900/50 hover:border-zinc-700 hover:bg-zinc-900/80 cursor-pointer"
+                  ? 'border-emerald-500/50 bg-emerald-500/5 shadow-[0_0_30px_rgba(16,185,129,0.1)]'
+                  : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-700 hover:bg-zinc-900/80 cursor-pointer',
               )}
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn(
-                  "w-10 h-10 rounded-lg flex items-center justify-center",
-                  chatMode === 'ai' ? "bg-emerald-500/20" : "bg-zinc-800"
+                  'w-10 h-10 rounded-lg flex items-center justify-center',
+                  chatMode === 'ai' ? 'bg-emerald-500/20' : 'bg-zinc-800',
                 )}>
-                  <Brain className={cn("w-5 h-5", chatMode === 'ai' ? "text-emerald-400" : "text-zinc-500")} />
+                  <Brain className={cn('w-5 h-5', chatMode === 'ai' ? 'text-emerald-400' : 'text-zinc-500')} />
                 </div>
                 <div className="text-left">
-                  <div className={cn("font-mono text-sm", chatMode === 'ai' ? "text-emerald-400" : "text-zinc-500")}>
+                  <div className={cn('font-mono text-sm', chatMode === 'ai' ? 'text-emerald-400' : 'text-zinc-500')}>
                     {zh ? 'AI 对话模式' : 'AI Chat Mode'}
                   </div>
                   <div className="text-[10px] text-zinc-600 font-mono">AI_MODE</div>
@@ -219,7 +221,7 @@ export function ModeControlPanel() {
         <Card className="bg-zinc-900/50 border-white/5">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
-              <Sparkles className={cn("w-4 h-4", chatMode === 'ai' ? "text-emerald-400" : "text-amber-400")} />
+              <Sparkles className={cn('w-4 h-4', chatMode === 'ai' ? 'text-emerald-400' : 'text-amber-400')} />
               {zh ? '当前模式功能' : 'Current Mode Features'}
             </CardTitle>
             <CardDescription className="text-[10px] font-mono">
@@ -229,7 +231,7 @@ export function ModeControlPanel() {
           <CardContent className="space-y-2">
             {(chatMode === 'ai' ? aiModeSuggestions : navModeSuggestions).map((s, i) => (
               <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/5 transition-colors">
-                <s.icon className={cn("w-4 h-4 shrink-0", s.color)} />
+                <s.icon className={cn('w-4 h-4 shrink-0', s.color)} />
                 <span className="text-xs text-zinc-300">{s.label}</span>
               </div>
             ))}
@@ -277,9 +279,10 @@ export function ModeControlPanel() {
               {Object.values(PROVIDERS).slice(0, 7).map(p => {
                 const cfg = configs.find(c => c.providerId === p.id);
                 const isActive = cfg?.enabled && cfg?.apiKey;
+
                 return (
                   <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
-                    <div className={cn("w-2 h-2 rounded-full", isActive ? "bg-emerald-500" : "bg-zinc-700")} />
+                    <div className={cn('w-2 h-2 rounded-full', isActive ? 'bg-emerald-500' : 'bg-zinc-700')} />
                     <span className="text-[10px] font-mono text-zinc-400">{p.icon}</span>
                     <span className="text-[10px] font-mono text-zinc-500 truncate">{p.displayName}</span>
                   </div>
@@ -315,15 +318,15 @@ export function ModeControlPanel() {
                   {transitions.slice(0, 10).map(t => (
                     <div key={t.id} className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 p-1.5 rounded bg-white/[0.02]">
                       <span className={cn(
-                        "px-1.5 py-0.5 rounded",
-                        t.from === 'ai' ? "text-emerald-400 bg-emerald-500/10" : "text-amber-400 bg-amber-500/10"
+                        'px-1.5 py-0.5 rounded',
+                        t.from === 'ai' ? 'text-emerald-400 bg-emerald-500/10' : 'text-amber-400 bg-amber-500/10',
                       )}>
                         {t.from === 'ai' ? 'AI' : 'NAV'}
                       </span>
                       <ArrowRight className="w-3 h-3 text-zinc-700" />
                       <span className={cn(
-                        "px-1.5 py-0.5 rounded",
-                        t.to === 'ai' ? "text-emerald-400 bg-emerald-500/10" : "text-amber-400 bg-amber-500/10"
+                        'px-1.5 py-0.5 rounded',
+                        t.to === 'ai' ? 'text-emerald-400 bg-emerald-500/10' : 'text-amber-400 bg-amber-500/10',
                       )}>
                         {t.to === 'ai' ? 'AI' : 'NAV'}
                       </span>

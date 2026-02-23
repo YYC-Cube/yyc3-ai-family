@@ -1,18 +1,18 @@
-import * as React from "react";
-import { 
-  FileCode, 
-  MessageSquare, 
-  Hash, 
-  CornerDownLeft, 
+import {
+  FileCode,
+  MessageSquare,
+  Hash,
+  CornerDownLeft,
   Search,
   Terminal,
-  Zap
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { Badge } from "@/app/components/ui/badge";
-import { useTranslation } from "@/lib/i18n";
-import { useSystemStore } from "@/lib/store";
+  Zap,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { useTranslation } from '@/lib/i18n';
+import { useSystemStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
 
 interface SearchResult {
   id: string;
@@ -45,13 +45,14 @@ const MOCK_RESULTS: SearchResult[] = [
 interface CommandDef {
   id: string;
   title: string;
-  keywords: string[];  // searchable terms (zh + en)
+  keywords: string[]; // searchable terms (zh + en)
   description: string;
   action: () => void;
 }
 
 function buildCommandRegistry(): CommandDef[] {
   const store = useSystemStore.getState();
+
   return [
     // === Views ===
     { id: 'cmd-terminal', title: '终端控制', keywords: ['终端', '聊天', 'terminal', 'chat'], description: '切换到终端聊天视图', action: () => store.setActiveView('terminal') },
@@ -104,17 +105,17 @@ export function SearchPalette({ query, isOpen, onClose, onSelect }: SearchPalett
   const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   // Filter existing mock results
-  const filteredMock = MOCK_RESULTS.filter(item => 
-    item.title.toLowerCase().includes(q) || 
-    item.preview.toLowerCase().includes(q)
+  const filteredMock = MOCK_RESULTS.filter(item =>
+    item.title.toLowerCase().includes(q) ||
+    item.preview.toLowerCase().includes(q),
   );
 
   // Filter commands by keyword matching
   const filteredCommands: SearchResult[] = commands
-    .filter(cmd => 
+    .filter(cmd =>
       cmd.title.toLowerCase().includes(q) ||
       cmd.description.toLowerCase().includes(q) ||
-      cmd.keywords.some(kw => kw.toLowerCase().includes(q))
+      cmd.keywords.some(kw => kw.toLowerCase().includes(q)),
     )
     .map(cmd => ({
       id: cmd.id,
@@ -137,12 +138,13 @@ export function SearchPalette({ query, isOpen, onClose, onSelect }: SearchPalett
     if (!escapedQuery) return <>{text}</>;
     try {
       const parts = text.split(new RegExp(`(${escapedQuery})`, 'gi'));
+
       return (
         <>
-          {parts.map((part, i) => 
-            part.toLowerCase() === q ? 
-            <span key={i} className="bg-yellow-500/30 text-yellow-200 font-bold">{part}</span> : 
-            part
+          {parts.map((part, i) =>
+            part.toLowerCase() === q ?
+            <span key={i} className="bg-yellow-500/30 text-yellow-200 font-bold">{part}</span> :
+            part,
           )}
         </>
       );
@@ -166,7 +168,7 @@ export function SearchPalette({ query, isOpen, onClose, onSelect }: SearchPalett
         <span>{t('search.title')}</span>
         <span className="font-mono">{allResults.length} results</span>
       </div>
-      
+
       <ScrollArea className="max-h-[400px]">
         <div className="p-2 space-y-4">
 
@@ -181,7 +183,7 @@ export function SearchPalette({ query, isOpen, onClose, onSelect }: SearchPalett
               ))}
             </div>
           )}
-          
+
           {/* Files Group */}
           {grouped.file.length > 0 && (
             <div className="space-y-1">
@@ -206,8 +208,8 @@ export function SearchPalette({ query, isOpen, onClose, onSelect }: SearchPalett
             </div>
           )}
 
-           {/* Chat Group */}
-           {grouped.chat.length > 0 && (
+          {/* Chat Group */}
+          {grouped.chat.length > 0 && (
             <div className="space-y-1">
               <h4 className="px-2 text-[10px] font-mono text-muted-foreground uppercase flex items-center gap-2">
                 <MessageSquare className="w-3 h-3" /> {t('search.chat')}
@@ -217,7 +219,7 @@ export function SearchPalette({ query, isOpen, onClose, onSelect }: SearchPalett
               ))}
             </div>
           )}
-          
+
           {allResults.length === 0 && (
             <div className="p-8 text-center text-muted-foreground">
               <Search className="w-8 h-8 mx-auto mb-2 opacity-20" />
@@ -227,13 +229,13 @@ export function SearchPalette({ query, isOpen, onClose, onSelect }: SearchPalett
           )}
         </div>
       </ScrollArea>
-      
+
       <div className="p-2 bg-muted/30 border-t border-white/5 flex justify-between items-center text-[10px] text-muted-foreground font-mono">
-         <div className="flex gap-2">
-           <span className="flex items-center gap-1"><kbd className="bg-background border px-1 rounded">↑↓</kbd> {t('search.navigate')}</span>
-           <span className="flex items-center gap-1"><kbd className="bg-background border px-1 rounded">↵</kbd> {t('search.select')}</span>
-         </div>
-         <span>YYC3_INDEXER_V2</span>
+        <div className="flex gap-2">
+          <span className="flex items-center gap-1"><kbd className="bg-background border px-1 rounded">↑↓</kbd> {t('search.navigate')}</span>
+          <span className="flex items-center gap-1"><kbd className="bg-background border px-1 rounded">↵</kbd> {t('search.select')}</span>
+        </div>
+        <span>YYC3_INDEXER_V2</span>
       </div>
     </div>
   );
@@ -242,14 +244,14 @@ export function SearchPalette({ query, isOpen, onClose, onSelect }: SearchPalett
 // Command-specific result item with action badge
 function CommandResultItem({ item, onSelect, Highlight }: { item: SearchResult, onSelect: () => void, Highlight: React.ComponentType<{ text: string }> }) {
   return (
-    <div 
+    <div
       onClick={onSelect}
       className="group flex items-start gap-3 p-2 rounded-md hover:bg-[#0EA5E9]/10 cursor-pointer transition-colors border border-transparent hover:border-[#0EA5E9]/20"
     >
       <div className="w-8 h-8 rounded flex items-center justify-center shrink-0 border border-[#0EA5E9]/30 text-[#0EA5E9] bg-[#0EA5E9]/5 transition-colors group-hover:bg-[#0EA5E9]/15">
         <Zap className="w-4 h-4" />
       </div>
-      
+
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <span className="text-xs font-medium text-foreground group-hover:text-[#0EA5E9] transition-colors">
@@ -263,9 +265,9 @@ function CommandResultItem({ item, onSelect, Highlight }: { item: SearchResult, 
           <Highlight text={item.preview} />
         </p>
       </div>
-      
+
       <div className="opacity-0 group-hover:opacity-100 self-center transition-opacity duration-200">
-         <CornerDownLeft className="w-3 h-3 text-[#0EA5E9]" />
+        <CornerDownLeft className="w-3 h-3 text-[#0EA5E9]" />
       </div>
     </div>
   );
@@ -273,21 +275,21 @@ function CommandResultItem({ item, onSelect, Highlight }: { item: SearchResult, 
 
 function ResultItem({ item, onSelect, Highlight }: { item: SearchResult, onSelect: () => void, Highlight: React.ComponentType<{ text: string }> }) {
   return (
-    <div 
+    <div
       onClick={onSelect}
       className="group flex items-start gap-3 p-2 rounded-md hover:bg-primary/10 cursor-pointer transition-colors border border-transparent hover:border-primary/20"
     >
       <div className={cn(
-        "w-8 h-8 rounded flex items-center justify-center shrink-0 border bg-background/50 transition-colors group-hover:bg-background/80",
-        item.type === 'file' && "border-blue-500/30 text-blue-400",
-        item.type === 'code' && "border-green-500/30 text-green-400",
-        item.type === 'chat' && "border-purple-500/30 text-purple-400",
+        'w-8 h-8 rounded flex items-center justify-center shrink-0 border bg-background/50 transition-colors group-hover:bg-background/80',
+        item.type === 'file' && 'border-blue-500/30 text-blue-400',
+        item.type === 'code' && 'border-green-500/30 text-green-400',
+        item.type === 'chat' && 'border-purple-500/30 text-purple-400',
       )}>
         {item.type === 'file' && <FileCode className="w-4 h-4" />}
         {item.type === 'code' && <Hash className="w-4 h-4" />}
         {item.type === 'chat' && <MessageSquare className="w-4 h-4" />}
       </div>
-      
+
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">
@@ -299,10 +301,10 @@ function ResultItem({ item, onSelect, Highlight }: { item: SearchResult, onSelec
           <Highlight text={item.preview} />
         </p>
       </div>
-      
+
       <div className="opacity-0 group-hover:opacity-100 self-center transition-opacity duration-200">
-         <CornerDownLeft className="w-3 h-3 text-muted-foreground" />
+        <CornerDownLeft className="w-3 h-3 text-muted-foreground" />
       </div>
     </div>
-  )
+  );
 }

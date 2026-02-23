@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
-import { useSystemStore } from './store';
+
 import { eventBus } from './event-bus';
+import { useSystemStore } from './store';
 
 // ============================================================
 // YYC3 — DAG Pipeline Execution Engine
@@ -55,33 +56,34 @@ export interface PipelineRun {
 
 // Stage execution timing ranges (ms) for realistic simulation
 const STAGE_TIMING: Record<string, [number, number]> = {
-  'Checkout':          [800, 1500],
-  'Install':           [2000, 4000],
-  'Lint':              [1000, 2000],
-  'Type Check':        [1500, 3000],
-  'Unit Test':         [2000, 4000],
-  'Integration Test':  [3000, 6000],
-  'Test':              [2000, 4000],
-  'Build':             [3000, 6000],
-  'Docker Build':      [4000, 8000],
-  'Push':              [1500, 3000],
-  'Push Image':        [2000, 4000],
-  'Push Registry':     [1500, 3000],
-  'Deploy':            [2000, 4000],
-  'Health Check':      [1000, 2000],
-  'Verify':            [1000, 2000],
-  'SAST Scan':         [3000, 5000],
-  'Dependency Audit':  [2000, 3000],
-  'Secret Detection':  [1500, 2500],
-  'Report':            [800, 1500],
-  'Coverage Report':   [1500, 2500],
-  'Update Manifest':   [800, 1500],
-  'Notify':            [500, 1000],
-  'Approval':          [1000, 2000],
+  'Checkout': [800, 1500],
+  'Install': [2000, 4000],
+  'Lint': [1000, 2000],
+  'Type Check': [1500, 3000],
+  'Unit Test': [2000, 4000],
+  'Integration Test': [3000, 6000],
+  'Test': [2000, 4000],
+  'Build': [3000, 6000],
+  'Docker Build': [4000, 8000],
+  'Push': [1500, 3000],
+  'Push Image': [2000, 4000],
+  'Push Registry': [1500, 3000],
+  'Deploy': [2000, 4000],
+  'Health Check': [1000, 2000],
+  'Verify': [1000, 2000],
+  'SAST Scan': [3000, 5000],
+  'Dependency Audit': [2000, 3000],
+  'Secret Detection': [1500, 2500],
+  'Report': [800, 1500],
+  'Coverage Report': [1500, 2500],
+  'Update Manifest': [800, 1500],
+  'Notify': [500, 1000],
+  'Approval': [1000, 2000],
 };
 
 function getStageDelay(stageName: string): number {
   const range = STAGE_TIMING[stageName] || [1000, 3000];
+
   return range[0] + Math.random() * (range[1] - range[0]);
 }
 
@@ -91,29 +93,29 @@ function generateStageLogs(stageName: string, metadata: Record<string, unknown>)
   const service = (metadata.service as string) || 'yyc3-chatbot';
 
   const logMap: Record<string, string[]> = {
-    'Checkout':          [`git clone --depth=1 main`, `HEAD at ${Math.random().toString(36).slice(2, 9)}`],
-    'Install':           [`pnpm install --frozen-lockfile`, `Packages: 847 added`, `node_modules: 312MB`],
-    'Lint':              [`eslint --ext .ts,.tsx src/`, `0 errors, 2 warnings`],
-    'Type Check':        [`tsc --noEmit --strict`, `Checking 142 files...`, `No errors found`],
-    'Unit Test':         [`vitest run --coverage`, `Tests: 87 passed, 0 failed`, `Coverage: 78.3%`],
-    'Integration Test':  [`vitest run --config vitest.integration.ts`, `Tests: 24 passed`, `DB connection: OK`],
-    'Test':              [`vitest run`, `Tests: 111 passed, 0 failed`, `Time: 8.2s`],
-    'Build':             [`vite build --mode production`, `dist/: 2.4MB (gzipped: 680KB)`, `Build time: 4.2s`],
-    'Docker Build':      [`docker build -t ${service}:latest .`, `Layer cache: 6/8 hit`, `Image size: 245MB`],
-    'Push':              [`docker push ${target}/${service}:latest`, `Pushed: sha256:a8f3...`],
-    'Push Image':        [`docker push 192.168.3.22:5000/${service}`, `Upload: 245MB`, `Digest: sha256:${Math.random().toString(36).slice(2, 10)}`],
-    'Push Registry':     [`Push to registry: 192.168.3.22:5000`, `Tag: latest`, `Size: 245MB`],
-    'Deploy':            [`ssh yyc3@192.168.3.22 docker-compose up -d`, `Container ${service}: recreated`, `Network: yyc3_net`],
-    'Health Check':      [`curl -sf http://192.168.3.22:3000/health`, `Status: 200 OK`, `Response: {"status":"healthy"}`],
-    'Verify':            [`Integration smoke test...`, `All endpoints responding`, `Latency: 12ms avg`],
-    'SAST Scan':         [`semgrep scan --config auto`, `Rules: 347 checked`, `Findings: 0 critical, 1 warning`],
-    'Dependency Audit':  [`pnpm audit --production`, `Vulnerabilities: 0 critical, 0 high`, `2 moderate (acceptable)`],
-    'Secret Detection':  [`gitleaks detect --source .`, `No secrets detected`, `Files scanned: 234`],
-    'Report':            [`Generating report...`, `Saved to: /reports/${new Date().toISOString().slice(0,10)}.html`],
-    'Coverage Report':   [`istanbul report lcov`, `Lines: 78.3%`, `Branches: 64.2%`, `Functions: 82.1%`],
-    'Update Manifest':   [`kubectl set image deployment/${service}`, `Manifest updated`, `Rollout status: progressing`],
-    'Notify':            [`Slack webhook: #deployments`, `Message sent`, `Teams: @devops`],
-    'Approval':          [`Auto-approved (policy: fast-track)`, `Approver: system`],
+    'Checkout': [`git clone --depth=1 main`, `HEAD at ${Math.random().toString(36).slice(2, 9)}`],
+    'Install': [`pnpm install --frozen-lockfile`, `Packages: 847 added`, `node_modules: 312MB`],
+    'Lint': [`eslint --ext .ts,.tsx src/`, `0 errors, 2 warnings`],
+    'Type Check': [`tsc --noEmit --strict`, `Checking 142 files...`, `No errors found`],
+    'Unit Test': [`vitest run --coverage`, `Tests: 87 passed, 0 failed`, `Coverage: 78.3%`],
+    'Integration Test': [`vitest run --config vitest.integration.ts`, `Tests: 24 passed`, `DB connection: OK`],
+    'Test': [`vitest run`, `Tests: 111 passed, 0 failed`, `Time: 8.2s`],
+    'Build': [`vite build --mode production`, `dist/: 2.4MB (gzipped: 680KB)`, `Build time: 4.2s`],
+    'Docker Build': [`docker build -t ${service}:latest .`, `Layer cache: 6/8 hit`, `Image size: 245MB`],
+    'Push': [`docker push ${target}/${service}:latest`, `Pushed: sha256:a8f3...`],
+    'Push Image': [`docker push 192.168.3.22:5000/${service}`, `Upload: 245MB`, `Digest: sha256:${Math.random().toString(36).slice(2, 10)}`],
+    'Push Registry': [`Push to registry: 192.168.3.22:5000`, `Tag: latest`, `Size: 245MB`],
+    'Deploy': [`ssh yyc3@192.168.3.22 docker-compose up -d`, `Container ${service}: recreated`, `Network: yyc3_net`],
+    'Health Check': [`curl -sf http://192.168.3.22:3000/health`, `Status: 200 OK`, `Response: {"status":"healthy"}`],
+    'Verify': [`Integration smoke test...`, `All endpoints responding`, `Latency: 12ms avg`],
+    'SAST Scan': [`semgrep scan --config auto`, `Rules: 347 checked`, `Findings: 0 critical, 1 warning`],
+    'Dependency Audit': [`pnpm audit --production`, `Vulnerabilities: 0 critical, 0 high`, `2 moderate (acceptable)`],
+    'Secret Detection': [`gitleaks detect --source .`, `No secrets detected`, `Files scanned: 234`],
+    'Report': [`Generating report...`, `Saved to: /reports/${new Date().toISOString().slice(0, 10)}.html`],
+    'Coverage Report': [`istanbul report lcov`, `Lines: 78.3%`, `Branches: 64.2%`, `Functions: 82.1%`],
+    'Update Manifest': [`kubectl set image deployment/${service}`, `Manifest updated`, `Rollout status: progressing`],
+    'Notify': [`Slack webhook: #deployments`, `Message sent`, `Teams: @devops`],
+    'Approval': [`Auto-approved (policy: fast-track)`, `Approver: system`],
   };
 
   return logMap[stageName] || [`Executing: ${stageName}`, `Done.`];
@@ -129,6 +131,7 @@ function shouldStageFail(stageName: string): boolean {
     'Deploy': 0.04,
     'Health Check': 0.06,
   };
+
   return Math.random() < (failRates[stageName] || 0.02);
 }
 
@@ -152,27 +155,27 @@ function getStageCommand(stageName: string, metadata: Record<string, unknown>): 
   const target = (metadata.target as string) || 'nas-docker';
 
   const cmdMap: Record<string, string> = {
-    'Checkout':         `cd /opt/yyc3/${service} && git pull --rebase origin main`,
-    'Install':          `cd /opt/yyc3/${service} && pnpm install --frozen-lockfile`,
-    'Lint':             `cd /opt/yyc3/${service} && pnpm lint`,
-    'Type Check':       `cd /opt/yyc3/${service} && pnpm tsc --noEmit`,
-    'Unit Test':        `cd /opt/yyc3/${service} && pnpm test`,
+    'Checkout': `cd /opt/yyc3/${service} && git pull --rebase origin main`,
+    'Install': `cd /opt/yyc3/${service} && pnpm install --frozen-lockfile`,
+    'Lint': `cd /opt/yyc3/${service} && pnpm lint`,
+    'Type Check': `cd /opt/yyc3/${service} && pnpm tsc --noEmit`,
+    'Unit Test': `cd /opt/yyc3/${service} && pnpm test`,
     'Integration Test': `cd /opt/yyc3/${service} && pnpm test:integration`,
-    'Test':             `cd /opt/yyc3/${service} && pnpm test`,
-    'Build':            `cd /opt/yyc3/${service} && pnpm build`,
-    'Docker Build':     `docker build -t ${service}:latest /opt/yyc3/${service}`,
-    'Push':             `docker push ${target}/${service}:latest`,
-    'Push Image':       `docker push 192.168.3.22:5000/${service}:latest`,
-    'Deploy':           `cd /opt/yyc3/${service} && docker-compose up -d --build`,
-    'Health Check':     `curl -sf http://localhost:3000/health`,
-    'Verify':           `curl -sf http://localhost:3000/api/status`,
-    'SAST Scan':        `cd /opt/yyc3/${service} && npx semgrep scan --config auto`,
+    'Test': `cd /opt/yyc3/${service} && pnpm test`,
+    'Build': `cd /opt/yyc3/${service} && pnpm build`,
+    'Docker Build': `docker build -t ${service}:latest /opt/yyc3/${service}`,
+    'Push': `docker push ${target}/${service}:latest`,
+    'Push Image': `docker push 192.168.3.22:5000/${service}:latest`,
+    'Deploy': `cd /opt/yyc3/${service} && docker-compose up -d --build`,
+    'Health Check': `curl -sf http://localhost:3000/health`,
+    'Verify': `curl -sf http://localhost:3000/api/status`,
+    'SAST Scan': `cd /opt/yyc3/${service} && npx semgrep scan --config auto`,
     'Dependency Audit': `cd /opt/yyc3/${service} && pnpm audit --production`,
     'Secret Detection': `cd /opt/yyc3/${service} && npx gitleaks detect --source .`,
-    'Report':           `echo "Report generated at $(date)"`,
-    'Coverage Report':  `cd /opt/yyc3/${service} && pnpm test:coverage`,
-    'Notify':           `echo "Notification sent via webhook"`,
-    'Approval':         `echo "Auto-approved by policy"`,
+    'Report': `echo "Report generated at $(date)"`,
+    'Coverage Report': `cd /opt/yyc3/${service} && pnpm test:coverage`,
+    'Notify': `echo "Notification sent via webhook"`,
+    'Approval': `echo "Auto-approved by policy"`,
   };
 
   return cmdMap[stageName] || `echo "Executing: ${stageName}"`;
@@ -183,6 +186,7 @@ async function executeReal(
   metadata: Record<string, unknown>,
 ): Promise<RealRunnerResult> {
   const command = getStageCommand(stageName, metadata);
+
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000);
@@ -192,12 +196,15 @@ async function executeReal(
       body: JSON.stringify({ command, stage: stageName, metadata }),
       signal: controller.signal,
     });
+
     clearTimeout(timeout);
 
     if (res.ok) {
       const data = await res.json() as RealRunnerResult;
+
       return data;
     }
+
     return {
       success: false, exitCode: res.status,
       stdout: [`HTTP ${res.status}: ${res.statusText}`],
@@ -243,18 +250,21 @@ function setRunnerHealth(state: RunnerHealthState) {
 
 export function onRunnerHealthChange(fn: () => void): () => void {
   _runnerListeners.add(fn);
+
   return () => { _runnerListeners.delete(fn); };
 }
 
 export async function checkRunnerHealth(): Promise<RunnerHealthState> {
   setRunnerHealth({ ...getRunnerHealth(), status: 'checking' });
   const start = performance.now();
+
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
     const res = await fetch(RUNNER_API_URL.replace('/api/execute', '/health'), {
       signal: controller.signal,
     });
+
     clearTimeout(timeout);
     const latencyMs = Math.round(performance.now() - start);
 
@@ -267,7 +277,9 @@ export async function checkRunnerHealth(): Promise<RunnerHealthState> {
         version: data.version || '1.0.0',
         uptime: data.uptime,
       };
+
       setRunnerHealth(state);
+
       return state;
     }
     const state: RunnerHealthState = {
@@ -276,7 +288,9 @@ export async function checkRunnerHealth(): Promise<RunnerHealthState> {
       lastChecked: Date.now(),
       error: `HTTP ${res.status}`,
     };
+
     setRunnerHealth(state);
+
     return state;
   } catch (err) {
     const latencyMs = Math.round(performance.now() - start);
@@ -286,7 +300,9 @@ export async function checkRunnerHealth(): Promise<RunnerHealthState> {
       lastChecked: Date.now(),
       error: err instanceof Error ? err.message : 'Unknown',
     };
+
     setRunnerHealth(state);
+
     return state;
   }
 }
@@ -296,7 +312,7 @@ export async function checkRunnerHealth(): Promise<RunnerHealthState> {
 // ============================================================
 
 export function useDAGExecutor() {
-  const addLog = useSystemStore((s) => s.addLog);
+  const addLog = useSystemStore(s => s.addLog);
   const [runs, setRuns] = useState<PipelineRun[]>([]);
   const abortRefs = useRef<Map<string, boolean>>(new Map());
   const [executionMode, setExecutionMode] = useState<ExecutionMode>('simulated');
@@ -307,7 +323,7 @@ export function useDAGExecutor() {
     metadata: Record<string, unknown> = {},
   ): Promise<PipelineRun> => {
     const runId = `run-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`;
-    
+
     const stages: PipelineStage[] = stageNames.map(name => ({
       name,
       status: 'pending' as StageStatus,
@@ -340,6 +356,7 @@ export function useDAGExecutor() {
 
     // Execute stages sequentially
     let allSuccess = true;
+
     for (let i = 0; i < stages.length; i++) {
       // Check abort
       if (abortRefs.current.get(runId)) {
@@ -352,13 +369,15 @@ export function useDAGExecutor() {
       }
 
       const stage = stages[i];
+
       stage.status = 'running';
       stage.startedAt = Date.now();
 
       const progress = Math.round(((i) / stages.length) * 100);
-      
+
       // Update run state
       const updatedRun: PipelineRun = { ...run, stages: [...stages], progress };
+
       setRuns(prev => prev.map(r => r.id === runId ? updatedRun : r));
 
       // Emit stage start
@@ -399,6 +418,7 @@ export function useDAGExecutor() {
           });
           // Simulated fallback
           const delay = getStageDelay(stage.name);
+
           await new Promise(resolve => setTimeout(resolve, delay));
           failed = shouldStageFail(stage.name);
           stage.completedAt = Date.now();
@@ -426,6 +446,7 @@ export function useDAGExecutor() {
       } else {
         // === SIMULATED MODE: Original behavior ===
         const delay = getStageDelay(stage.name);
+
         await new Promise(resolve => setTimeout(resolve, delay));
 
         // Check abort again after delay
@@ -479,7 +500,7 @@ export function useDAGExecutor() {
 
     // Finalize run
     const finalProgress = 100;
-    const finalStatus = abortRefs.current.get(runId) ? 'cancelled' 
+    const finalStatus = abortRefs.current.get(runId) ? 'cancelled'
       : allSuccess ? 'success' : 'failed';
 
     const finalRun: PipelineRun = {
@@ -495,6 +516,7 @@ export function useDAGExecutor() {
 
     // Emit completion event
     const totalDuration = (finalRun.completedAt || Date.now()) - finalRun.startedAt;
+
     eventBus.emit({
       category: 'system',
       type: `devops.pipeline_${finalStatus}`,

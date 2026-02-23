@@ -34,6 +34,7 @@
 // ============================================================
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+
 import type { AgentProfile, DeviceMemberProfile, PresenceStatus, MoodState } from './agent-identity';
 import {
   loadAgentProfiles,
@@ -105,13 +106,16 @@ const DEFAULT_HEARTBEAT_CONFIG: HeartbeatWsConfig = {
 function loadHeartbeatConfig(): HeartbeatWsConfig {
   try {
     const raw = localStorage.getItem(HEARTBEAT_WS_CONFIG_KEY);
+
     if (raw) return { ...DEFAULT_HEARTBEAT_CONFIG, ...JSON.parse(raw) };
   } catch { /* ignore */ }
+
   return { ...DEFAULT_HEARTBEAT_CONFIG };
 }
 
 function getHeartbeatWsUrl(): string {
   const cfg = loadHeartbeatConfig();
+
   return `ws://${cfg.host}:${cfg.port}${cfg.path}`;
 }
 
@@ -144,6 +148,7 @@ export function useHeartbeatWebSocket(): HeartbeatState {
   // Refs to hold latest state for simulation (avoids closure stale data)
   const agentProfilesRef = useRef(agentProfiles);
   const deviceMembersRef = useRef(deviceMembers);
+
   agentProfilesRef.current = agentProfiles;
   deviceMembersRef.current = deviceMembers;
 
@@ -154,6 +159,7 @@ export function useHeartbeatWebSocket(): HeartbeatState {
     if (payload.memberType === 'agent') {
       setAgentProfiles(prev => {
         const existing = prev[payload.memberId];
+
         if (!existing) return prev;
         const updated = {
           ...prev,
@@ -168,12 +174,15 @@ export function useHeartbeatWebSocket(): HeartbeatState {
             updatedAt: now,
           },
         };
+
         saveAgentProfiles(updated);
+
         return updated;
       });
     } else if (payload.memberType === 'device') {
       setDeviceMembers(prev => {
         const existing = prev[payload.memberId];
+
         if (!existing) return prev;
         const updated = {
           ...prev,
@@ -185,7 +194,9 @@ export function useHeartbeatWebSocket(): HeartbeatState {
             ...(payload.signalMessage ? { signalMessage: payload.signalMessage } : {}),
           },
         };
+
         saveDeviceMembers(updated);
+
         return updated;
       });
     }
@@ -296,6 +307,7 @@ export function useHeartbeatWebSocket(): HeartbeatState {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
     const url = getHeartbeatWsUrl();
+
     endpointRef.current = url;
 
     try {
@@ -310,7 +322,9 @@ export function useHeartbeatWebSocket(): HeartbeatState {
       }, WS_CONNECT_TIMEOUT);
 
       ws.onopen = () => {
-        if (!mountedRef.current) { ws.close(); return; }
+        if (!mountedRef.current) { ws.close();
+
+          return; }
         clearTimeout(connectTimeout);
         console.log(`[Heartbeat WS] Connected to ${url}`);
         setWsStatus('connected');
@@ -366,7 +380,7 @@ export function useHeartbeatWebSocket(): HeartbeatState {
       if (mountedRef.current) {
         reconnectDelayRef.current = Math.min(
           reconnectDelayRef.current * 1.5,
-          MAX_RECONNECT_DELAY
+          MAX_RECONNECT_DELAY,
         );
         connect();
       }
@@ -397,6 +411,7 @@ export function useHeartbeatWebSocket(): HeartbeatState {
   useEffect(() => {
     const interval = setInterval(() => {
       const profilesArray = Object.values(agentProfiles);
+
       if (profilesArray.length > 0) {
         writeAgentProfiles(profilesArray).catch(() => {
           // Silent fail — localStorage already saved synchronously

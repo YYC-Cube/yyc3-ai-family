@@ -9,6 +9,7 @@
 // ============================================================
 
 import { describe, it, expect, beforeEach } from 'vitest';
+
 import { useSystemStore } from '../store';
 import type { ChatMessage, ViewMode } from '../types';
 
@@ -50,6 +51,7 @@ describe('Store — Default State', () => {
 
   it('ST-01: has correct default values', () => {
     const s = useSystemStore.getState();
+
     expect(s.activeView).toBe('terminal');
     expect(s.consoleTab).toBe('dashboard');
     expect(s.consoleAgent).toBeNull();
@@ -84,6 +86,7 @@ describe('Store — Navigation Actions', () => {
       'terminal', 'console', 'projects', 'artifacts',
       'monitor', 'services', 'knowledge', 'bookmarks',
     ];
+
     for (const view of views) {
       useSystemStore.getState().setActiveView(view);
       expect(useSystemStore.getState().activeView).toBe(view);
@@ -105,6 +108,7 @@ describe('Store — Navigation Actions', () => {
   it('ST-05: navigateToAgent sets view=console, tab=ai, agent=id', () => {
     useSystemStore.getState().navigateToAgent('sentinel');
     const s = useSystemStore.getState();
+
     expect(s.activeView).toBe('console');
     expect(s.consoleTab).toBe('ai');
     expect(s.consoleAgent).toBe('sentinel');
@@ -114,6 +118,7 @@ describe('Store — Navigation Actions', () => {
     useSystemStore.getState().navigateToAgent('navigator'); // pre-set agent
     useSystemStore.getState().navigateToConsoleTab('devops');
     const s = useSystemStore.getState();
+
     expect(s.activeView).toBe('console');
     expect(s.consoleTab).toBe('devops');
     expect(s.consoleAgent).toBeNull();
@@ -185,8 +190,10 @@ describe('Store — Chat Actions', () => {
     const msg: ChatMessage = {
       id: 'msg-1', role: 'user', content: 'Hello', timestamp: '12:00',
     };
+
     useSystemStore.getState().addMessage(msg);
     const after = useSystemStore.getState().messages;
+
     expect(after).toHaveLength(1);
     expect(after[0].content).toBe('Hello');
     expect(before).toHaveLength(0);
@@ -219,8 +226,10 @@ describe('Store — Chat Actions', () => {
   it('ST-17: updateLastAiMessage with providerMeta', () => {
     useSystemStore.getState().addMessage({ id: 'a1', role: 'ai', content: '', timestamp: '12:00' });
     const meta = { providerId: 'openai', modelId: 'gpt-4o', latencyMs: 500, totalTokens: 100 };
+
     useSystemStore.getState().updateLastAiMessage('Response text', meta);
     const msg = useSystemStore.getState().messages[0];
+
     expect(msg.content).toBe('Response text');
     expect(msg.providerMeta).toEqual(meta);
   });
@@ -231,6 +240,7 @@ describe('Store — Chat Actions', () => {
       { id: 'n1', role: 'user', content: 'new1', timestamp: '13:00' },
       { id: 'n2', role: 'ai', content: 'new2', timestamp: '13:01' },
     ];
+
     useSystemStore.getState().setMessages(newMsgs);
     expect(useSystemStore.getState().messages).toHaveLength(2);
     expect(useSystemStore.getState().messages[0].content).toBe('new1');
@@ -296,6 +306,7 @@ describe('Store — Agent Chat History', () => {
       id: 'am-1', role: 'user', content: 'Hello nav', timestamp: '12:00',
     });
     const history = useSystemStore.getState().getAgentHistory('navigator');
+
     expect(history).toHaveLength(1);
     expect(history[0].content).toBe('Hello nav');
   });
@@ -316,6 +327,7 @@ describe('Store — Agent Chat History', () => {
       { id: 'new1', role: 'user', content: 'new', timestamp: '13:00' },
     ]);
     const h = useSystemStore.getState().getAgentHistory('thinker');
+
     expect(h).toHaveLength(1);
     expect(h[0].content).toBe('new');
   });
@@ -414,6 +426,7 @@ describe('Store — System Actions', () => {
   it('ST-38: addLog creates entry with id and timestamp', () => {
     useSystemStore.getState().addLog('info', 'TEST', 'Test message');
     const logs = useSystemStore.getState().logs;
+
     expect(logs).toHaveLength(1);
     expect(logs[0].level).toBe('info');
     expect(logs[0].source).toBe('TEST');
@@ -426,6 +439,7 @@ describe('Store — System Actions', () => {
     useSystemStore.getState().addLog('info', 'A', 'First');
     useSystemStore.getState().addLog('warn', 'B', 'Second');
     const logs = useSystemStore.getState().logs;
+
     expect(logs[0].message).toBe('Second');
     expect(logs[1].message).toBe('First');
   });
@@ -444,6 +458,7 @@ describe('Store — System Actions', () => {
 
   it('ST-42: updateMetrics sets cluster metrics + derived cpu/latency', () => {
     const nodeMetrics = { cpu: 55.5, memory: 40, disk: 30, network: 10, temperature: 45, processes: 200, uptime: 3600 };
+
     useSystemStore.getState().updateMetrics({
       'm4-max': nodeMetrics,
       'imac-m4': { ...nodeMetrics, cpu: 30 },
@@ -452,6 +467,7 @@ describe('Store — System Actions', () => {
       timestamp: Date.now(),
     });
     const s = useSystemStore.getState();
+
     expect(s.clusterMetrics).not.toBeNull();
     expect(s.cpuLoad).toBe(56); // Math.round(55.5)
     expect(s.latency).toBeGreaterThanOrEqual(1);
@@ -472,6 +488,7 @@ describe('Store — Composite Actions', () => {
     useSystemStore.getState().setIsStreaming(true);
     useSystemStore.getState().newSession();
     const s = useSystemStore.getState();
+
     expect(s.activeView).toBe('terminal');
     expect(s.messages).toHaveLength(0);
     expect(s.isArtifactsOpen).toBe(false);
@@ -482,6 +499,7 @@ describe('Store — Composite Actions', () => {
   it('ST-44: runDiagnosis sets warning status initially', () => {
     useSystemStore.getState().runDiagnosis();
     const s = useSystemStore.getState();
+
     expect(s.status).toBe('warning');
     expect(s.cpuLoad).toBe(85);
     expect(s.logs.length).toBeGreaterThanOrEqual(1);

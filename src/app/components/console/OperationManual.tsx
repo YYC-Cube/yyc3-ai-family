@@ -1,18 +1,17 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n";
-import { useSystemStore } from "@/lib/store";
 import {
   BookOpen, Terminal, Brain, Compass, Shield, Network, Database,
-  Cpu, Activity, HardDrive, Radio, FileText, Settings, Zap,
-  ChevronRight, ChevronDown, Search, Layers, Globe, BarChart3,
-  Box, Wrench, Rocket, Monitor, ArrowRight, Command, Keyboard,
-  AlertTriangle, CheckCircle2, Clock, Play, GitBranch, Key
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { Button } from "@/app/components/ui/button";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+  Cpu, Activity, HardDrive, Radio, FileText,
+  ChevronRight, ChevronDown, Globe, BarChart3,
+  Box, Wrench, Monitor, ArrowRight, Command, Keyboard,
+  AlertTriangle,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Card, CardContent } from '@/app/components/ui/card';
+import { useTranslation } from '@/lib/i18n';
+import { useSystemStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // OperationManual — Complete System Operation Guide
@@ -41,6 +40,7 @@ const SECTIONS: ManualSection[] = [
 
 function CollapsibleSection({ title, children, defaultOpen = false }: { title: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = React.useState(defaultOpen);
+
   return (
     <div className="border border-white/5 rounded-lg overflow-hidden">
       <button
@@ -59,8 +59,8 @@ export function OperationManual() {
   const { language } = useTranslation();
   const zh = language === 'zh';
   const [activeSection, setActiveSection] = React.useState('overview');
-  const navigateToConsoleTab = useSystemStore((s) => s.navigateToConsoleTab);
-  const isMobile = useSystemStore((s) => s.isMobile);
+  const navigateToConsoleTab = useSystemStore(s => s.navigateToConsoleTab);
+  const isMobile = useSystemStore(s => s.isMobile);
 
   return (
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
@@ -75,26 +75,26 @@ export function OperationManual() {
         </Badge>
       </div>
 
-      <div className={cn("flex gap-6", isMobile ? "flex-col" : "")}>
+      <div className={cn('flex gap-6', isMobile ? 'flex-col' : '')}>
         {/* Section Navigation */}
-        <div className={cn("shrink-0", isMobile ? "w-full" : "w-48")}>
+        <div className={cn('shrink-0', isMobile ? 'w-full' : 'w-48')}>
           <div className={cn(
-            "sticky top-4 bg-zinc-900/50 border border-white/5 rounded-lg p-2",
-            isMobile ? "flex flex-wrap gap-1" : "space-y-1"
+            'sticky top-4 bg-zinc-900/50 border border-white/5 rounded-lg p-2',
+            isMobile ? 'flex flex-wrap gap-1' : 'space-y-1',
           )}>
             {SECTIONS.map(s => (
               <button
                 key={s.id}
                 onClick={() => setActiveSection(s.id)}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-left w-full",
-                  isMobile ? "w-auto" : "",
+                  'flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-left w-full',
+                  isMobile ? 'w-auto' : '',
                   activeSection === s.id
-                    ? "bg-white/5 text-white"
-                    : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]"
+                    ? 'bg-white/5 text-white'
+                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]',
                 )}
               >
-                <s.icon className={cn("w-3.5 h-3.5 shrink-0", activeSection === s.id ? s.color : "")} />
+                <s.icon className={cn('w-3.5 h-3.5 shrink-0', activeSection === s.id ? s.color : '')} />
                 <span className="text-xs font-mono truncate">{zh ? s.title : s.titleEn}</span>
               </button>
             ))}
@@ -140,7 +140,7 @@ export function OperationManual() {
                         { name: 'NAS F4-423', desc: 'RAID6, Docker', color: 'text-cyan-400' },
                       ].map(n => (
                         <div key={n.name} className="p-2 rounded bg-white/[0.02] border border-white/5">
-                          <div className={cn("text-[10px] font-mono", n.color)}>{n.name}</div>
+                          <div className={cn('text-[10px] font-mono', n.color)}>{n.name}</div>
                           <div className="text-[9px] text-zinc-600">{n.desc}</div>
                         </div>
                       ))}
@@ -234,7 +234,7 @@ export function OperationManual() {
                   className="w-full flex items-center gap-4 p-4 rounded-lg bg-zinc-900/50 border border-white/5 hover:bg-zinc-900/80 hover:border-white/10 transition-all group text-left"
                 >
                   <div className="w-10 h-10 rounded-lg bg-white/[0.03] border border-white/5 flex items-center justify-center shrink-0">
-                    <m.icon className={cn("w-5 h-5", m.color)} />
+                    <m.icon className={cn('w-5 h-5', m.color)} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm text-zinc-200 flex items-center gap-2">
@@ -347,10 +347,10 @@ export function OperationManual() {
                   className="w-full flex items-center gap-4 p-4 rounded-lg bg-zinc-900/50 border border-white/5 hover:bg-zinc-900/80 transition-all group text-left"
                 >
                   <div className="w-10 h-10 rounded-lg bg-white/[0.03] border border-white/5 flex items-center justify-center shrink-0">
-                    <Brain className={cn("w-5 h-5", a.color)} />
+                    <Brain className={cn('w-5 h-5', a.color)} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className={cn("text-sm", a.color)}>{a.name}</div>
+                    <div className={cn('text-sm', a.color)}>{a.name}</div>
                     <p className="text-[10px] text-zinc-500 mt-0.5">{a.desc}</p>
                     <div className="text-[9px] font-mono text-zinc-700 mt-1">{zh ? '推荐模型：' : 'Recommended: '}{a.model}</div>
                   </div>
@@ -456,7 +456,7 @@ export function OperationManual() {
               ].map((item, i) => (
                 <CollapsibleSection key={i} title={
                   <div className="flex items-center gap-2">
-                    <item.icon className={cn("w-4 h-4", item.color)} />
+                    <item.icon className={cn('w-4 h-4', item.color)} />
                     <span className="text-sm text-white">{item.q}</span>
                   </div>
                 }>

@@ -9,16 +9,16 @@
 // Run: npx vitest run src/lib/__tests__/llm-bridge.test.ts
 // ============================================================
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
+
 import {
-  loadProviderConfigs,
   saveProviderConfigs,
   hasConfiguredProvider,
   getEnabledProviderIds,
-  getProviderConfig,
   LLMError,
   trackUsage,
   getUsageSummary,
+  clearProviderCache,
   type ProviderConfig,
   type LLMResponse,
 } from '../llm-bridge';
@@ -33,9 +33,7 @@ const USAGE_STORAGE_KEY = 'yyc3-llm-usage';
 beforeEach(() => {
   localStorage.removeItem(PROVIDER_CONFIG_KEY);
   localStorage.removeItem(USAGE_STORAGE_KEY);
-  // Clear internal cache by forcing reload from empty localStorage
-  // The module caches configs in _cachedConfigs, we need to clear it
-  // by writing empty and reading again
+  clearProviderCache();
 });
 
 // Helper: write configs directly to localStorage (bypass encryption)
@@ -53,6 +51,7 @@ describe('LLM Bridge — loadProviderConfigs', () => {
     localStorage.removeItem(PROVIDER_CONFIG_KEY);
     // Note: loadProviderConfigs has an internal cache; we test the storage layer
     const raw = localStorage.getItem(PROVIDER_CONFIG_KEY);
+
     expect(raw).toBeNull();
   });
 
@@ -60,8 +59,10 @@ describe('LLM Bridge — loadProviderConfigs', () => {
     const configs: ProviderConfig[] = [
       { providerId: 'openai', apiKey: 'sk-test', endpoint: '', enabled: true, defaultModel: 'gpt-4o' },
     ];
+
     writeRawConfigs(configs);
     const loaded = JSON.parse(localStorage.getItem(PROVIDER_CONFIG_KEY)!) as ProviderConfig[];
+
     expect(loaded).toHaveLength(1);
     expect(loaded[0].providerId).toBe('openai');
     expect(loaded[0].apiKey).toBe('sk-test');
@@ -88,10 +89,13 @@ describe('LLM Bridge — saveProviderConfigs', () => {
     const configs: ProviderConfig[] = [
       { providerId: 'deepseek', apiKey: 'sk-ds-test', endpoint: '', enabled: true, defaultModel: 'deepseek-chat' },
     ];
+
     await saveProviderConfigs(configs);
     const raw = localStorage.getItem(PROVIDER_CONFIG_KEY);
+
     expect(raw).toBeTruthy();
     const parsed = JSON.parse(raw!);
+
     expect(parsed).toHaveLength(1);
     expect(parsed[0].providerId).toBe('deepseek');
   });
@@ -102,8 +106,10 @@ describe('LLM Bridge — saveProviderConfigs', () => {
       { providerId: 'anthropic', apiKey: 'sk-2', endpoint: '', enabled: false, defaultModel: 'claude-3' },
       { providerId: 'deepseek', apiKey: 'sk-3', endpoint: '', enabled: true, defaultModel: 'deepseek-r1' },
     ];
+
     await saveProviderConfigs(configs);
     const parsed = JSON.parse(localStorage.getItem(PROVIDER_CONFIG_KEY)!);
+
     expect(parsed).toHaveLength(3);
   });
 });
@@ -114,7 +120,7 @@ describe('LLM Bridge — saveProviderConfigs', () => {
 
 describe('LLM Bridge — hasConfiguredProvider', () => {
   it('LLM-06: returns false when no config', () => {
-    // fresh state
+    localStorage.removeItem(PROVIDER_CONFIG_KEY);
     expect(hasConfiguredProvider()).toBe(false);
   });
 
@@ -152,13 +158,16 @@ describe('LLM Bridge — getEnabledProviderIds', () => {
       { providerId: 'deepseek', apiKey: 'sk-3', endpoint: '', enabled: true, defaultModel: 'deepseek-r1' },
     ]);
     const ids = getEnabledProviderIds();
+
     expect(ids).toContain('openai');
     expect(ids).not.toContain('anthropic');
     expect(ids).toContain('deepseek');
   });
 
   it('LLM-11: returns empty array when no configs', () => {
+    localStorage.removeItem(PROVIDER_CONFIG_KEY);
     const ids = getEnabledProviderIds();
+
     expect(ids).toEqual([]);
   });
 });
@@ -170,6 +179,7 @@ describe('LLM Bridge — getEnabledProviderIds', () => {
 describe('LLM Bridge — LLMError', () => {
   it('LLM-12: LLMError has correct properties', () => {
     const err = new LLMError('Test error', 'AUTH_FAILED', 'openai', 401, false);
+
     expect(err.message).toBe('Test error');
     expect(err.code).toBe('AUTH_FAILED');
     expect(err.provider).toBe('openai');
@@ -180,12 +190,14 @@ describe('LLM Bridge — LLMError', () => {
 
   it('LLM-13: LLMError is instanceof Error', () => {
     const err = new LLMError('test', 'NETWORK_ERROR', 'deepseek', undefined, true);
+
     expect(err instanceof Error).toBe(true);
     expect(err instanceof LLMError).toBe(true);
   });
 
   it('LLM-14: LLMError retryable defaults to false', () => {
     const err = new LLMError('test', 'UNKNOWN', 'test-provider');
+
     expect(err.retryable).toBe(false);
   });
 
@@ -195,8 +207,10 @@ describe('LLM Bridge — LLMError', () => {
       'MODEL_NOT_FOUND', 'NETWORK_ERROR', 'CORS_ERROR',
       'TIMEOUT', 'PROVIDER_ERROR', 'UNKNOWN',
     ] as const;
+
     for (const code of codes) {
       const err = new LLMError('msg', code, 'p');
+
       expect(err.code).toBe(code);
     }
   });
@@ -220,8 +234,10 @@ describe('LLM Bridge — Usage Tracking', () => {
       finishReason: 'stop',
       latencyMs: 500,
     };
+
     trackUsage(response, 'navigator');
     const records = JSON.parse(localStorage.getItem(USAGE_STORAGE_KEY)!);
+
     expect(records).toHaveLength(1);
     expect(records[0].provider).toBe('openai');
     expect(records[0].model).toBe('gpt-4o');
@@ -238,10 +254,12 @@ describe('LLM Bridge — Usage Tracking', () => {
       finishReason: 'stop',
       latencyMs: 100,
     });
+
     trackUsage(mkResponse('openai', 'gpt-4o', 100), 'navigator');
     trackUsage(mkResponse('deepseek', 'deepseek-r1', 200), 'thinker');
     trackUsage(mkResponse('openai', 'gpt-4o', 150), 'navigator');
     const records = JSON.parse(localStorage.getItem(USAGE_STORAGE_KEY)!);
+
     expect(records).toHaveLength(3);
   });
 });
@@ -257,6 +275,7 @@ describe('LLM Bridge — getUsageSummary', () => {
 
   it('LLM-18: returns zero summary when no records', () => {
     const summary = getUsageSummary();
+
     expect(summary.totalTokens).toBe(0);
     expect(summary.totalCost).toBe(0);
     expect(summary.totalCalls).toBe(0);
@@ -271,8 +290,10 @@ describe('LLM Bridge — getUsageSummary', () => {
       { date: today, provider: 'openai', model: 'gpt-4o', agentId: 'thinker', promptTokens: 100, completionTokens: 100, totalTokens: 200, costUsd: 0.03, latencyMs: 300 },
       { date: today, provider: 'deepseek', model: 'deepseek-r1', agentId: 'navigator', promptTokens: 150, completionTokens: 50, totalTokens: 200, costUsd: 0.005, latencyMs: 200 },
     ];
+
     localStorage.setItem(USAGE_STORAGE_KEY, JSON.stringify(records));
     const summary = getUsageSummary();
+
     expect(summary.totalCalls).toBe(3);
     expect(summary.totalTokens).toBe(480);
     expect(summary.byProvider['openai'].calls).toBe(2);
@@ -285,6 +306,7 @@ describe('LLM Bridge — getUsageSummary', () => {
   it('LLM-20: handles corrupt localStorage gracefully', () => {
     localStorage.setItem(USAGE_STORAGE_KEY, 'not-json');
     const summary = getUsageSummary();
+
     expect(summary.totalTokens).toBe(0);
     expect(summary.totalCalls).toBe(0);
   });

@@ -20,12 +20,12 @@
  * Values are the local proxy path prefix (without trailing slash).
  */
 const DEV_PROXY_MAP: Record<string, string> = {
-  openai:    '/api/proxy/openai',
+  openai: '/api/proxy/openai',
   anthropic: '/api/proxy/anthropic',
-  deepseek:  '/api/proxy/deepseek',
-  zhipu:     '/api/proxy/zhipu',
-  gemini:    '/api/proxy/gemini',
-  groq:      '/api/proxy/groq',
+  deepseek: '/api/proxy/deepseek',
+  zhipu: '/api/proxy/zhipu',
+  gemini: '/api/proxy/gemini',
+  groq: '/api/proxy/groq',
 };
 
 /**
@@ -47,7 +47,7 @@ const LOCAL_PROVIDERS = new Set(['ollama', 'lmstudio']);
  */
 export function resolveProviderEndpoint(
   providerId: string,
-  configEndpoint?: string
+  configEndpoint?: string,
 ): string | undefined {
   // 1. User override always takes precedence
   if (configEndpoint && configEndpoint.trim().length > 0) {
@@ -81,5 +81,6 @@ export function isDevProxyAvailable(providerId: string): boolean {
  */
 export function getProxiedProviders(): string[] {
   if (!import.meta.env.DEV) return [];
+
   return Object.keys(DEV_PROXY_MAP);
 }

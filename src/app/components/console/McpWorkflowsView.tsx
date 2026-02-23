@@ -1,18 +1,19 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   Copy, Check, FileCode, Shield, Cpu, Database,
   HardDrive, Wrench, Zap, Eye, Edit3, Save, X,
   Plus, Trash2, FolderOpen, Download, Upload,
-  GitBranch, Box, Search, Figma, Loader2
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { Input } from "@/app/components/ui/input";
-import { useSystemStore } from "@/lib/store";
-import type { CustomTemplate } from "@/lib/types";
+  GitBranch, Box, Search, Figma, Loader2,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Input } from '@/app/components/ui/input';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { useSystemStore } from '@/lib/store';
+import type { CustomTemplate } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 // --- Types ---
 
@@ -407,6 +408,7 @@ const STORAGE_KEY = 'yyc3_custom_templates';
 function loadCustomTemplates(): CustomTemplate[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
+
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 }
@@ -418,8 +420,8 @@ function saveCustomTemplates(templates: CustomTemplate[]) {
 // --- Main Component ---
 
 export function McpWorkflowsView() {
-  const addLog = useSystemStore((s) => s.addLog);
-  const isMobile = useSystemStore((s) => s.isMobile);
+  const addLog = useSystemStore(s => s.addLog);
+  const isMobile = useSystemStore(s => s.isMobile);
 
   const [selectedTemplate, setSelectedTemplate] = React.useState<string | null>(null);
   const [filterCat, setFilterCat] = React.useState<string>('all');
@@ -467,10 +469,13 @@ export function McpWorkflowsView() {
       : filterCat === 'custom'
         ? allTemplates.filter(t => t.isCustom)
         : allTemplates.filter(t => t.category === filterCat);
+
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
+
       list = list.filter(t => t.name.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q));
     }
+
     return list;
   }, [allTemplates, filterCat, searchQuery]);
 
@@ -499,8 +504,9 @@ export function McpWorkflowsView() {
       const updated = customTemplates.map(ct =>
         ct.id === selected.id
           ? { ...ct, name: editName, desc: editDesc, content: editContent, updatedAt: now }
-          : ct
+          : ct,
       );
+
       setCustomTemplates(updated);
       saveCustomTemplates(updated);
       addLog('success', 'TEMPLATES', `Updated custom template: ${editName}`);
@@ -517,6 +523,7 @@ export function McpWorkflowsView() {
         isCustom: true,
       };
       const updated = [...customTemplates, newTemplate];
+
       setCustomTemplates(updated);
       saveCustomTemplates(updated);
       setSelectedTemplate(newTemplate.id);
@@ -539,6 +546,7 @@ export function McpWorkflowsView() {
       isCustom: true,
     };
     const updated = [...customTemplates, template];
+
     setCustomTemplates(updated);
     saveCustomTemplates(updated);
     addLog('success', 'TEMPLATES', `Created custom template: ${newName}`);
@@ -552,6 +560,7 @@ export function McpWorkflowsView() {
   const handleDeleteCustom = (id: string) => {
     const tmpl = customTemplates.find(t => t.id === id);
     const updated = customTemplates.filter(t => t.id !== id);
+
     setCustomTemplates(updated);
     saveCustomTemplates(updated);
     if (selectedTemplate === id) setSelectedTemplate(null);
@@ -560,7 +569,7 @@ export function McpWorkflowsView() {
 
   const handleApplyToProject = async () => {
     if (!selected || !applyTarget) return;
-    
+
     // Phase 35: Multi-step "Smart" execution simulation
     const steps = [
       { label: 'Initializing deployment context...', delay: 600 },
@@ -568,11 +577,11 @@ export function McpWorkflowsView() {
       { label: `Establishing NAS connection (${applyTarget})...`, delay: 1000 },
       { label: 'Injecting workflow definitions...', delay: 1200 },
       { label: 'Synchronizing project state...', delay: 700 },
-      { label: 'Verifying deployment checksums...', delay: 500 }
+      { label: 'Verifying deployment checksums...', delay: 500 },
     ];
 
     addLog('info', 'DEVOPS', `Starting deployment of "${selected.name}" to "${applyTarget}"`);
-    
+
     for (let i = 0; i < steps.length; i++) {
       setApplyProgress({ step: i + 1, label: steps[i].label });
       await new Promise(r => setTimeout(r, steps[i].delay));
@@ -581,7 +590,7 @@ export function McpWorkflowsView() {
     setApplySuccess(true);
     setApplyProgress(null);
     addLog('success', 'DEVOPS', `Successfully applied template "${selected.name}" to project "${applyTarget}"`);
-    
+
     setTimeout(() => {
       setShowApplyDialog(false);
       setApplyTarget(null);
@@ -594,6 +603,7 @@ export function McpWorkflowsView() {
     const blob = new Blob([selected.content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
+
     a.href = url;
     a.download = `${selected.name.replace(/[^a-zA-Z0-9-]/g, '_').toLowerCase()}.txt`;
     a.click();
@@ -610,7 +620,7 @@ export function McpWorkflowsView() {
           <Input
             placeholder="Search templates..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="pl-9 h-8 bg-zinc-900/50 border-white/10 text-xs font-mono"
           />
         </div>
@@ -633,10 +643,10 @@ export function McpWorkflowsView() {
             key={cat}
             onClick={() => setFilterCat(cat)}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-[11px] font-mono uppercase transition-colors",
+              'px-3 py-1.5 rounded-lg text-[11px] font-mono uppercase transition-colors',
               filterCat === cat
-                ? "bg-primary/20 text-primary border border-primary/30"
-                : "text-zinc-500 hover:text-zinc-300 bg-zinc-900/50 border border-white/5"
+                ? 'bg-primary/20 text-primary border border-primary/30'
+                : 'text-zinc-500 hover:text-zinc-300 bg-zinc-900/50 border border-white/5',
             )}
           >
             {cat === 'all' ? 'ALL' : CATEGORY_META[cat]?.label}
@@ -649,17 +659,18 @@ export function McpWorkflowsView() {
 
       {/* Template Grid */}
       <div className={cn(
-        "grid gap-3 md:gap-4",
-        isMobile ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
+        'grid gap-3 md:gap-4',
+        isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3',
       )}>
         {filtered.map(template => {
           const TIcon = template.icon;
+
           return (
             <Card
               key={template.id}
               className={cn(
-                "bg-zinc-900/40 border-white/5 cursor-pointer transition-all hover:border-white/20 hover:-translate-y-0.5 group relative",
-                selectedTemplate === template.id && "border-primary/30 ring-1 ring-primary/20"
+                'bg-zinc-900/40 border-white/5 cursor-pointer transition-all hover:border-white/20 hover:-translate-y-0.5 group relative',
+                selectedTemplate === template.id && 'border-primary/30 ring-1 ring-primary/20',
               )}
               onClick={() => setSelectedTemplate(selectedTemplate === template.id ? null : template.id)}
             >
@@ -670,12 +681,12 @@ export function McpWorkflowsView() {
               )}
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
-                  <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 shrink-0", template.color)}>
+                  <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 shrink-0', template.color)}>
                     <TIcon className="w-4 h-4" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <CardTitle className="text-sm font-mono text-zinc-200 truncate">{template.name}</CardTitle>
-                    <Badge variant="outline" className={cn("text-[9px] font-mono mt-1", CATEGORY_META[template.category]?.color || 'text-zinc-400')}>
+                    <Badge variant="outline" className={cn('text-[9px] font-mono mt-1', CATEGORY_META[template.category]?.color || 'text-zinc-400')}>
                       {CATEGORY_META[template.category]?.label || template.category}
                     </Badge>
                   </div>
@@ -687,14 +698,14 @@ export function McpWorkflowsView() {
                   <Button
                     size="sm" variant="ghost"
                     className="h-6 px-2 text-[10px] font-mono text-zinc-400"
-                    onClick={(e) => { e.stopPropagation(); setSelectedTemplate(template.id); }}
+                    onClick={e => { e.stopPropagation(); setSelectedTemplate(template.id); }}
                   >
                     <Eye className="w-3 h-3 mr-1" /> View
                   </Button>
                   <Button
                     size="sm" variant="ghost"
                     className="h-6 px-2 text-[10px] font-mono text-primary"
-                    onClick={(e) => { e.stopPropagation(); handleCopy(template.content); }}
+                    onClick={e => { e.stopPropagation(); handleCopy(template.content); }}
                   >
                     {copied ? <Check className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
                     Copy
@@ -702,7 +713,7 @@ export function McpWorkflowsView() {
                   <Button
                     size="sm" variant="ghost"
                     className="h-6 px-2 text-[10px] font-mono text-green-400"
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation();
                       setSelectedTemplate(template.id);
                       setShowApplyDialog(true);
@@ -714,7 +725,7 @@ export function McpWorkflowsView() {
                     <Button
                       size="sm" variant="ghost"
                       className="h-6 px-2 text-[10px] font-mono text-red-400"
-                      onClick={(e) => { e.stopPropagation(); handleDeleteCustom(template.id); }}
+                      onClick={e => { e.stopPropagation(); handleDeleteCustom(template.id); }}
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
@@ -744,7 +755,7 @@ export function McpWorkflowsView() {
                 {editMode ? (
                   <Input
                     value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
+                    onChange={e => setEditName(e.target.value)}
                     className="h-6 text-xs font-mono bg-zinc-800 border-white/10 w-auto max-w-[200px]"
                   />
                 ) : (
@@ -795,7 +806,7 @@ export function McpWorkflowsView() {
               <Input
                 placeholder="Description..."
                 value={editDesc}
-                onChange={(e) => setEditDesc(e.target.value)}
+                onChange={e => setEditDesc(e.target.value)}
                 className="h-7 text-[11px] font-mono bg-zinc-800 border-white/10"
               />
             </div>
@@ -805,7 +816,7 @@ export function McpWorkflowsView() {
             {editMode ? (
               <textarea
                 value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
+                onChange={e => setEditContent(e.target.value)}
                 className="w-full min-h-[350px] max-h-[500px] p-4 bg-transparent text-[11px] font-mono text-zinc-300 resize-y focus:outline-none focus:ring-1 focus:ring-primary/30 leading-relaxed"
                 spellCheck={false}
               />
@@ -846,8 +857,8 @@ export function McpWorkflowsView() {
                 </div>
                 <h3 className="text-[10px] font-mono text-primary mb-3 uppercase tracking-[0.2em]">Executing Workflow</h3>
                 <div className="w-full bg-zinc-800 rounded-full h-1 mb-4 overflow-hidden">
-                  <div 
-                    className="bg-primary h-full transition-all duration-500 ease-out" 
+                  <div
+                    className="bg-primary h-full transition-all duration-500 ease-out"
                     style={{ width: `${(applyProgress.step / 6) * 100}%` }}
                   />
                 </div>
@@ -879,15 +890,15 @@ export function McpWorkflowsView() {
                       key={project.id}
                       onClick={() => setApplyTarget(project.id)}
                       className={cn(
-                        "w-full text-left p-3 rounded-lg transition-all flex items-center gap-3",
+                        'w-full text-left p-3 rounded-lg transition-all flex items-center gap-3',
                         applyTarget === project.id
-                          ? "bg-primary/10 border border-primary/20"
-                          : "bg-zinc-800/50 border border-white/5 hover:border-white/10"
+                          ? 'bg-primary/10 border border-primary/20'
+                          : 'bg-zinc-800/50 border border-white/5 hover:border-white/10',
                       )}
                     >
                       <FolderOpen className={cn(
-                        "w-4 h-4 shrink-0",
-                        applyTarget === project.id ? "text-primary" : "text-zinc-500"
+                        'w-4 h-4 shrink-0',
+                        applyTarget === project.id ? 'text-primary' : 'text-zinc-500',
                       )} />
                       <div className="min-w-0">
                         <div className="text-xs font-mono text-zinc-200 truncate">{project.name}</div>
@@ -938,13 +949,13 @@ export function McpWorkflowsView() {
               <Input
                 placeholder="Template name..."
                 value={newName}
-                onChange={(e) => setNewName(e.target.value)}
+                onChange={e => setNewName(e.target.value)}
                 className="h-9 text-xs font-mono bg-zinc-800 border-white/10"
               />
               <Input
                 placeholder="Description..."
                 value={newDesc}
-                onChange={(e) => setNewDesc(e.target.value)}
+                onChange={e => setNewDesc(e.target.value)}
                 className="h-9 text-xs font-mono bg-zinc-800 border-white/10"
               />
               <div className="flex gap-1.5 flex-wrap">
@@ -953,10 +964,10 @@ export function McpWorkflowsView() {
                     key={key}
                     onClick={() => setNewCategory(key)}
                     className={cn(
-                      "px-2.5 py-1 rounded text-[10px] font-mono transition-colors",
+                      'px-2.5 py-1 rounded text-[10px] font-mono transition-colors',
                       newCategory === key
-                        ? "bg-primary/20 text-primary border border-primary/30"
-                        : "text-zinc-500 bg-zinc-800 border border-white/5"
+                        ? 'bg-primary/20 text-primary border border-primary/30'
+                        : 'text-zinc-500 bg-zinc-800 border border-white/5',
                     )}
                   >
                     {meta.label}
@@ -966,7 +977,7 @@ export function McpWorkflowsView() {
               <textarea
                 placeholder="Template content (YAML, JSON, Shell, TypeScript...)"
                 value={newContent}
-                onChange={(e) => setNewContent(e.target.value)}
+                onChange={e => setNewContent(e.target.value)}
                 className="w-full min-h-[200px] p-3 bg-zinc-800 text-[11px] font-mono text-zinc-300 rounded-lg border border-white/10 resize-y focus:outline-none focus:ring-1 focus:ring-primary/30 leading-relaxed"
                 spellCheck={false}
               />

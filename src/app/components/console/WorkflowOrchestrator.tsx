@@ -1,20 +1,21 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   Play, Plus, Trash2, Save,
   Shield, Box, Zap, Terminal, Bell,
   CheckCircle2, Lock, Wrench,
   X, ChevronDown, Loader2,
   ArrowRight, Upload, Maximize2,
-  Network, Settings
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { Input } from "@/app/components/ui/input";
-import { useSystemStore } from "@/lib/store";
-import type { DAGNode, DAGEdge, DAGWorkflow } from "@/lib/types";
+  Network, Settings,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Input } from '@/app/components/ui/input';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { useSystemStore } from '@/lib/store';
+import type { DAGNode, DAGEdge, DAGWorkflow } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 // --- Constants ---
 
@@ -32,15 +33,15 @@ interface NodeTypeInfo {
 }
 
 const NODE_TYPES: Record<NodeType, NodeTypeInfo> = {
-  'trigger':   { label: 'Trigger',    icon: Zap,       color: 'text-amber-400',  bgColor: 'rgba(251,191,36,0.08)',  borderColor: 'rgba(251,191,36,0.3)' },
-  'build':     { label: 'Build',      icon: Box,       color: 'text-blue-400',   bgColor: 'rgba(96,165,250,0.08)',  borderColor: 'rgba(96,165,250,0.3)' },
-  'test':      { label: 'Test',       icon: CheckCircle2, color: 'text-green-400', bgColor: 'rgba(74,222,128,0.08)', borderColor: 'rgba(74,222,128,0.3)' },
-  'security':  { label: 'Security',   icon: Shield,    color: 'text-red-400',    bgColor: 'rgba(248,113,113,0.08)', borderColor: 'rgba(248,113,113,0.3)' },
-  'deploy':    { label: 'Deploy',     icon: Upload,    color: 'text-purple-400', bgColor: 'rgba(192,132,252,0.08)', borderColor: 'rgba(192,132,252,0.3)' },
-  'notify':    { label: 'Notify',     icon: Bell,      color: 'text-cyan-400',   bgColor: 'rgba(34,211,238,0.08)', borderColor: 'rgba(34,211,238,0.3)' },
-  'approval':  { label: 'Approval',   icon: Lock,      color: 'text-orange-400', bgColor: 'rgba(251,146,60,0.08)', borderColor: 'rgba(251,146,60,0.3)' },
-  'script':    { label: 'Script',     icon: Terminal,   color: 'text-emerald-400', bgColor: 'rgba(52,211,153,0.08)', borderColor: 'rgba(52,211,153,0.3)' },
-  'mcp-tool':  { label: 'MCP Tool',   icon: Wrench,    color: 'text-pink-400',   bgColor: 'rgba(244,114,182,0.08)', borderColor: 'rgba(244,114,182,0.3)' },
+  'trigger': { label: 'Trigger', icon: Zap, color: 'text-amber-400', bgColor: 'rgba(251,191,36,0.08)', borderColor: 'rgba(251,191,36,0.3)' },
+  'build': { label: 'Build', icon: Box, color: 'text-blue-400', bgColor: 'rgba(96,165,250,0.08)', borderColor: 'rgba(96,165,250,0.3)' },
+  'test': { label: 'Test', icon: CheckCircle2, color: 'text-green-400', bgColor: 'rgba(74,222,128,0.08)', borderColor: 'rgba(74,222,128,0.3)' },
+  'security': { label: 'Security', icon: Shield, color: 'text-red-400', bgColor: 'rgba(248,113,113,0.08)', borderColor: 'rgba(248,113,113,0.3)' },
+  'deploy': { label: 'Deploy', icon: Upload, color: 'text-purple-400', bgColor: 'rgba(192,132,252,0.08)', borderColor: 'rgba(192,132,252,0.3)' },
+  'notify': { label: 'Notify', icon: Bell, color: 'text-cyan-400', bgColor: 'rgba(34,211,238,0.08)', borderColor: 'rgba(34,211,238,0.3)' },
+  'approval': { label: 'Approval', icon: Lock, color: 'text-orange-400', bgColor: 'rgba(251,146,60,0.08)', borderColor: 'rgba(251,146,60,0.3)' },
+  'script': { label: 'Script', icon: Terminal, color: 'text-emerald-400', bgColor: 'rgba(52,211,153,0.08)', borderColor: 'rgba(52,211,153,0.3)' },
+  'mcp-tool': { label: 'MCP Tool', icon: Wrench, color: 'text-pink-400', bgColor: 'rgba(244,114,182,0.08)', borderColor: 'rgba(244,114,182,0.3)' },
 };
 
 // --- Preset Workflows ---
@@ -51,13 +52,13 @@ const PRESET_WORKFLOWS: DAGWorkflow[] = [
     name: 'Standard CI/CD Pipeline',
     description: '标准 CI/CD 管线：触发 -> 构建 -> 测试 -> 安全 -> 部署',
     nodes: [
-      { id: 'n1', type: 'trigger',  label: 'Git Push',        x: 60,  y: 120, config: { event: 'push', branch: 'main' } },
-      { id: 'n2', type: 'build',    label: 'Build & Lint',    x: 280, y: 80,  config: { cmd: 'pnpm build && pnpm lint' } },
-      { id: 'n3', type: 'test',     label: 'Unit Tests',      x: 280, y: 200, config: { cmd: 'pnpm test --coverage' } },
-      { id: 'n4', type: 'security', label: 'SAST + Audit',    x: 500, y: 120, config: { tool: 'trivy + eslint-security' } },
-      { id: 'n5', type: 'approval', label: 'Manual Gate',     x: 720, y: 120, config: { approver: 'Level 5' } },
-      { id: 'n6', type: 'deploy',   label: 'Deploy Staging',  x: 940, y: 80,  config: { env: 'staging' } },
-      { id: 'n7', type: 'notify',   label: 'Slack Notify',    x: 940, y: 200, config: { channel: '#devops' } },
+      { id: 'n1', type: 'trigger', label: 'Git Push', x: 60, y: 120, config: { event: 'push', branch: 'main' } },
+      { id: 'n2', type: 'build', label: 'Build & Lint', x: 280, y: 80, config: { cmd: 'pnpm build && pnpm lint' } },
+      { id: 'n3', type: 'test', label: 'Unit Tests', x: 280, y: 200, config: { cmd: 'pnpm test --coverage' } },
+      { id: 'n4', type: 'security', label: 'SAST + Audit', x: 500, y: 120, config: { tool: 'trivy + eslint-security' } },
+      { id: 'n5', type: 'approval', label: 'Manual Gate', x: 720, y: 120, config: { approver: 'Level 5' } },
+      { id: 'n6', type: 'deploy', label: 'Deploy Staging', x: 940, y: 80, config: { env: 'staging' } },
+      { id: 'n7', type: 'notify', label: 'Slack Notify', x: 940, y: 200, config: { channel: '#devops' } },
     ],
     edges: [
       { id: 'e1', source: 'n1', target: 'n2' },
@@ -76,12 +77,12 @@ const PRESET_WORKFLOWS: DAGWorkflow[] = [
     name: 'MCP Tool Chain',
     description: 'MCP 智能工具链：触发 -> MCP 调用 -> 脚本处理 -> 通知',
     nodes: [
-      { id: 'n1', type: 'trigger',  label: 'Schedule',       x: 60,  y: 140, config: { cron: '0 */6 * * *' } },
-      { id: 'n2', type: 'mcp-tool', label: 'Cluster Check',  x: 280, y: 140, config: { tool: 'cluster_status' } },
-      { id: 'n3', type: 'script',   label: 'Analyze Data',   x: 500, y: 80,  config: { script: 'analyze_metrics.py' } },
-      { id: 'n4', type: 'mcp-tool', label: 'DB Query',       x: 500, y: 220, config: { tool: 'postgres_query' } },
-      { id: 'n5', type: 'script',   label: 'Generate Report', x: 720, y: 140, config: { script: 'gen_report.ts' } },
-      { id: 'n6', type: 'notify',   label: 'Email Report',   x: 940, y: 140, config: { to: 'ops@yyc3.local' } },
+      { id: 'n1', type: 'trigger', label: 'Schedule', x: 60, y: 140, config: { cron: '0 */6 * * *' } },
+      { id: 'n2', type: 'mcp-tool', label: 'Cluster Check', x: 280, y: 140, config: { tool: 'cluster_status' } },
+      { id: 'n3', type: 'script', label: 'Analyze Data', x: 500, y: 80, config: { script: 'analyze_metrics.py' } },
+      { id: 'n4', type: 'mcp-tool', label: 'DB Query', x: 500, y: 220, config: { tool: 'postgres_query' } },
+      { id: 'n5', type: 'script', label: 'Generate Report', x: 720, y: 140, config: { script: 'gen_report.ts' } },
+      { id: 'n6', type: 'notify', label: 'Email Report', x: 940, y: 140, config: { to: 'ops@yyc3.local' } },
     ],
     edges: [
       { id: 'e1', source: 'n1', target: 'n2' },
@@ -99,12 +100,12 @@ const PRESET_WORKFLOWS: DAGWorkflow[] = [
     name: 'Backup & Recovery',
     description: '自动备份流程：触发 -> 数据库备份 -> 文件备份 -> NAS同步 -> 验证',
     nodes: [
-      { id: 'n1', type: 'trigger',  label: 'Daily 02:00',    x: 60,  y: 140, config: { cron: '0 2 * * *' } },
-      { id: 'n2', type: 'script',   label: 'PG Dump',        x: 280, y: 80,  config: { cmd: 'pg_dump' } },
-      { id: 'n3', type: 'script',   label: 'File Archive',   x: 280, y: 220, config: { cmd: 'tar -czf' } },
-      { id: 'n4', type: 'deploy',   label: 'NAS Sync',       x: 500, y: 140, config: { target: 'YanYuCloud' } },
-      { id: 'n5', type: 'test',     label: 'Verify Backup',  x: 720, y: 140, config: { check: 'integrity' } },
-      { id: 'n6', type: 'notify',   label: 'Report Status',  x: 940, y: 140, config: { channel: '#backup-log' } },
+      { id: 'n1', type: 'trigger', label: 'Daily 02:00', x: 60, y: 140, config: { cron: '0 2 * * *' } },
+      { id: 'n2', type: 'script', label: 'PG Dump', x: 280, y: 80, config: { cmd: 'pg_dump' } },
+      { id: 'n3', type: 'script', label: 'File Archive', x: 280, y: 220, config: { cmd: 'tar -czf' } },
+      { id: 'n4', type: 'deploy', label: 'NAS Sync', x: 500, y: 140, config: { target: 'YanYuCloud' } },
+      { id: 'n5', type: 'test', label: 'Verify Backup', x: 720, y: 140, config: { check: 'integrity' } },
+      { id: 'n6', type: 'notify', label: 'Report Status', x: 940, y: 140, config: { channel: '#backup-log' } },
     ],
     edges: [
       { id: 'e1', source: 'n1', target: 'n2' },
@@ -125,6 +126,7 @@ const STORAGE_KEY = 'yyc3_dag_workflows';
 function loadWorkflows(): DAGWorkflow[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
+
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 }
@@ -139,8 +141,8 @@ function uid() { return Math.random().toString(36).substring(2, 10); }
 // --- Main Component ---
 
 export function WorkflowOrchestrator() {
-  const addLog = useSystemStore((s) => s.addLog);
-  const isMobile = useSystemStore((s) => s.isMobile);
+  const addLog = useSystemStore(s => s.addLog);
+  const isMobile = useSystemStore(s => s.isMobile);
 
   // Workflow list
   const [customWorkflows, setCustomWorkflows] = React.useState<DAGWorkflow[]>(loadWorkflows);
@@ -186,9 +188,11 @@ export function WorkflowOrchestrator() {
     e.stopPropagation();
     if (connectingFrom) return;
     const node = nodes.find(n => n.id === nodeId);
+
     if (!node) return;
 
     const svgRect = svgRef.current?.getBoundingClientRect();
+
     if (!svgRect) return;
 
     setDraggingNode(nodeId);
@@ -202,13 +206,16 @@ export function WorkflowOrchestrator() {
   const handleMouseMove = React.useCallback((e: React.MouseEvent) => {
     if (draggingNode) {
       const svgRect = svgRef.current?.getBoundingClientRect();
+
       if (!svgRect) return;
       const newX = Math.max(0, e.clientX - svgRect.left - dragOffset.x - panOffset.x);
       const newY = Math.max(0, e.clientY - svgRect.top - dragOffset.y - panOffset.y);
+
       setNodes(prev => prev.map(n => n.id === draggingNode ? { ...n, x: newX, y: newY } : n));
     } else if (isPanning) {
       const dx = e.clientX - panStart.x;
       const dy = e.clientY - panStart.y;
+
       setPanOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
       setPanStart({ x: e.clientX, y: e.clientY });
     }
@@ -244,6 +251,7 @@ export function WorkflowOrchestrator() {
     if (connectingFrom && connectingFrom !== nodeId) {
       // Check no duplicate
       const exists = edges.some(ed => ed.source === connectingFrom && ed.target === nodeId);
+
       if (!exists) {
         setEdges(prev => [...prev, { id: `e-${uid()}`, source: connectingFrom, target: nodeId }]);
       }
@@ -262,6 +270,7 @@ export function WorkflowOrchestrator() {
       config: {},
       status: 'idle',
     };
+
     setNodes(prev => [...prev, newNode]);
     setSelectedNode(newNode.id);
     setShowNodePalette(false);
@@ -282,7 +291,7 @@ export function WorkflowOrchestrator() {
   const handleSave = () => {
     const now = new Date().toISOString();
     const isPreset = PRESET_WORKFLOWS.some(p => p.id === activeWorkflowId);
-    
+
     if (isPreset) {
       // Fork as custom
       const newWf: DAGWorkflow = {
@@ -295,6 +304,7 @@ export function WorkflowOrchestrator() {
         updatedAt: now,
       };
       const updated = [...customWorkflows, newWf];
+
       setCustomWorkflows(updated);
       saveWorkflows(updated);
       setActiveWorkflowId(newWf.id);
@@ -304,8 +314,9 @@ export function WorkflowOrchestrator() {
       const updated = customWorkflows.map(wf =>
         wf.id === activeWorkflowId
           ? { ...wf, name: workflowName, nodes: [...nodes], edges: [...edges], updatedAt: now }
-          : wf
+          : wf,
       );
+
       setCustomWorkflows(updated);
       saveWorkflows(updated);
       addLog('success', 'WORKFLOW', `Updated workflow: ${workflowName}`);
@@ -327,6 +338,7 @@ export function WorkflowOrchestrator() {
       updatedAt: now,
     };
     const updated = [...customWorkflows, wf];
+
     setCustomWorkflows(updated);
     saveWorkflows(updated);
     loadWorkflow(wf);
@@ -336,6 +348,7 @@ export function WorkflowOrchestrator() {
   // --- Delete Workflow ---
   const handleDeleteWorkflow = (wfId: string) => {
     const updated = customWorkflows.filter(w => w.id !== wfId);
+
     setCustomWorkflows(updated);
     saveWorkflows(updated);
     if (activeWorkflowId === wfId) {
@@ -352,8 +365,10 @@ export function WorkflowOrchestrator() {
 
     // BFS-like execution simulation
     const triggerNodes = nodes.filter(n => n.type === 'trigger');
+
     if (triggerNodes.length === 0) {
       setIsExecuting(false);
+
       return;
     }
 
@@ -363,6 +378,7 @@ export function WorkflowOrchestrator() {
     // Build adjacency
     const adj: Record<string, string[]> = {};
     const inDegree: Record<string, number> = {};
+
     nodes.forEach(n => { adj[n.id] = []; inDegree[n.id] = 0; });
     edges.forEach(e => {
       adj[e.source]?.push(e.target);
@@ -378,6 +394,7 @@ export function WorkflowOrchestrator() {
       layers.push([...queue]);
       queue.forEach(id => visited.add(id));
       const next: string[] = [];
+
       queue.forEach(id => {
         adj[id]?.forEach(target => {
           if (!visited.has(target) && !next.includes(target)) {
@@ -392,7 +409,7 @@ export function WorkflowOrchestrator() {
     layers.forEach((layer, i) => {
       setTimeout(() => {
         setNodes(prev => prev.map(n =>
-          layer.includes(n.id) ? { ...n, status: 'running' } : n
+          layer.includes(n.id) ? { ...n, status: 'running' } : n,
         ));
       }, i * 1200);
 
@@ -400,7 +417,7 @@ export function WorkflowOrchestrator() {
         setNodes(prev => prev.map(n =>
           layer.includes(n.id)
             ? { ...n, status: Math.random() > 0.1 ? 'success' : 'failed' }
-            : n
+            : n,
         ));
       }, i * 1200 + 900);
     });
@@ -415,6 +432,7 @@ export function WorkflowOrchestrator() {
   const renderEdge = (edge: DAGEdge) => {
     const src = nodes.find(n => n.id === edge.source);
     const tgt = nodes.find(n => n.id === edge.target);
+
     if (!src || !tgt) return null;
 
     const x1 = src.x + NODE_WIDTH;
@@ -470,7 +488,7 @@ export function WorkflowOrchestrator() {
     const statusBorder =
       node.status === 'running' ? 'rgba(56,189,248,0.6)' :
       node.status === 'success' ? 'rgba(74,222,128,0.6)' :
-      node.status === 'failed'  ? 'rgba(248,113,113,0.6)' :
+      node.status === 'failed' ? 'rgba(248,113,113,0.6)' :
       isSelected ? 'rgba(14,165,233,0.5)' :
       info.borderColor;
 
@@ -478,7 +496,7 @@ export function WorkflowOrchestrator() {
       <g
         key={node.id}
         transform={`translate(${node.x}, ${node.y})`}
-        onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
+        onMouseDown={e => handleNodeMouseDown(e, node.id)}
         className="cursor-grab active:cursor-grabbing"
       >
         {/* Glow effect */}
@@ -505,7 +523,7 @@ export function WorkflowOrchestrator() {
 
         {/* Icon */}
         <foreignObject x={10} y={12} width={24} height={24}>
-          <NodeIcon className={cn("w-5 h-5", info.color)} />
+          <NodeIcon className={cn('w-5 h-5', info.color)} />
         </foreignObject>
 
         {/* Label */}
@@ -541,7 +559,7 @@ export function WorkflowOrchestrator() {
           stroke="rgba(255,255,255,0.2)"
           strokeWidth={1}
           className="cursor-crosshair hover:fill-primary/30 hover:stroke-primary/60 transition-colors"
-          onClick={(e) => handleInputPortClick(e, node.id)}
+          onClick={e => handleInputPortClick(e, node.id)}
         />
 
         {/* Output port (right) */}
@@ -551,7 +569,7 @@ export function WorkflowOrchestrator() {
           stroke={isConnecting ? 'rgba(14,165,233,0.6)' : 'rgba(255,255,255,0.2)'}
           strokeWidth={isConnecting ? 2 : 1}
           className="cursor-crosshair hover:fill-primary/30 hover:stroke-primary/60 transition-colors"
-          onClick={(e) => handleOutputPortClick(e, node.id)}
+          onClick={e => handleOutputPortClick(e, node.id)}
         />
       </g>
     );
@@ -582,8 +600,8 @@ export function WorkflowOrchestrator() {
                   {allWorkflows.map(wf => (
                     <div key={wf.id}
                       className={cn(
-                        "flex items-center justify-between px-3 py-2 rounded-md cursor-pointer transition-colors group/item",
-                        activeWorkflowId === wf.id ? "bg-primary/10 text-primary" : "hover:bg-white/5 text-zinc-300"
+                        'flex items-center justify-between px-3 py-2 rounded-md cursor-pointer transition-colors group/item',
+                        activeWorkflowId === wf.id ? 'bg-primary/10 text-primary' : 'hover:bg-white/5 text-zinc-300',
                       )}
                     >
                       <button
@@ -595,7 +613,7 @@ export function WorkflowOrchestrator() {
                       </button>
                       {!PRESET_WORKFLOWS.some(p => p.id === wf.id) && (
                         <Button size="sm" variant="ghost" className="h-6 w-6 p-0 opacity-0 group-hover/item:opacity-100"
-                          onClick={(e) => { e.stopPropagation(); handleDeleteWorkflow(wf.id); }}>
+                          onClick={e => { e.stopPropagation(); handleDeleteWorkflow(wf.id); }}>
                           <Trash2 className="w-3 h-3 text-red-400" />
                         </Button>
                       )}
@@ -624,7 +642,7 @@ export function WorkflowOrchestrator() {
           </Button>
           <Button
             size="sm"
-            className={cn("h-8 text-xs font-mono gap-1", isExecuting && "animate-pulse")}
+            className={cn('h-8 text-xs font-mono gap-1', isExecuting && 'animate-pulse')}
             onClick={handleExecute}
             disabled={isExecuting}
           >
@@ -656,13 +674,14 @@ export function WorkflowOrchestrator() {
             <div className="flex gap-2 flex-wrap">
               {(Object.entries(NODE_TYPES) as [NodeType, NodeTypeInfo][]).map(([type, info]) => {
                 const Icon = info.icon;
+
                 return (
                   <button
                     key={type}
                     onClick={() => handleAddNode(type)}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all text-xs font-mono"
                   >
-                    <Icon className={cn("w-3.5 h-3.5", info.color)} />
+                    <Icon className={cn('w-3.5 h-3.5', info.color)} />
                     <span className="text-zinc-300">{info.label}</span>
                   </button>
                 );
@@ -673,13 +692,13 @@ export function WorkflowOrchestrator() {
       )}
 
       {/* Canvas + Detail Panel */}
-      <div className={cn("flex gap-4", isMobile && "flex-col")}>
+      <div className={cn('flex gap-4', isMobile && 'flex-col')}>
         {/* SVG Canvas */}
         <div
           ref={containerRef}
           className={cn(
-            "relative bg-black/40 border border-white/10 rounded-xl overflow-hidden",
-            isMobile ? "h-[50vh]" : "flex-1 h-[520px]"
+            'relative bg-black/40 border border-white/10 rounded-xl overflow-hidden',
+            isMobile ? 'h-[50vh]' : 'flex-1 h-[520px]',
           )}
         >
           {/* Grid pattern */}
@@ -726,14 +745,14 @@ export function WorkflowOrchestrator() {
         {/* Node Inspector Panel */}
         {selectedNodeData && (
           <Card className={cn(
-            "bg-zinc-900/60 border-white/10 animate-in slide-in-from-right-4 duration-200",
-            isMobile ? "w-full" : "w-72 shrink-0"
+            'bg-zinc-900/60 border-white/10 animate-in slide-in-from-right-4 duration-200',
+            isMobile ? 'w-full' : 'w-72 shrink-0',
           )}>
             <CardHeader className="py-3 border-b border-white/5">
               <CardTitle className="text-xs font-mono flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {React.createElement(NODE_TYPES[selectedNodeData.type].icon, {
-                    className: cn("w-4 h-4", NODE_TYPES[selectedNodeData.type].color)
+                    className: cn('w-4 h-4', NODE_TYPES[selectedNodeData.type].color),
                   })}
                   <span className="text-zinc-300">Node Inspector</span>
                 </div>
@@ -749,8 +768,8 @@ export function WorkflowOrchestrator() {
                 <label className="text-[10px] text-zinc-500 font-mono uppercase mb-1 block">Label</label>
                 <Input
                   value={selectedNodeData.label}
-                  onChange={(e) => setNodes(prev => prev.map(n =>
-                    n.id === selectedNode ? { ...n, label: e.target.value } : n
+                  onChange={e => setNodes(prev => prev.map(n =>
+                    n.id === selectedNode ? { ...n, label: e.target.value } : n,
                   ))}
                   className="h-7 text-xs font-mono bg-zinc-800 border-white/10"
                 />
@@ -759,7 +778,7 @@ export function WorkflowOrchestrator() {
               {/* Type */}
               <div>
                 <label className="text-[10px] text-zinc-500 font-mono uppercase mb-1 block">Type</label>
-                <Badge variant="outline" className={cn("text-[10px] font-mono", NODE_TYPES[selectedNodeData.type].color)}>
+                <Badge variant="outline" className={cn('text-[10px] font-mono', NODE_TYPES[selectedNodeData.type].color)}>
                   {NODE_TYPES[selectedNodeData.type].label}
                 </Badge>
               </div>
@@ -776,11 +795,12 @@ export function WorkflowOrchestrator() {
                 {editNodeConfig ? (
                   <textarea
                     value={JSON.stringify(selectedNodeData.config, null, 2)}
-                    onChange={(e) => {
+                    onChange={e => {
                       try {
                         const config = JSON.parse(e.target.value);
+
                         setNodes(prev => prev.map(n =>
-                          n.id === selectedNode ? { ...n, config } : n
+                          n.id === selectedNode ? { ...n, config } : n,
                         ));
                       } catch {/* ignore invalid JSON */}
                     }}
@@ -808,6 +828,7 @@ export function WorkflowOrchestrator() {
                 <div className="space-y-1">
                   {edges.filter(e => e.source === selectedNode || e.target === selectedNode).map(e => {
                     const otherNode = nodes.find(n => n.id === (e.source === selectedNode ? e.target : e.source));
+
                     return (
                       <div key={e.id} className="flex items-center justify-between text-[10px] font-mono px-2 py-1 bg-zinc-800/50 rounded">
                         <span className="text-zinc-400">

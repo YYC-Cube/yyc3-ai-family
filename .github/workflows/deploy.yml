@@ -73,27 +73,56 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run lint
-        run: pnpm run lint || true
-
-      - name: Run type-check
-        run: pnpm run type-check || true
-
-      - name: Run tests
-        run: pnpm test -- --ci --reporters=jest-junit || true
-
-      - name: Collect Top-N errors
+        id: lint
         run: |
           mkdir -p reports
-          echo "## Top Errors Summary" > reports/errors.md
-          echo "### Build Summary" >> reports/errors.md
-          echo "- Lint Status: $(pnpm run lint 2>&1 | head -n 5 || echo 'Completed')" >> reports/errors.md
-          echo "- Type Check Status: $(pnpm run type-check 2>&1 | head -n 5 || echo 'Completed')" >> reports/errors.md
-          echo "- Test Status: $(pnpm test 2>&1 | head -n 10 || echo 'Completed')" >> reports/errors.md
+          if pnpm run lint 2>&1 | tee reports/lint-output.txt; then
+            echo "lint_status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "lint_status=failed" >> $GITHUB_OUTPUT
+            echo "::error::Lint check failed. See reports/lint-output.txt for details."
+            exit 1
+          fi
+
+      - name: Run type-check
+        id: typecheck
+        run: |
+          if pnpm run type-check 2>&1 | tee reports/typecheck-output.txt; then
+            echo "typecheck_status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "typecheck_status=failed" >> $GITHUB_OUTPUT
+            echo "::error::Type check failed. See reports/typecheck-output.txt for details."
+            exit 1
+          fi
+
+      - name: Run tests
+        id: test
+        run: |
+          if pnpm test -- --ci 2>&1 | tee reports/test-output.txt; then
+            echo "test_status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "test_status=failed" >> $GITHUB_OUTPUT
+            echo "::error::Tests failed. See reports/test-output.txt for details."
+            exit 1
+          fi
+
+      - name: Generate Build Report
+        run: |
+          echo "# YYC³ Build Report" > reports/errors.md
+          echo "" >> reports/errors.md
+          echo "## Build Summary" >> reports/errors.md
+          echo "" >> reports/errors.md
+          echo "| Step | Status |" >> reports/errors.md
+          echo "|------|--------|" >> reports/errors.md
+          echo "| Lint | ✅ Passed |" >> reports/errors.md
+          echo "| Type Check | ✅ Passed |" >> reports/errors.md
+          echo "| Tests | ✅ Passed |" >> reports/errors.md
           echo "" >> reports/errors.md
           echo "### Build Details" >> reports/errors.md
-          echo "- Build Time: $(date)" >> reports/errors.md
-          echo "- Node Version: $(node --version)" >> reports/errors.md
-          echo "- pnpm Version: $(pnpm --version)" >> reports/errors.md
+          echo "- **Build Time**: $(date)" >> reports/errors.md
+          echo "- **Node Version**: $(node --version)" >> reports/errors.md
+          echo "- **pnpm Version**: $(pnpm --version)" >> reports/errors.md
+          echo "- **Runner**: ${{ runner.os }}" >> reports/errors.md
 
       - name: Generate CSV error stats
         run: |

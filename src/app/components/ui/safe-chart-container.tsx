@@ -1,5 +1,5 @@
-import * as React from "react";
-import { ResponsiveContainer } from "recharts";
+import * as React from 'react';
+import { ResponsiveContainer } from 'recharts';
 
 /**
  * SafeChartContainer — wraps Recharts ResponsiveContainer with dimension safety.
@@ -8,8 +8,8 @@ import { ResponsiveContainer } from "recharts";
  */
 export function SafeChartContainer({
   children,
-  width = "100%",
-  height = "100%",
+  width = '100%',
+  height = '100%',
   minWidth = 0,
   minHeight = 0,
   className,
@@ -28,10 +28,12 @@ export function SafeChartContainer({
 
   React.useEffect(() => {
     const el = containerRef.current;
+
     if (!el) return;
 
     const check = () => {
       const rect = el.getBoundingClientRect();
+
       if (rect.width > 0 && rect.height > 0) {
         setIsReady(true);
       } else {
@@ -45,6 +47,7 @@ export function SafeChartContainer({
 
     // Use ResizeObserver for layout changes
     let observer: ResizeObserver | undefined;
+
     try {
       observer = new ResizeObserver(() => {
         check();
@@ -53,6 +56,7 @@ export function SafeChartContainer({
     } catch {
       // Fallback: retry with requestAnimationFrame
       const raf = requestAnimationFrame(check);
+
       return () => cancelAnimationFrame(raf);
     }
 
@@ -65,7 +69,7 @@ export function SafeChartContainer({
     <div
       ref={containerRef}
       className={className}
-      style={{ width: "100%", height: "100%", minHeight: 1, ...style }}
+      style={{ width: '100%', height: '100%', minHeight: 1, ...style }}
     >
       {isReady ? (
         <ResponsiveContainer

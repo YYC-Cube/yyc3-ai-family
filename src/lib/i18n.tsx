@@ -364,7 +364,7 @@ const translations: Record<Language, Record<string, string>> = {
     'devops.all_nominal': 'ALL SYSTEMS NOMINAL',
     'devops.run_pipeline': 'Run Pipeline',
     'devops.retry': 'Retry',
-  }
+  },
 };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
@@ -383,8 +383,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
 export function useTranslation() {
   const context = useContext(LanguageContext);
+
   if (context === undefined) {
     throw new Error('useTranslation must be used within a LanguageProvider');
   }
+
   return context;
 }

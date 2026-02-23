@@ -10,6 +10,7 @@
 // ============================================================
 
 import { describe, it, expect, beforeEach } from 'vitest';
+
 import {
   DEFAULT_DEVICES,
   loadDeviceConfigs,
@@ -20,7 +21,6 @@ import {
   saveDockerConfig,
   MOCK_DOCKER_CONTAINERS,
   MOCK_DOCKER_INFO,
-  type DeviceConfig,
   type NasSQLiteConfig,
   type DockerConfig,
 } from '../nas-client';
@@ -69,11 +69,13 @@ describe('NAS Client — DEFAULT_DEVICES', () => {
 
   it('NAS-03: device IDs are unique', () => {
     const ids = DEFAULT_DEVICES.map(d => d.id);
+
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   it('NAS-04: expected device IDs present', () => {
     const ids = DEFAULT_DEVICES.map(d => d.id);
+
     expect(ids).toContain('m4-max');
     expect(ids).toContain('imac-m4');
     expect(ids).toContain('matebook');
@@ -82,6 +84,7 @@ describe('NAS Client — DEFAULT_DEVICES', () => {
 
   it('NAS-05: M4 Max has correct IP', () => {
     const m4 = DEFAULT_DEVICES.find(d => d.id === 'm4-max');
+
     expect(m4).toBeDefined();
     expect(m4!.ip).toBe('192.168.3.22');
     expect(m4!.chip).toBe('Apple M4 Max');
@@ -90,9 +93,11 @@ describe('NAS Client — DEFAULT_DEVICES', () => {
 
   it('NAS-06: NAS (yanyucloud) has correct services', () => {
     const nas = DEFAULT_DEVICES.find(d => d.id === 'yanyucloud');
+
     expect(nas).toBeDefined();
     expect(nas!.ip).toBe('192.168.3.45');
     const serviceNames = nas!.services.map(s => s.name);
+
     expect(serviceNames).toContain('Docker API');
     expect(serviceNames).toContain('SQLite HTTP');
     expect(serviceNames).toContain('Heartbeat WS');
@@ -120,16 +125,19 @@ describe('NAS Client — DEFAULT_DEVICES', () => {
 describe('NAS Client — Device Config Persistence', () => {
   it('NAS-08: loadDeviceConfigs returns defaults when no saved config', () => {
     const configs = loadDeviceConfigs();
+
     expect(configs).toHaveLength(4);
     expect(configs[0].id).toBe('m4-max');
   });
 
   it('NAS-09: saveDeviceConfigs + loadDeviceConfigs round-trip', () => {
     const configs = loadDeviceConfigs();
+
     configs[0].displayName = 'My MacBook Pro';
     configs[0].ip = '10.0.0.100';
     saveDeviceConfigs(configs);
     const loaded = loadDeviceConfigs();
+
     expect(loaded[0].displayName).toBe('My MacBook Pro');
     expect(loaded[0].ip).toBe('10.0.0.100');
   });
@@ -139,9 +147,11 @@ describe('NAS Client — Device Config Persistence', () => {
     const partial = [
       { id: 'm4-max', hostName: 'Custom-Max', displayName: 'Custom Display', ip: '10.0.0.1', services: DEFAULT_DEVICES[0].services },
     ];
+
     localStorage.setItem(DEVICE_STORAGE_KEY, JSON.stringify(partial));
     const loaded = loadDeviceConfigs();
     const m4 = loaded.find(d => d.id === 'm4-max');
+
     expect(m4).toBeDefined();
     expect(m4!.hostName).toBe('Custom-Max');
     expect(m4!.displayName).toBe('Custom Display');
@@ -155,6 +165,7 @@ describe('NAS Client — Device Config Persistence', () => {
   it('NAS-11: handles corrupt localStorage gracefully', () => {
     localStorage.setItem(DEVICE_STORAGE_KEY, 'invalid json');
     const configs = loadDeviceConfigs();
+
     expect(configs).toHaveLength(4); // falls back to defaults
   });
 });
@@ -166,6 +177,7 @@ describe('NAS Client — Device Config Persistence', () => {
 describe('NAS Client — SQLite Config', () => {
   it('NAS-12: loadSQLiteConfig returns defaults', () => {
     const config = loadSQLiteConfig();
+
     expect(config.host).toBe('192.168.3.45');
     expect(config.port).toBe(8484);
     expect(config.dbPath).toBe('/Volume2/yyc3/yyc3.db');
@@ -177,8 +189,10 @@ describe('NAS Client — SQLite Config', () => {
       port: 9090,
       dbPath: '/data/custom.db',
     };
+
     saveSQLiteConfig(custom);
     const loaded = loadSQLiteConfig();
+
     expect(loaded.host).toBe('10.0.0.45');
     expect(loaded.port).toBe(9090);
     expect(loaded.dbPath).toBe('/data/custom.db');
@@ -187,6 +201,7 @@ describe('NAS Client — SQLite Config', () => {
   it('NAS-14: partial config merge with defaults', () => {
     localStorage.setItem(SQLITE_CONFIG_KEY, JSON.stringify({ port: 7777 }));
     const config = loadSQLiteConfig();
+
     expect(config.host).toBe('192.168.3.45'); // default
     expect(config.port).toBe(7777); // overridden
     expect(config.dbPath).toBe('/Volume2/yyc3/yyc3.db'); // default
@@ -200,6 +215,7 @@ describe('NAS Client — SQLite Config', () => {
 describe('NAS Client — Docker Config', () => {
   it('NAS-15: loadDockerConfig returns defaults', () => {
     const config = loadDockerConfig();
+
     expect(config.host).toBe('192.168.3.45');
     expect(config.port).toBe(2375);
     expect(config.apiVersion).toBe('v1.41');
@@ -211,8 +227,10 @@ describe('NAS Client — Docker Config', () => {
       port: 2376,
       apiVersion: 'v1.43',
     };
+
     saveDockerConfig(custom);
     const loaded = loadDockerConfig();
+
     expect(loaded.host).toBe('10.0.0.45');
     expect(loaded.port).toBe(2376);
     expect(loaded.apiVersion).toBe('v1.43');
@@ -221,6 +239,7 @@ describe('NAS Client — Docker Config', () => {
   it('NAS-17: handles corrupt config gracefully', () => {
     localStorage.setItem(DOCKER_CONFIG_KEY, '{bad}');
     const config = loadDockerConfig();
+
     // Falls back to defaults
     expect(config.host).toBe('192.168.3.45');
     expect(config.port).toBe(2375);
@@ -233,11 +252,13 @@ describe('NAS Client — Docker Config', () => {
 
 describe('NAS Client — Mock Data', () => {
   it('NAS-18: MOCK_DOCKER_CONTAINERS has expected containers', () => {
-    expect(MOCK_DOCKER_CONTAINERS.length).toBeGreaterThanOrEqual(6);
+    expect(MOCK_DOCKER_CONTAINERS.length).toBeGreaterThanOrEqual(7);
     const names = MOCK_DOCKER_CONTAINERS.map(c => c.Names[0]);
-    expect(names).toContain('/yyc3-postgres');
-    expect(names).toContain('/yyc3-redis');
-    expect(names).toContain('/yyc3-sqlite-proxy');
+
+    expect(names).toContain('/ollama');
+    expect(names).toContain('/postgres14');
+    expect(names).toContain('/redis');
+    expect(names).toContain('/pgvector');
   });
 
   it('NAS-19: mock containers have correct structure', () => {
@@ -257,18 +278,20 @@ describe('NAS Client — Mock Data', () => {
     expect(MOCK_DOCKER_INFO.Images).toBeGreaterThan(0);
     expect(MOCK_DOCKER_INFO.NCPU).toBe(4);
     expect(MOCK_DOCKER_INFO.MemTotal).toBeGreaterThan(0);
-    expect(MOCK_DOCKER_INFO.OperatingSystem).toBe('TOS (Linux)');
+    expect(MOCK_DOCKER_INFO.OperatingSystem).toBe('TOS 7.0 (Beta)');
     expect(MOCK_DOCKER_INFO.Name).toBe('YanYuCloud');
     expect(MOCK_DOCKER_INFO.ServerVersion).toBeTruthy();
   });
 
   it('NAS-21: mock running count matches', () => {
     const running = MOCK_DOCKER_CONTAINERS.filter(c => c.State === 'running').length;
+
     expect(running).toBe(MOCK_DOCKER_INFO.ContainersRunning);
   });
 
   it('NAS-22: mock stopped count matches', () => {
     const stopped = MOCK_DOCKER_CONTAINERS.filter(c => c.State === 'exited').length;
+
     expect(stopped).toBe(MOCK_DOCKER_INFO.ContainersStopped);
   });
 });
@@ -280,9 +303,11 @@ describe('NAS Client — Mock Data', () => {
 describe('NAS Client — Edge Cases', () => {
   it('NAS-23: save/load cycle preserves all 4 device IDs', () => {
     const configs = loadDeviceConfigs();
+
     saveDeviceConfigs(configs);
     const reloaded = loadDeviceConfigs();
     const ids = reloaded.map(d => d.id);
+
     expect(ids).toContain('m4-max');
     expect(ids).toContain('imac-m4');
     expect(ids).toContain('matebook');
@@ -292,10 +317,13 @@ describe('NAS Client — Edge Cases', () => {
   it('NAS-24: empty localStorage returns fresh defaults', () => {
     localStorage.clear();
     const devices = loadDeviceConfigs();
+
     expect(devices).toHaveLength(4);
     const sqliteConfig = loadSQLiteConfig();
+
     expect(sqliteConfig.host).toBe('192.168.3.45');
     const dockerConfig = loadDockerConfig();
+
     expect(dockerConfig.host).toBe('192.168.3.45');
   });
 });

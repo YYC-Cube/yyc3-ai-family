@@ -12,26 +12,26 @@
 // Architecture: Frontend → yyc3-pg-proxy (:3003) → PostgreSQL 15 (:5433)
 // ============================================================
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   Server, Database, CheckCircle2, XCircle, Loader2,
   Copy, Check, Terminal, Rocket, Shield, RefreshCw,
-  FileText, Play, AlertTriangle, ChevronRight,
-  Cpu, BarChart3, Layers, ArrowRight, ExternalLink,
-  Download, Package, Wrench, Clock, Wifi
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
+  FileText, Play, AlertTriangle,
+  Cpu, BarChart3, Layers, ArrowRight, Package, Wrench, Clock, Wifi,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
+import { eventBus } from '@/lib/event-bus';
+import type { SchemaValidationResult } from '@/lib/pg-telemetry-client';
 import {
   getPgTelemetryConfig, setPgTelemetryConfig, getPgTelemetryState,
   checkPgTelemetryHealth, validateTelemetrySchema,
   getMigrationSQL, getPgProxyScriptV2, getPgProxyPackageJson,
   getPgProxyServiceTemplate, getPgProxyLaunchdTemplate, getDeployScript,
-} from "@/lib/pg-telemetry-client";
-import type { PgTelemetryStatus, SchemaValidationResult } from "@/lib/pg-telemetry-client";
-import { eventBus } from "@/lib/event-bus";
+} from '@/lib/pg-telemetry-client';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // Deploy Step Definition
@@ -77,8 +77,8 @@ function CopyButton({ text, label, size = 'sm' }: { text: string; label: string;
       size="sm"
       variant="ghost"
       className={cn(
-        "text-zinc-400 hover:text-white transition-all",
-        size === 'xs' ? "h-6 px-2 text-[9px]" : "h-7 px-3 text-[10px]"
+        'text-zinc-400 hover:text-white transition-all',
+        size === 'xs' ? 'h-6 px-2 text-[9px]' : 'h-7 px-3 text-[10px]',
       )}
       onClick={handleCopy}
     >
@@ -113,8 +113,8 @@ function StepIndicator({ step, index, isLast }: { step: DeployStep; index: numbe
     <div className="flex items-start gap-3">
       <div className="flex flex-col items-center">
         <div className={cn(
-          "w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all",
-          statusColors[step.status]
+          'w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all',
+          statusColors[step.status],
         )}>
           {step.status === 'running' ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -127,20 +127,20 @@ function StepIndicator({ step, index, isLast }: { step: DeployStep; index: numbe
           )}
         </div>
         {!isLast && (
-          <div className={cn("w-0.5 h-8 transition-all", lineColors[step.status])} />
+          <div className={cn('w-0.5 h-8 transition-all', lineColors[step.status])} />
         )}
       </div>
       <div className="flex-1 pt-1">
         <div className="flex items-center gap-2">
-          <step.icon className={cn("w-3.5 h-3.5", step.status === 'done' ? 'text-emerald-400' : step.status === 'error' ? 'text-red-400' : 'text-zinc-500')} />
-          <span className={cn("text-xs font-mono", step.status === 'done' ? 'text-emerald-400' : step.status === 'error' ? 'text-red-400' : 'text-zinc-300')}>
+          <step.icon className={cn('w-3.5 h-3.5', step.status === 'done' ? 'text-emerald-400' : step.status === 'error' ? 'text-red-400' : 'text-zinc-500')} />
+          <span className={cn('text-xs font-mono', step.status === 'done' ? 'text-emerald-400' : step.status === 'error' ? 'text-red-400' : 'text-zinc-300')}>
             {step.title}
           </span>
           <span className="text-[9px] text-zinc-600">{step.titleEn}</span>
         </div>
         <p className="text-[9px] text-zinc-600 mt-0.5 ml-5">{step.description}</p>
         {step.detail && (
-          <p className={cn("text-[9px] mt-0.5 ml-5 font-mono", step.status === 'error' ? 'text-red-400/80' : 'text-zinc-500')}>
+          <p className={cn('text-[9px] mt-0.5 ml-5 font-mono', step.status === 'error' ? 'text-red-400/80' : 'text-zinc-500')}>
             {step.detail}
           </p>
         )}
@@ -160,10 +160,10 @@ function SchemaValidationPanel({ result }: { result: SchemaValidationResult | nu
     <div className="space-y-3">
       {/* Overall Status */}
       <div className={cn(
-        "flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-mono",
+        'flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-mono',
         result.valid
-          ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400"
-          : "border-red-500/20 bg-red-500/5 text-red-400"
+          ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-400'
+          : 'border-red-500/20 bg-red-500/5 text-red-400',
       )}>
         {result.valid ? <CheckCircle2 className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
         {result.valid ? 'Schema Valid — All Objects Verified' : result.error || 'Schema Incomplete'}
@@ -177,10 +177,10 @@ function SchemaValidationPanel({ result }: { result: SchemaValidationResult | nu
             <div
               key={t.name}
               className={cn(
-                "flex items-center gap-2 px-2 py-1.5 rounded border text-[9px] font-mono",
+                'flex items-center gap-2 px-2 py-1.5 rounded border text-[9px] font-mono',
                 t.exists
-                  ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400"
-                  : "border-red-500/20 bg-red-500/5 text-red-400"
+                  ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-400'
+                  : 'border-red-500/20 bg-red-500/5 text-red-400',
               )}
             >
               {t.exists ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
@@ -228,12 +228,14 @@ export function PgProxyDeployKit() {
       setPgState(getPgTelemetryState());
       setPgConfigLocal(getPgTelemetryConfig());
     }, 5000);
+
     return () => clearInterval(interval);
   }, []);
 
   const handleTestConnection = async () => {
     setTesting(true);
     const result = await checkPgTelemetryHealth();
+
     setPgState(result);
     setTesting(false);
     eventBus.emit({
@@ -245,6 +247,7 @@ export function PgProxyDeployKit() {
   const handleValidateSchema = async () => {
     setValidating(true);
     const result = await validateTelemetrySchema();
+
     setValidationResult(result);
     setValidating(false);
     eventBus.emit({
@@ -267,6 +270,7 @@ export function PgProxyDeployKit() {
   const handleRunWizard = async () => {
     setActiveTab('wizard');
     const newSteps = [...INITIAL_STEPS];
+
     setSteps(newSteps);
 
     for (let i = 0; i < newSteps.length; i++) {
@@ -278,6 +282,7 @@ export function PgProxyDeployKit() {
         // Health check step — actually test the connection
         try {
           const result = await checkPgTelemetryHealth();
+
           setPgState(result);
           if (result.status === 'connected') {
             newSteps[i] = { ...newSteps[i], status: 'done', detail: `Connected (${result.latencyMs}ms)` };
@@ -291,6 +296,7 @@ export function PgProxyDeployKit() {
         // Validate step
         try {
           const result = await validateTelemetrySchema();
+
           setValidationResult(result);
           if (result.valid) {
             newSteps[i] = { ...newSteps[i], status: 'done', detail: `${result.tables.length} tables verified` };
@@ -338,7 +344,7 @@ export function PgProxyDeployKit() {
             Phase 46
           </Badge>
           <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/30 border border-white/5">
-            <div className={cn("w-2 h-2 rounded-full", statusDot)} />
+            <div className={cn('w-2 h-2 rounded-full', statusDot)} />
             <span className="text-[9px] font-mono text-zinc-400">
               {pgState.status === 'connected' ? `Online (${pgState.latencyMs}ms)` : pgState.status}
             </span>
@@ -353,8 +359,8 @@ export function PgProxyDeployKit() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-mono transition-all",
-              activeTab === tab.id ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300"
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-mono transition-all',
+              activeTab === tab.id ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300',
             )}
           >
             <tab.icon className="w-3 h-3" />
@@ -382,7 +388,7 @@ export function PgProxyDeployKit() {
                   <input
                     type="text"
                     value={proxyUrlInput}
-                    onChange={(e) => setProxyUrlInput(e.target.value)}
+                    onChange={e => setProxyUrlInput(e.target.value)}
                     className="flex-1 bg-transparent text-xs font-mono text-white outline-none"
                     placeholder="http://192.168.3.22:3003"
                   />
@@ -398,13 +404,13 @@ export function PgProxyDeployKit() {
                   <button
                     onClick={handleToggleEnabled}
                     className={cn(
-                      "relative w-11 h-6 rounded-full transition-all",
-                      pgConfig.enabled ? "bg-cyan-500/30 border border-cyan-500/50" : "bg-zinc-800 border border-white/10"
+                      'relative w-11 h-6 rounded-full transition-all',
+                      pgConfig.enabled ? 'bg-cyan-500/30 border border-cyan-500/50' : 'bg-zinc-800 border border-white/10',
                     )}
                   >
                     <div className={cn(
-                      "absolute w-4 h-4 rounded-full transition-all top-[3px]",
-                      pgConfig.enabled ? "left-[24px] bg-cyan-400" : "left-[3px] bg-zinc-500"
+                      'absolute w-4 h-4 rounded-full transition-all top-[3px]',
+                      pgConfig.enabled ? 'left-[24px] bg-cyan-400' : 'left-[3px] bg-zinc-500',
                     )} />
                   </button>
                   <span className="text-xs font-mono text-zinc-400">
@@ -421,9 +427,9 @@ export function PgProxyDeployKit() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="bg-black/30 rounded-lg border border-white/5 p-3 text-center">
                   <div className="text-[9px] font-mono text-zinc-500 mb-1">Status</div>
-                  <div className={cn("text-sm font-mono",
+                  <div className={cn('text-sm font-mono',
                     pgState.status === 'connected' ? 'text-emerald-400' :
-                    pgState.status === 'error' ? 'text-red-400' : 'text-zinc-400'
+                    pgState.status === 'error' ? 'text-red-400' : 'text-zinc-400',
                   )}>
                     {pgState.status.toUpperCase()}
                   </div>
@@ -479,8 +485,8 @@ export function PgProxyDeployKit() {
                   { label: 'telemetry.*', sub: '4 tables + 2 views', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
                 ].map((node, i) => (
                   node.bg ? (
-                    <div key={i} className={cn("px-3 py-2 rounded-lg border text-center", node.bg)}>
-                      <div className={cn("text-[10px] font-mono", node.color)}>{node.label}</div>
+                    <div key={i} className={cn('px-3 py-2 rounded-lg border text-center', node.bg)}>
+                      <div className={cn('text-[10px] font-mono', node.color)}>{node.label}</div>
                       <div className="text-[8px] text-zinc-500">{node.sub}</div>
                     </div>
                   ) : (

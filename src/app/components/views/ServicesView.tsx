@@ -1,14 +1,15 @@
-import * as React from "react";
 import {
   Globe, Plus, Trash2, ExternalLink, Search, Star, StarOff,
   Server, Database, Code2, Shield, Cloud, Wifi, Monitor,
-  GitBranch, Box, FileText, Edit3, Save, X, ChevronDown, ChevronRight
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n";
+  GitBranch, Box, FileText, Edit3, Save, X, ChevronDown, ChevronRight,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { useTranslation } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 
 // --- Service Data Types ---
 interface ServiceItem {
@@ -62,8 +63,10 @@ const DEFAULT_SERVICES: ServiceItem[] = [
 function loadServices(): ServiceItem[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
+
     if (raw) return JSON.parse(raw);
   } catch { /* ignore */ }
+
   return DEFAULT_SERVICES;
 }
 
@@ -74,7 +77,7 @@ function saveServices(services: ServiceItem[]) {
 }
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  Box, Server, Database, Code2, Shield, Cloud, Wifi, Monitor, GitBranch, FileText, Globe
+  Box, Server, Database, Code2, Shield, Cloud, Wifi, Monitor, GitBranch, FileText, Globe,
 };
 
 export function ServicesView() {
@@ -100,6 +103,7 @@ export function ServicesView() {
   const addService = () => {
     if (!form.name.trim() || !form.url.trim()) return;
     const cat = SERVICE_CATEGORIES.find(c => c.id === form.category);
+
     setServices(prev => [...prev, {
       id: `s-${Date.now()}`,
       name: form.name,
@@ -121,8 +125,9 @@ export function ServicesView() {
 
   const saveEdit = (id: string) => {
     const cat = SERVICE_CATEGORIES.find(c => c.id === form.category);
+
     setServices(prev => prev.map(s => s.id === id ? {
-      ...s, name: form.name, url: form.url, description: form.description, category: form.category, color: cat?.color || s.color
+      ...s, name: form.name, url: form.url, description: form.description, category: form.category, color: cat?.color || s.color,
     } : s));
     setEditingId(null);
   };
@@ -130,6 +135,7 @@ export function ServicesView() {
   const filtered = services.filter(s => {
     const matchCat = activeCategory === 'all' || s.category === activeCategory;
     const matchSearch = !search.trim() || s.name.toLowerCase().includes(search.toLowerCase()) || s.description.toLowerCase().includes(search.toLowerCase()) || s.url.toLowerCase().includes(search.toLowerCase());
+
     return matchCat && matchSearch;
   });
 
@@ -142,7 +148,9 @@ export function ServicesView() {
   const toggleCategory = (id: string) => {
     setExpandedCategories(prev => {
       const next = new Set(prev);
+
       if (next.has(id)) next.delete(id); else next.add(id);
+
       return next;
     });
   };
@@ -181,8 +189,8 @@ export function ServicesView() {
           <button
             onClick={() => setActiveCategory('all')}
             className={cn(
-              "px-2.5 py-1 rounded text-[10px] font-mono whitespace-nowrap transition-colors",
-              activeCategory === 'all' ? "bg-[#0EA5E9]/15 text-[#0EA5E9] border border-[#0EA5E9]/30" : "text-zinc-500 hover:text-zinc-300 border border-transparent"
+              'px-2.5 py-1 rounded text-[10px] font-mono whitespace-nowrap transition-colors',
+              activeCategory === 'all' ? 'bg-[#0EA5E9]/15 text-[#0EA5E9] border border-[#0EA5E9]/30' : 'text-zinc-500 hover:text-zinc-300 border border-transparent',
             )}
           >ALL</button>
           {SERVICE_CATEGORIES.map(cat => (
@@ -190,8 +198,8 @@ export function ServicesView() {
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
               className={cn(
-                "px-2.5 py-1 rounded text-[10px] font-mono whitespace-nowrap transition-colors",
-                activeCategory === cat.id ? "bg-[#0EA5E9]/15 text-[#0EA5E9] border border-[#0EA5E9]/30" : "text-zinc-500 hover:text-zinc-300 border border-transparent"
+                'px-2.5 py-1 rounded text-[10px] font-mono whitespace-nowrap transition-colors',
+                activeCategory === cat.id ? 'bg-[#0EA5E9]/15 text-[#0EA5E9] border border-[#0EA5E9]/30' : 'text-zinc-500 hover:text-zinc-300 border border-transparent',
               )}
             >
               {language === 'zh' ? cat.label : cat.labelEn}
@@ -248,12 +256,13 @@ export function ServicesView() {
           {groupedByCategory.map(group => {
             const isExpanded = expandedCategories.has(group.id);
             const Icon = group.icon;
+
             return (
               <div key={group.id}>
                 <button onClick={() => toggleCategory(group.id)} className="flex items-center gap-2 mb-2 w-full group">
                   {isExpanded ? <ChevronDown className="w-3 h-3 text-zinc-500" /> : <ChevronRight className="w-3 h-3 text-zinc-500" />}
-                  <Icon className={cn("w-3.5 h-3.5", group.color)} />
-                  <span className={cn("text-[11px] font-mono uppercase tracking-widest", group.color)}>{language === 'zh' ? group.label : group.labelEn}</span>
+                  <Icon className={cn('w-3.5 h-3.5', group.color)} />
+                  <span className={cn('text-[11px] font-mono uppercase tracking-widest', group.color)}>{language === 'zh' ? group.label : group.labelEn}</span>
                   <span className="text-[9px] text-zinc-600 font-mono">{group.items.length}</span>
                   <div className="flex-1 h-px bg-border/30" />
                 </button>
@@ -314,7 +323,7 @@ function ServiceCard({ service, language, onTogglePin, onDelete, onEdit, editing
   return (
     <div className="group p-3 rounded-lg border border-border/50 bg-card/50 hover:border-[#0EA5E9]/30 hover:bg-[#0EA5E9]/5 transition-all cursor-pointer relative">
       <div className="flex items-start gap-3">
-        <div className={cn("w-9 h-9 rounded-lg bg-muted/20 border border-border flex items-center justify-center shrink-0", service.color)}>
+        <div className={cn('w-9 h-9 rounded-lg bg-muted/20 border border-border flex items-center justify-center shrink-0', service.color)}>
           <IconComp className="w-4 h-4" />
         </div>
         <div className="flex-1 min-w-0">
@@ -328,16 +337,16 @@ function ServiceCard({ service, language, onTogglePin, onDelete, onEdit, editing
       </div>
       {/* Actions overlay */}
       <div className="absolute top-2 right-2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button onClick={(e) => { e.stopPropagation(); onTogglePin(service.id); }} className="p-1 hover:bg-amber-500/10 rounded transition-colors" title={service.pinned ? (language === 'zh' ? '取消收藏' : 'Unpin') : (language === 'zh' ? '收藏' : 'Pin')}>
+        <button onClick={e => { e.stopPropagation(); onTogglePin(service.id); }} className="p-1 hover:bg-amber-500/10 rounded transition-colors" title={service.pinned ? (language === 'zh' ? '取消收藏' : 'Unpin') : (language === 'zh' ? '收藏' : 'Pin')}>
           {service.pinned ? <StarOff className="w-3 h-3 text-amber-400" /> : <Star className="w-3 h-3 text-zinc-500" />}
         </button>
-        <button onClick={(e) => { e.stopPropagation(); onEdit(service); }} className="p-1 hover:bg-white/10 rounded transition-colors">
+        <button onClick={e => { e.stopPropagation(); onEdit(service); }} className="p-1 hover:bg-white/10 rounded transition-colors">
           <Edit3 className="w-3 h-3 text-zinc-400" />
         </button>
         <a href={service.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="p-1 hover:bg-[#0EA5E9]/10 rounded transition-colors">
           <ExternalLink className="w-3 h-3 text-[#0EA5E9]" />
         </a>
-        <button onClick={(e) => { e.stopPropagation(); onDelete(service.id); }} className="p-1 hover:bg-red-500/10 rounded transition-colors">
+        <button onClick={e => { e.stopPropagation(); onDelete(service.id); }} className="p-1 hover:bg-red-500/10 rounded transition-colors">
           <Trash2 className="w-3 h-3 text-red-400" />
         </button>
       </div>

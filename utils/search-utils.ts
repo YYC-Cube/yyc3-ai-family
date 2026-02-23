@@ -13,7 +13,7 @@ interface SearchResult {
 export const fuzzySearch = (
   query: string,
   data: KnowledgeItem[],
-  weights = { title: 5, summary: 3, content: 1, tags: 4 }
+  weights = { title: 5, summary: 3, content: 1, tags: 4 },
 ): SearchResult[] => {
   const tokens = query.toLowerCase().split(/\s+/).filter(token => token.length > 1);
 
@@ -26,29 +26,33 @@ export const fuzzySearch = (
         title: [] as string[],
         content: [] as string[],
         tags: [] as string[],
-        summary: [] as string[]
+        summary: [] as string[],
       };
 
       // 标题匹配
       const titleScore = calculateTokenScore(item.title, tokens, weights.title);
+
       totalScore += titleScore.score;
       highlights.title = titleScore.matches;
 
       // 摘要匹配
       if (item.summary) {
         const summaryScore = calculateTokenScore(item.summary, tokens, weights.summary);
+
         totalScore += summaryScore.score;
         highlights.summary = summaryScore.matches;
       }
 
       // 内容匹配
       const contentScore = calculateTokenScore(item.content, tokens, weights.content);
+
       totalScore += contentScore.score;
       highlights.content = contentScore.matches;
 
       // 标签匹配
       if (item.tags) {
         const tagScore = calculateTokenScore(item.tags.join(' '), tokens, weights.tags);
+
         totalScore += tagScore.score;
         highlights.tags = tagScore.matches;
       }

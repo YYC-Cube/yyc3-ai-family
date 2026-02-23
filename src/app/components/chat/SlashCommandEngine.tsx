@@ -1,28 +1,25 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { useSystemStore } from "@/lib/store";
-import { useTranslation } from "@/lib/i18n";
-import { AGENT_REGISTRY } from "@/lib/types";
-import { loadAgentCustomConfig, getMergedAgents } from "@/lib/branding-config";
-import { eventBus } from "@/lib/event-bus";
-import { getLastInfraReport } from "@/lib/useInfraHealth";
-import { loadProviderConfigs } from "@/lib/llm-bridge";
-import { PROVIDERS } from "@/lib/llm-providers";
-import { loadDeviceConfigs } from "@/lib/nas-client";
-import { getAllLatencyHistories, syncLatencyToPg, queryPgLatencyHistory } from "@/lib/useInfraHealth";
-import { getRunnerHealth, checkRunnerHealth, getGlobalExecutor } from "@/lib/useDAGExecutor";
-import { getPgTelemetryConfig, setPgTelemetryConfig, getPgTelemetryState, checkPgTelemetryHealth, migrateLatencyToPostgres, getMigrationSQL, validateTelemetrySchema } from "@/lib/pg-telemetry-client";
 import {
-  Brain, Sparkles, Activity, Users, Network, Shield, Book,
+  Brain, Activity, Network, Shield,
   LayoutDashboard, Terminal, Wrench, HardDrive, Box, Cpu,
-  Settings, Zap, Radio, Database, TestTube2, Rocket,
-  MessageSquare, Compass, ArrowRight, Search, CornerDownLeft,
-  Monitor, BarChart3, FileText, FlaskConical, Server,
-  GitBranch, Play, RefreshCw, Trash2, Download, Upload,
-  Eye, EyeOff, Command as CommandIcon,
-  Gauge, Globe, Key, Clock, Wifi, Hash, Layers
-} from "lucide-react";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+  Settings, Radio, Database, Rocket, Compass, CornerDownLeft,
+  Monitor, BarChart3, FileText, Server,
+  GitBranch, Play, RefreshCw, Trash2, Upload, Command as CommandIcon,
+  Gauge, Globe, Layers,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { loadAgentCustomConfig, getMergedAgents } from '@/lib/branding-config';
+import { eventBus } from '@/lib/event-bus';
+import { useTranslation } from '@/lib/i18n';
+import { loadProviderConfigs } from '@/lib/llm-bridge';
+import { PROVIDERS } from '@/lib/llm-providers';
+import { loadDeviceConfigs } from '@/lib/nas-client';
+import { getPgTelemetryConfig, getPgTelemetryState, migrateLatencyToPostgres, getMigrationSQL, validateTelemetrySchema } from '@/lib/pg-telemetry-client';
+import { useSystemStore } from '@/lib/store';
+import { getRunnerHealth, getGlobalExecutor } from '@/lib/useDAGExecutor';
+import { getLastInfraReport, getAllLatencyHistories } from '@/lib/useInfraHealth';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // SlashCommandEngine — Smart Inline Command System
@@ -82,6 +79,7 @@ function buildCommands(): SlashCommand[] {
     keywords: [agent.id, agent.name, agent.nameEn.toLowerCase(), agent.role.toLowerCase(), ...(agent.isCustom ? ['custom', '自定义'] : [])],
     action: () => {
       store.navigateToAgent(agent.id);
+
       return {
         consumed: true,
         response: `🤖 已切换至 **${agent.name}** (${agent.nameEn})${agent.isCustom ? ' [Custom]' : ''}\n\n> ${agent.desc}\n\n前往 Console → AI Agent 开始专项对话。`,
@@ -96,105 +94,135 @@ function buildCommands(): SlashCommand[] {
       description: '打开集群总控仪表盘', descriptionEn: 'Open cluster dashboard',
       icon: LayoutDashboard, color: 'text-sky-400', category: 'navigation',
       keywords: ['dashboard', '仪表盘', '总控', 'home'],
-      action: () => { store.navigateToConsoleTab('dashboard'); return { consumed: true }; },
+      action: () => { store.navigateToConsoleTab('dashboard');
+
+        return { consumed: true }; },
     },
     {
       id: 'go-devops', command: '/go devops', label: 'DevOps 工作台', labelEn: 'DevOps Workspace',
       description: 'CI/CD 流水线和 DAG 编辑器', descriptionEn: 'CI/CD pipeline & DAG editor',
       icon: Terminal, color: 'text-emerald-400', category: 'navigation',
       keywords: ['devops', '运维', 'pipeline', 'ci/cd', '流水线'],
-      action: () => { store.navigateToConsoleTab('devops'); return { consumed: true }; },
+      action: () => { store.navigateToConsoleTab('devops');
+
+        return { consumed: true }; },
     },
     {
       id: 'go-mcp', command: '/go mcp', label: 'MCP 工具链', labelEn: 'MCP Hub',
       description: 'Model Context Protocol 工具管理', descriptionEn: 'MCP tool management',
       icon: Wrench, color: 'text-pink-400', category: 'navigation',
       keywords: ['mcp', '工具', 'tool', 'figma', 'github'],
-      action: () => { store.navigateToConsoleTab('mcp'); return { consumed: true }; },
+      action: () => { store.navigateToConsoleTab('mcp');
+
+        return { consumed: true }; },
     },
     {
       id: 'go-persist', command: '/go persist', label: '持久化引擎', labelEn: 'Persistence',
       description: '三层存储与快照管理', descriptionEn: 'Three-tier storage & snapshots',
       icon: HardDrive, color: 'text-violet-400', category: 'navigation',
       keywords: ['persist', '持久化', 'storage', '存储', 'snapshot'],
-      action: () => { store.navigateToConsoleTab('persist'); return { consumed: true }; },
+      action: () => { store.navigateToConsoleTab('persist');
+
+        return { consumed: true }; },
     },
     {
       id: 'go-docker', command: '/go docker', label: 'Docker 管理', labelEn: 'Docker Manager',
       description: 'NAS 容器生命周期管理', descriptionEn: 'NAS container lifecycle',
       icon: Box, color: 'text-sky-400', category: 'navigation',
       keywords: ['docker', '容器', 'container', 'nas'],
-      action: () => { store.navigateToConsoleTab('docker'); return { consumed: true }; },
+      action: () => { store.navigateToConsoleTab('docker');
+
+        return { consumed: true }; },
     },
     {
       id: 'go-ollama', command: '/go ollama', label: 'Ollama 管理', labelEn: 'Ollama Manager',
       description: '本地模型管理与推理', descriptionEn: 'Local model management',
       icon: Cpu, color: 'text-purple-400', category: 'navigation',
       keywords: ['ollama', '本地模型', 'local', 'model'],
-      action: () => { store.navigateToConsoleTab('ollama_manager'); return { consumed: true }; },
+      action: () => { store.navigateToConsoleTab('ollama_manager');
+
+        return { consumed: true }; },
     },
     {
       id: 'go-orchestrate', command: '/go orchestrate', label: '协作编排', labelEn: 'Orchestrator',
       description: '多智能体协作编排工作流', descriptionEn: 'Multi-agent collaboration',
       icon: Network, color: 'text-cyan-400', category: 'navigation',
       keywords: ['orchestrate', '编排', '协作', 'collab', 'multi-agent'],
-      action: () => { store.navigateToConsoleTab('orchestrate'); return { consumed: true }; },
+      action: () => { store.navigateToConsoleTab('orchestrate');
+
+        return { consumed: true }; },
     },
     {
       id: 'go-security', command: '/go security', label: '安全审计', labelEn: 'Security Audit',
       description: '安全态势与审计报告', descriptionEn: 'Security posture & audit',
       icon: Shield, color: 'text-red-400', category: 'navigation',
       keywords: ['security', '安全', 'audit', '审计'],
-      action: () => { store.navigateToConsoleTab('security_audit'); return { consumed: true }; },
+      action: () => { store.navigateToConsoleTab('security_audit');
+
+        return { consumed: true }; },
     },
     {
       id: 'go-hardware', command: '/go hardware', label: '硬件遥测', labelEn: 'Hardware Monitor',
       description: 'M4 Max 56核遥测看板', descriptionEn: 'M4 Max 56-core telemetry',
       icon: Monitor, color: 'text-orange-400', category: 'navigation',
       keywords: ['hardware', '硬件', 'telemetry', '遥测', 'monitor', 'cpu', 'gpu'],
-      action: () => { store.navigateToConsoleTab('hardware_monitor'); return { consumed: true }; },
+      action: () => { store.navigateToConsoleTab('hardware_monitor');
+
+        return { consumed: true }; },
     },
     {
       id: 'go-settings', command: '/settings', label: '系统设置', labelEn: 'Settings',
       description: '打开系统配置面板', descriptionEn: 'Open settings panel',
       icon: Settings, color: 'text-zinc-400', category: 'navigation',
       keywords: ['settings', '设置', 'config', '配置'],
-      action: () => { store.openSettings('general'); return { consumed: true }; },
+      action: () => { store.openSettings('general');
+
+        return { consumed: true }; },
     },
     {
       id: 'go-ops-scripts', command: '/go scripts', label: '运维脚本', labelEn: 'Ops Scripts',
       description: '一键生成运维 Shell 脚本', descriptionEn: 'One-click operation scripts',
       icon: FileText, color: 'text-amber-400', category: 'navigation',
       keywords: ['scripts', '脚本', 'ops', '运维', 'shell', 'bash'],
-      action: () => { store.navigateToConsoleTab('ops_script'); return { consumed: true }; },
+      action: () => { store.navigateToConsoleTab('ops_script');
+
+        return { consumed: true }; },
     },
     {
       id: 'go-manual', command: '/go manual', label: '操作手册', labelEn: 'Operation Manual',
       description: '打开系统操作指导手册', descriptionEn: 'Open system operation manual',
       icon: FileText, color: 'text-cyan-400', category: 'navigation',
       keywords: ['manual', '手册', 'guide', '指南', '帮助', 'documentation', '文档'],
-      action: () => { store.navigateToConsoleTab('operation_manual'); return { consumed: true }; },
+      action: () => { store.navigateToConsoleTab('operation_manual');
+
+        return { consumed: true }; },
     },
     {
       id: 'go-nine-layers', command: '/go layers', label: '九层蓝图', labelEn: 'Nine-Layer Blueprint',
       description: '查看九层架构设计详细规划', descriptionEn: 'View nine-layer architecture blueprint',
       icon: Layers, color: 'text-indigo-400', category: 'navigation',
       keywords: ['layers', '九层', 'architecture', '架构', 'blueprint', '蓝图', 'nine', '设计'],
-      action: () => { store.navigateToConsoleTab('nine_layer_architecture'); return { consumed: true }; },
+      action: () => { store.navigateToConsoleTab('nine_layer_architecture');
+
+        return { consumed: true }; },
     },
     {
       id: 'go-mode-control', command: '/go modes', label: '模式控制', labelEn: 'Mode Control',
       description: '打开 AI/导航模式控制面板', descriptionEn: 'Open AI/Navigate mode control panel',
       icon: Compass, color: 'text-amber-400', category: 'navigation',
       keywords: ['modes', '模式控制', 'mode-control', 'ai-mode', 'nav-mode', '切换'],
-      action: () => { store.navigateToConsoleTab('mode_control'); return { consumed: true }; },
+      action: () => { store.navigateToConsoleTab('mode_control');
+
+        return { consumed: true }; },
     },
     {
       id: 'go-pg-deploy', command: '/go pg-deploy', label: 'PG 代理部署', labelEn: 'PG Proxy Deploy',
       description: '打开 PG Proxy 部署工具包', descriptionEn: 'Open PG Proxy deployment toolkit',
       icon: Server, color: 'text-cyan-400', category: 'navigation',
       keywords: ['pg-deploy', 'proxy', '代理部署', 'pg-proxy', 'deploy-kit', '部署工具'],
-      action: () => { store.navigateToConsoleTab('pg_proxy_deploy_kit'); return { consumed: true }; },
+      action: () => { store.navigateToConsoleTab('pg_proxy_deploy_kit');
+
+        return { consumed: true }; },
     },
   ];
 
@@ -207,6 +235,7 @@ function buildCommands(): SlashCommand[] {
       action: () => {
         store.toggleChatMode();
         const newMode = store.chatMode === 'ai' ? 'navigate' : 'ai';
+
         return { consumed: true, response: `🔄 已切换至 **${newMode === 'ai' ? 'AI 对话' : '导航'}** 模式` };
       },
     },
@@ -215,14 +244,18 @@ function buildCommands(): SlashCommand[] {
       description: '清空当前聊天记录', descriptionEn: 'Clear current chat history',
       icon: Trash2, color: 'text-red-400', category: 'action',
       keywords: ['clear', '清空', '清除', 'reset'],
-      action: () => { store.clearMessages(); return { consumed: true }; },
+      action: () => { store.clearMessages();
+
+        return { consumed: true }; },
     },
     {
       id: 'new-session', command: '/new', label: '新建会话', labelEn: 'New Session',
       description: '创建新的聊天会话', descriptionEn: 'Start a new chat session',
       icon: RefreshCw, color: 'text-emerald-400', category: 'action',
       keywords: ['new', '新建', 'session', '会话'],
-      action: () => { store.newSession(); return { consumed: true }; },
+      action: () => { store.newSession();
+
+        return { consumed: true }; },
     },
     {
       id: 'status', command: '/status', label: '系统状态', labelEn: 'System Status',
@@ -233,6 +266,7 @@ function buildCommands(): SlashCommand[] {
         const s = useSystemStore.getState();
         const metrics = s.clusterMetrics?.['m4-max'];
         const statusEmoji = s.status === 'optimal' ? '🟢' : s.status === 'warning' ? '🟡' : '🔴';
+
         return {
           consumed: true,
           response: [
@@ -261,6 +295,7 @@ function buildCommands(): SlashCommand[] {
       keywords: ['diag', '诊断', 'diagnose', 'scan', '扫描'],
       action: () => {
         store.runDiagnosis();
+
         return { consumed: true, response: '🔍 已启动系统深度诊断...\n\n请查看 Console → Dashboard 获取实时诊断结果。' };
       },
     },
@@ -272,7 +307,12 @@ function buildCommands(): SlashCommand[] {
       action: () => {
         const s = useSystemStore.getState();
         const metrics = s.clusterMetrics?.['m4-max'];
-        const lsKeys = (() => { try { let n = 0; for (let i = 0; i < localStorage.length; i++) { if (localStorage.key(i)?.startsWith('yyc3')) n++; } return n; } catch { return 0; } })();
+        const lsKeys = (() => { try { let n = 0;
+
+          for (let i = 0; i < localStorage.length; i++) { if (localStorage.key(i)?.startsWith('yyc3')) n++; }
+
+          return n; } catch { return 0; } })();
+
         return {
           consumed: true,
           response: [
@@ -321,6 +361,7 @@ function buildCommands(): SlashCommand[] {
 
         const nodes = metrics ? Object.entries(metrics).filter(([k]) => k !== 'timestamp').map(([k, v]) => {
           const n = v as any;
+
           return `| ${k} | ${Math.round(n.cpu)}% | ${Math.round(n.memory)}% | ${Math.round(n.temperature)}°C | ${Math.round(n.disk)}% |`;
         }) : ['| -- | -- | -- | -- | -- |'];
 
@@ -356,7 +397,9 @@ function buildCommands(): SlashCommand[] {
       keywords: ['db', '数据库', 'database', 'postgres', 'postgresql', 'schema', 'pg', 'sql'],
       action: () => {
         const s = useSystemStore.getState();
+
         store.addLog('info', 'DB', 'Database info requested via /db');
+
         return {
           consumed: true,
           response: [
@@ -391,10 +434,11 @@ function buildCommands(): SlashCommand[] {
       description: '显示 SSH 连接命令和节点信息', descriptionEn: 'Show SSH connection commands & node info',
       icon: Terminal, color: 'text-emerald-400', category: 'system',
       keywords: ['ssh', '远程', 'remote', 'connect', '连接', 'shell', 'terminal'],
-      action: (args) => {
+      action: args => {
         const node = args?.trim() || 'nas';
+
         store.addLog('info', 'SSH', `SSH info requested: ${node}`);
-        
+
         const nodes: Record<string, { host: string; user: string; desc: string }> = {
           nas: { host: '192.168.3.22', user: 'yyc3', desc: 'TerraMaster NAS (Docker Host)' },
           m4: { host: '192.168.3.22', user: 'yyc3', desc: 'M4 Max Primary Node' },
@@ -435,6 +479,7 @@ function buildCommands(): SlashCommand[] {
       keywords: ['health', '健康', 'check', '检查', 'connectivity', '连通', 'infra', '基础设施', 'probe'],
       action: () => {
         const report = getLastInfraReport();
+
         store.addLog('info', 'HEALTH', 'Infrastructure health report requested via /health');
         eventBus.emit({
           category: 'system', type: 'system.health_report', level: 'info',
@@ -499,10 +544,12 @@ function buildCommands(): SlashCommand[] {
       keywords: ['infra', '基础设施', 'infrastructure', 'topology', '拓扑', 'cluster', '集群', 'node', '节点'],
       action: () => {
         const devices = loadDeviceConfigs();
+
         store.addLog('info', 'INFRA', 'Infrastructure topology requested via /infra');
 
         const deviceRows = devices.map(d => {
           const httpSvcs = d.services.filter(s => s.enabled).map(s => `${s.name}(:${s.port})`).join(', ');
+
           return `| ${d.displayName} | ${d.ip} | ${d.chip} | ${d.ram} | ${httpSvcs || 'None'} |`;
         });
 
@@ -545,6 +592,7 @@ function buildCommands(): SlashCommand[] {
         const configs = loadProviderConfigs();
         const enabled = configs.filter(c => c.enabled && c.apiKey);
         const totalProviders = Object.keys(PROVIDERS).length;
+
         store.addLog('info', 'MODEL', 'Model routing status requested via /model');
 
         const providerRows = Object.values(PROVIDERS).map(p => {
@@ -552,6 +600,7 @@ function buildCommands(): SlashCommand[] {
           const isEnabled = cfg?.enabled && cfg?.apiKey;
           const statusIcon = isEnabled ? '\u{1F7E2}' : '\u{26AA}';
           const modelName = cfg?.defaultModel || p.defaultModel;
+
           return `| ${statusIcon} ${p.displayName} | ${p.icon} | ${modelName} | ${isEnabled ? 'Active' : 'Inactive'} | ${p.models.length} |`;
         });
 
@@ -592,6 +641,7 @@ function buildCommands(): SlashCommand[] {
       action: () => {
         store.addLog('info', 'OPS', 'Ops scripts center opened via /scripts');
         store.navigateToConsoleTab('ops_script');
+
         return {
           consumed: true,
           response: [
@@ -623,6 +673,7 @@ function buildCommands(): SlashCommand[] {
       action: () => {
         store.addLog('info', 'TELEMETRY', 'Telemetry agent manager opened via /telemetry');
         store.navigateToConsoleTab('telemetry_agent_manager');
+
         return {
           consumed: true,
           response: [
@@ -696,6 +747,7 @@ function buildCommands(): SlashCommand[] {
             const current = values[values.length - 1];
             const trend = values.length >= 2 ? values[values.length - 1] - values[values.length - 2] : 0;
             const trendIcon = trend > 20 ? '📈' : trend < -20 ? '📉' : '➡️';
+
             return `| ${serviceLabels[id]} | ${current}ms | ${avg}ms | ${min}ms | ${max}ms | ${trendIcon} ${trend > 0 ? '+' : ''}${trend}ms | ${entries.length} |`;
           });
 
@@ -723,8 +775,10 @@ function buildCommands(): SlashCommand[] {
       keywords: ['runner', '执行器', 'executor', 'real', 'pipeline', 'dag', 'service'],
       action: () => {
         const runner = getRunnerHealth();
+
         store.addLog('info', 'RUNNER', 'Runner service status requested via /runner');
         const statusEmoji = runner.status === 'online' ? '🟢' : runner.status === 'offline' ? '🔴' : runner.status === 'error' ? '🟡' : '⚪';
+
         return {
           consumed: true,
           response: [
@@ -757,6 +811,7 @@ function buildCommands(): SlashCommand[] {
       action: () => {
         store.addLog('info', 'DAG', 'DAG pipeline status requested via /dag');
         const executor = getGlobalExecutor();
+
         if (!executor || executor.runs.length === 0) {
           return {
             consumed: true,
@@ -783,8 +838,10 @@ function buildCommands(): SlashCommand[] {
         const recentRows = runs.slice(0, 5).map(r => {
           const se = r.status === 'success' ? '✅' : r.status === 'failed' ? '❌' : r.status === 'running' ? '🔄' : '⏸️';
           const el = r.completedAt ? `${((r.completedAt - r.startedAt) / 1000).toFixed(1)}s` : `${((Date.now() - r.startedAt) / 1000).toFixed(0)}s+`;
+
           return `| ${se} ${r.name} | ${r.status} | ${el} | ${r.stages.length} | ${r.progress}% |`;
         });
+
         return {
           consumed: true,
           response: [
@@ -809,8 +866,10 @@ function buildCommands(): SlashCommand[] {
       action: () => {
         const pgState = getPgTelemetryState();
         const pgConfig = getPgTelemetryConfig();
+
         store.addLog('info', 'PG_TELEMETRY', 'PG telemetry status requested via /pg-telemetry');
         const statusEmoji = pgState.status === 'connected' ? '🟢' : pgState.status === 'disconnected' ? '🔴' : pgState.status === 'error' ? '🟡' : '⚪';
+
         return {
           consumed: true,
           response: [
@@ -850,6 +909,7 @@ function buildCommands(): SlashCommand[] {
       keywords: ['pg-migrate', 'migrate', '迁移', 'postgresql', 'transfer', '转移', 'localStorage'],
       action: () => {
         const pgConfig = getPgTelemetryConfig();
+
         store.addLog('info', 'PG_MIGRATE', 'PG migration requested via /pg-migrate');
 
         if (!pgConfig.enabled) {
@@ -894,6 +954,7 @@ function buildCommands(): SlashCommand[] {
           const msg = result.success
             ? `✅ 迁移完成: ${result.insertedRecords}/${result.totalRecords} 条记录 (${result.durationMs}ms)`
             : `⚠️ 迁移部分失败: ${result.insertedRecords}/${result.totalRecords} 条记录, 失败: ${result.failedChecks.join(', ')}`;
+
           store.addLog(result.success ? 'success' : 'warn', 'PG_MIGRATE', msg);
         });
 
@@ -920,6 +981,7 @@ function buildCommands(): SlashCommand[] {
       action: () => {
         store.addLog('info', 'PG_DEPLOY', 'PG Proxy deploy toolkit opened via /pg-deploy');
         store.navigateToConsoleTab('pg_proxy_deploy_kit');
+
         return {
           consumed: true,
           response: [
@@ -955,6 +1017,7 @@ function buildCommands(): SlashCommand[] {
       keywords: ['pg-validate', 'validate', '验证', 'schema', 'check', '检查', 'table'],
       action: () => {
         const pgConfig = getPgTelemetryConfig();
+
         store.addLog('info', 'PG_VALIDATE', 'Schema validation requested via /pg-validate');
 
         if (!pgConfig.enabled) {
@@ -980,6 +1043,7 @@ function buildCommands(): SlashCommand[] {
           const msg = result.valid
             ? `✅ Schema 验证通过: ${result.tables.length} 表已确认 (${result.latencyMs}ms)`
             : `⚠️ Schema 验证失败: ${result.error || '部分表缺失'} (${result.latencyMs}ms)`;
+
           store.addLog(result.valid ? 'success' : 'warn', 'PG_VALIDATE', msg);
         });
 
@@ -1015,8 +1079,10 @@ function buildCommands(): SlashCommand[] {
       action: () => {
         store.addLog('info', 'PG_SCHEMA', 'Telemetry schema SQL requested via /pg-schema');
         const sql = getMigrationSQL();
+
         // Copy to clipboard
         try { navigator.clipboard.writeText(sql); } catch { /* ignore */ }
+
         return {
           consumed: true,
           response: [
@@ -1117,9 +1183,10 @@ function buildCommands(): SlashCommand[] {
       description: '触发部署到 NAS Docker 或远程节点', descriptionEn: 'Deploy to NAS Docker or remote node',
       icon: Rocket, color: 'text-emerald-400', category: 'devops',
       keywords: ['deploy', '部署', 'release', '发布', 'ship', '上线'],
-      action: (args) => {
+      action: args => {
         const target = args?.trim() || 'nas-docker';
         const dagId = `deploy-${Date.now().toString(36)}`;
+
         store.addLog('info', 'DEVOPS', `Deploy initiated: target=${target}, dagId=${dagId}`);
         store.navigateToConsoleTab('devops');
 
@@ -1167,9 +1234,10 @@ function buildCommands(): SlashCommand[] {
       description: '运行 Docker 构建或前端打包', descriptionEn: 'Run Docker build or frontend bundle',
       icon: Play, color: 'text-sky-400', category: 'devops',
       keywords: ['build', '构建', 'compile', '编译', 'bundle', '打包', 'make'],
-      action: (args) => {
+      action: args => {
         const service = args?.trim() || 'yyc3-chatbot';
         const buildId = `build-${Date.now().toString(36)}`;
+
         store.addLog('info', 'DEVOPS', `Build triggered: service=${service}`);
         store.navigateToConsoleTab('devops');
 
@@ -1246,9 +1314,10 @@ function buildCommands(): SlashCommand[] {
       description: '快捷 Docker 容器操作 (ps/restart/stop/logs)', descriptionEn: 'Quick Docker container ops (ps/restart/stop/logs)',
       icon: Box, color: 'text-sky-400', category: 'devops',
       keywords: ['docker', '容器', 'container', 'ps', 'restart', 'stop', 'compose'],
-      action: (args) => {
+      action: args => {
         const action = args?.trim().split(' ')[0] || 'ps';
         const containerArg = args?.trim().split(' ').slice(1).join(' ') || '';
+
         store.addLog('info', 'DEVOPS', `Docker command: ${action} ${containerArg}`);
 
         eventBus.emit({
@@ -1290,9 +1359,10 @@ function buildCommands(): SlashCommand[] {
       description: '触发指定的 DAG 工作流流水线', descriptionEn: 'Trigger a named DAG workflow pipeline',
       icon: GitBranch, color: 'text-purple-400', category: 'devops',
       keywords: ['pipeline', '流水线', 'dag', 'workflow', '工作流', 'ci', 'cd'],
-      action: (args) => {
+      action: args => {
         const pipelineName = args?.trim() || 'default';
         const runId = `run-${Date.now().toString(36)}`;
+
         store.addLog('info', 'DEVOPS', `Pipeline triggered: ${pipelineName} (${runId})`);
         store.navigateToConsoleTab('devops');
 
@@ -1345,8 +1415,9 @@ function buildCommands(): SlashCommand[] {
       description: '实时查看服务或容器日志', descriptionEn: 'Stream live service or container logs',
       icon: FileText, color: 'text-zinc-400', category: 'devops',
       keywords: ['logs', '日志', 'log', 'tail', 'stream', '查看'],
-      action: (args) => {
+      action: args => {
         const service = args?.trim() || 'system';
+
         store.addLog('info', 'DEVOPS', `Log stream requested: ${service}`);
 
         eventBus.emit({
@@ -1360,7 +1431,7 @@ function buildCommands(): SlashCommand[] {
 
         const s = useSystemStore.getState();
         const recentLogs = s.logs.slice(-8).map(l =>
-          `[${l.timestamp}] ${l.level.toUpperCase().padEnd(7)} ${l.source.padEnd(12)} ${l.message}`
+          `[${l.timestamp}] ${l.level.toUpperCase().padEnd(7)} ${l.source.padEnd(12)} ${l.message}`,
         ).join('\n');
 
         return {
@@ -1387,6 +1458,7 @@ function buildCommands(): SlashCommand[] {
 // --- Fuzzy Match ---
 function fuzzyMatch(query: string, targets: string[]): boolean {
   const q = query.toLowerCase();
+
   return targets.some(t => t.toLowerCase().includes(q));
 }
 
@@ -1408,11 +1480,12 @@ export function SlashCommandPanel({ inputValue, isVisible, onSelectCommand, onCl
 
   // Build commands and filter
   const commands = React.useMemo(() => buildCommands(), []);
-  
+
   const query = inputValue.startsWith('/') ? inputValue.slice(1).trim().toLowerCase() : '';
-  
+
   const filtered = React.useMemo(() => {
     if (!query) return commands.slice(0, 12); // Show top 12 by default
+
     return commands.filter(cmd => {
       const searchTargets = [
         cmd.command,
@@ -1420,6 +1493,7 @@ export function SlashCommandPanel({ inputValue, isVisible, onSelectCommand, onCl
         cmd.labelEn,
         ...cmd.keywords,
       ];
+
       return fuzzyMatch(query, searchTargets);
     }).slice(0, 10);
   }, [query, commands]);
@@ -1446,7 +1520,9 @@ export function SlashCommandPanel({ inputValue, isVisible, onSelectCommand, onCl
         onClose();
       }
     };
+
     window.addEventListener('keydown', handleKey);
+
     return () => window.removeEventListener('keydown', handleKey);
   }, [isVisible, filtered, selectedIndex, onSelectCommand, onClose]);
 
@@ -1456,6 +1532,7 @@ export function SlashCommandPanel({ inputValue, isVisible, onSelectCommand, onCl
   const grouped = filtered.reduce<Record<string, SlashCommand[]>>((acc, cmd) => {
     if (!acc[cmd.category]) acc[cmd.category] = [];
     acc[cmd.category].push(cmd);
+
     return acc;
   }, {});
 
@@ -1502,25 +1579,26 @@ export function SlashCommandPanel({ inputValue, isVisible, onSelectCommand, onCl
                   const thisIdx = globalIdx++;
                   const isSelected = thisIdx === selectedIndex;
                   const Icon = cmd.icon;
+
                   return (
                     <button
                       key={cmd.id}
                       className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-left group",
+                        'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-left group',
                         isSelected
-                          ? "bg-primary/10 border border-primary/20"
-                          : "hover:bg-white/5 border border-transparent"
+                          ? 'bg-primary/10 border border-primary/20'
+                          : 'hover:bg-white/5 border border-transparent',
                       )}
                       onClick={() => onSelectCommand(cmd)}
                       onMouseEnter={() => setSelectedIndex(thisIdx)}
                     >
                       <div className={cn(
-                        "w-7 h-7 rounded-md flex items-center justify-center border shrink-0 transition-all",
+                        'w-7 h-7 rounded-md flex items-center justify-center border shrink-0 transition-all',
                         isSelected
-                          ? "bg-primary/10 border-primary/30"
-                          : "bg-zinc-800/60 border-zinc-700/30"
+                          ? 'bg-primary/10 border-primary/30'
+                          : 'bg-zinc-800/60 border-zinc-700/30',
                       )}>
-                        <Icon className={cn("w-3.5 h-3.5", cmd.color)} />
+                        <Icon className={cn('w-3.5 h-3.5', cmd.color)} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -1583,8 +1661,10 @@ export function useSlashCommands() {
     // Direct command match
     for (const command of commands) {
       const cmdParts = command.command.split(/\s+/);
+
       if (cmd === cmdParts[0] && (cmdParts.length === 1 || args.toLowerCase().startsWith(cmdParts[1]?.toLowerCase() || ''))) {
         const result = command.action(args);
+
         if (result.consumed) {
           // Emit EventBus event for cross-module awareness
           eventBus.emit({
@@ -1596,6 +1676,7 @@ export function useSlashCommands() {
             metadata: { commandId: command.id, category: command.category, args },
           });
         }
+
         return result;
       }
     }
@@ -1604,6 +1685,7 @@ export function useSlashCommands() {
     for (const command of commands) {
       if (fuzzyMatch(cmd.slice(1), command.keywords)) {
         const result = command.action(args);
+
         if (result.consumed) {
           eventBus.emit({
             category: 'ui',
@@ -1614,6 +1696,7 @@ export function useSlashCommands() {
             metadata: { commandId: command.id, originalInput: input, matchedCommand: command.command },
           });
         }
+
         return result;
       }
     }

@@ -1,6 +1,7 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from 'lucide-react';
+import * as React from 'react';
+
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // CyberSkeleton — Cyberpunk-style loading skeleton
@@ -23,22 +24,22 @@ interface CyberSkeletonProps {
   /** Minimum height for the skeleton container */
   minHeight?: string;
   /** Show structural skeleton blocks (card layout) */
-  variant?: "spinner" | "card" | "chart" | "table" | "pulse";
+  variant?: 'spinner' | 'card' | 'chart' | 'table' | 'pulse';
 }
 
 function ShimmerBar({ className, delay = 0, style }: { className?: string; delay?: number; style?: React.CSSProperties }) {
   return (
     <div
       className={cn(
-        "rounded bg-white/[0.03] overflow-hidden relative",
-        className
+        'rounded bg-white/[0.03] overflow-hidden relative',
+        className,
       )}
       style={style}
     >
       <div
         className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite]"
         style={{
-          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)",
+          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)',
           animationDelay: `${delay}ms`,
         }}
       />
@@ -54,10 +55,10 @@ function useStableRandoms(count: number, min: number, range: number): number[] {
 }
 
 export function CyberSkeleton({
-  label = "LOADING_MODULE...",
-  accentColor = "text-primary",
-  minHeight = "h-64",
-  variant = "spinner",
+  label = 'LOADING_MODULE...',
+  accentColor = 'text-primary',
+  minHeight = 'h-64',
+  variant = 'spinner',
 }: CyberSkeletonProps) {
 
   // Chart variant: 16 stable bar heights (20-90%)
@@ -67,9 +68,9 @@ export function CyberSkeleton({
   const tableWidthFactors = useStableRandoms(30, 0.7, 0.3);
 
   // ─── CARD ───
-  if (variant === "card") {
+  if (variant === 'card') {
     return (
-      <div className={cn("animate-in fade-in duration-300", minHeight)}>
+      <div className={cn('animate-in fade-in duration-300', minHeight)}>
         {/* Header skeleton */}
         <div className="flex items-center gap-3 mb-6">
           <ShimmerBar className="w-7 h-7 rounded-lg" />
@@ -95,8 +96,8 @@ export function CyberSkeleton({
         </div>
         {/* Spinner indicator */}
         <div className="flex items-center justify-center gap-2 mt-4">
-          <Loader2 className={cn("w-3.5 h-3.5 animate-spin", accentColor)} />
-          <span className={cn("font-mono text-[10px] tracking-widest opacity-60", accentColor)}>
+          <Loader2 className={cn('w-3.5 h-3.5 animate-spin', accentColor)} />
+          <span className={cn('font-mono text-[10px] tracking-widest opacity-60', accentColor)}>
             {label}
           </span>
         </div>
@@ -105,9 +106,9 @@ export function CyberSkeleton({
   }
 
   // ─── CHART (memoized bar heights) ───
-  if (variant === "chart") {
+  if (variant === 'chart') {
     return (
-      <div className={cn("animate-in fade-in duration-300", minHeight)}>
+      <div className={cn('animate-in fade-in duration-300', minHeight)}>
         {/* Toolbar skeleton */}
         <div className="flex items-center gap-2 mb-4">
           <ShimmerBar className="w-6 h-6 rounded-lg" />
@@ -129,8 +130,8 @@ export function CyberSkeleton({
           </div>
         </div>
         <div className="flex items-center justify-center gap-2 mt-4">
-          <Loader2 className={cn("w-3.5 h-3.5 animate-spin", accentColor)} />
-          <span className={cn("font-mono text-[10px] tracking-widest opacity-60", accentColor)}>
+          <Loader2 className={cn('w-3.5 h-3.5 animate-spin', accentColor)} />
+          <span className={cn('font-mono text-[10px] tracking-widest opacity-60', accentColor)}>
             {label}
           </span>
         </div>
@@ -139,10 +140,11 @@ export function CyberSkeleton({
   }
 
   // ─── TABLE (memoized row widths) ───
-  if (variant === "table") {
+  if (variant === 'table') {
     const baseWidths = [80, 120, 100, 60, 80];
+
     return (
-      <div className={cn("animate-in fade-in duration-300", minHeight)}>
+      <div className={cn('animate-in fade-in duration-300', minHeight)}>
         <div className="flex items-center gap-3 mb-4">
           <ShimmerBar className="w-6 h-6 rounded-lg" />
           <ShimmerBar className="w-48 h-4" delay={100} />
@@ -169,8 +171,8 @@ export function CyberSkeleton({
           ))}
         </div>
         <div className="flex items-center justify-center gap-2 mt-4">
-          <Loader2 className={cn("w-3.5 h-3.5 animate-spin", accentColor)} />
-          <span className={cn("font-mono text-[10px] tracking-widest opacity-60", accentColor)}>
+          <Loader2 className={cn('w-3.5 h-3.5 animate-spin', accentColor)} />
+          <span className={cn('font-mono text-[10px] tracking-widest opacity-60', accentColor)}>
             {label}
           </span>
         </div>
@@ -179,11 +181,11 @@ export function CyberSkeleton({
   }
 
   // ─── PULSE — compact for modals / inline slots ───
-  if (variant === "pulse") {
+  if (variant === 'pulse') {
     return (
       <div className={cn(
-        "flex flex-col items-center justify-center gap-3 animate-in fade-in duration-300",
-        minHeight
+        'flex flex-col items-center justify-center gap-3 animate-in fade-in duration-300',
+        minHeight,
       )}>
         {/* Three pulsing dots with staggered animation */}
         <div className="flex items-center gap-1.5">
@@ -191,18 +193,18 @@ export function CyberSkeleton({
             <div
               key={i}
               className={cn(
-                "w-2 h-2 rounded-full opacity-80",
-                accentColor.replace("text-", "bg-")
+                'w-2 h-2 rounded-full opacity-80',
+                accentColor.replace('text-', 'bg-'),
               )}
               style={{
-                animation: "pulse-dot 1.4s ease-in-out infinite",
+                animation: 'pulse-dot 1.4s ease-in-out infinite',
                 animationDelay: `${i * 200}ms`,
               }}
             />
           ))}
         </div>
         {/* Subtle label */}
-        <span className={cn("font-mono text-[10px] tracking-widest opacity-50", accentColor)}>
+        <span className={cn('font-mono text-[10px] tracking-widest opacity-50', accentColor)}>
           {label}
         </span>
         {/* Inline style for the pulse-dot keyframes (self-contained) */}
@@ -218,9 +220,9 @@ export function CyberSkeleton({
 
   // ─── DEFAULT: spinner variant ───
   return (
-    <div className={cn("flex items-center justify-center gap-2", minHeight)}>
-      <Loader2 className={cn("w-5 h-5 animate-spin", accentColor)} />
-      <span className={cn("font-mono text-xs tracking-widest", accentColor)}>
+    <div className={cn('flex items-center justify-center gap-2', minHeight)}>
+      <Loader2 className={cn('w-5 h-5 animate-spin', accentColor)} />
+      <span className={cn('font-mono text-xs tracking-widest', accentColor)}>
         {label}
       </span>
     </div>

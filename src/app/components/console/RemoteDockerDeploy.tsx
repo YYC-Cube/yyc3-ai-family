@@ -12,20 +12,19 @@
 // Design: "万象归元于云枢; 深栈智启新纪元"
 // ============================================================
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   Rocket, Box, Play, Square, Trash2, RefreshCw,
-  Loader2, CheckCircle2, XCircle, AlertTriangle,
-  ChevronRight, Terminal, Zap, Download, Settings,
-  Shield, Eye, Clock, Container, Layers,
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Badge } from "@/app/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { docker, loadDockerConfig, type DockerContainer, type DockerSystemInfo } from "@/lib/nas-client";
-import { eventBus } from "@/lib/event-bus";
+  Loader2, CheckCircle2, XCircle, AlertTriangle, Terminal, Download, Settings,
+  Shield, Eye, Layers,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
+import { eventBus } from '@/lib/event-bus';
+import { docker, loadDockerConfig, type DockerContainer, type DockerSystemInfo } from '@/lib/nas-client';
+import { cn } from '@/lib/utils';
 
 // ============================================================
 // Types
@@ -37,9 +36,9 @@ interface ServiceTemplate {
   description: string;
   image: string;
   containerName: string;
-  ports: Array<{ host: number; container: number; protocol: string }>;
+  ports: { host: number; container: number; protocol: string }[];
   env: Record<string, string>;
-  volumes: Array<{ host: string; container: string; mode: string }>;
+  volumes: { host: string; container: string; mode: string }[];
   command?: string[];
   labels: Record<string, string>;
   healthcheck?: {
@@ -157,17 +156,21 @@ async function dockerApiCall<T>(path: string, options: RequestInit = {}): Promis
       headers: { 'Content-Type': 'application/json', ...options.headers },
       signal: controller.signal,
     });
+
     clearTimeout(timeout);
 
     if (!res.ok) {
       const text = await res.text();
+
       throw new Error(`Docker API ${res.status}: ${text}`);
     }
 
     const contentType = res.headers.get('content-type');
+
     if (contentType?.includes('json')) {
       return await res.json() as T;
     }
+
     return {} as T;
   } catch (err) {
     clearTimeout(timeout);
@@ -177,11 +180,12 @@ async function dockerApiCall<T>(path: string, options: RequestInit = {}): Promis
 
 // Create container from template
 async function createContainerFromTemplate(template: ServiceTemplate): Promise<string> {
-  const portBindings: Record<string, Array<{ HostPort: string }>> = {};
+  const portBindings: Record<string, { HostPort: string }[]> = {};
   const exposedPorts: Record<string, Record<string, never>> = {};
 
   for (const port of template.ports) {
     const key = `${port.container}/${port.protocol}`;
+
     portBindings[key] = [{ HostPort: String(port.host) }];
     exposedPorts[key] = {};
   }
@@ -218,7 +222,7 @@ async function createContainerFromTemplate(template: ServiceTemplate): Promise<s
 
   const result = await dockerApiCall<{ Id: string }>(
     `/containers/create?name=${template.containerName}`,
-    { method: 'POST', body: JSON.stringify(body) }
+    { method: 'POST', body: JSON.stringify(body) },
   );
 
   return result.Id;
@@ -227,10 +231,12 @@ async function createContainerFromTemplate(template: ServiceTemplate): Promise<s
 function parseDuration(s: string): number {
   // Convert "30s" -> nanoseconds
   const match = s.match(/^(\d+)([smh])$/);
+
   if (!match) return 30_000_000_000;
   const val = parseInt(match[1]);
   const unit = match[2];
   const multiplier = unit === 'h' ? 3_600_000_000_000 : unit === 'm' ? 60_000_000_000 : 1_000_000_000;
+
   return val * multiplier;
 }
 
@@ -268,7 +274,7 @@ function DeployLogViewer({ logs }: { logs: DeployLog[] }) {
         <div className="text-zinc-600 text-center py-8">Deployment log will appear here...</div>
       ) : (
         logs.map(log => (
-          <div key={log.id} className={cn("flex gap-2", levelColors[log.level])}>
+          <div key={log.id} className={cn('flex gap-2', levelColors[log.level])}>
             <span className="text-zinc-600 shrink-0">{log.timestamp}</span>
             <span className="shrink-0">{levelIcons[log.level] || '>>'}</span>
             <span>{log.message}</span>
@@ -295,7 +301,7 @@ function ServiceTemplateCard({
   isDeploying: boolean;
 }) {
   const existing = existingContainers.find(c =>
-    c.Names.some(n => n === `/${template.containerName}`)
+    c.Names.some(n => n === `/${template.containerName}`),
   );
 
   const isRunning = existing?.State === 'running';
@@ -311,8 +317,8 @@ function ServiceTemplateCard({
 
   return (
     <Card className={cn(
-      "bg-zinc-900/40 border-white/5 transition-all hover:border-white/10",
-      isRunning && "ring-1 ring-green-500/20"
+      'bg-zinc-900/40 border-white/5 transition-all hover:border-white/10',
+      isRunning && 'ring-1 ring-green-500/20',
     )}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
@@ -320,7 +326,7 @@ function ServiceTemplateCard({
             <Box className="w-4 h-4 text-cyan-400" />
             {template.name}
           </CardTitle>
-          <Badge variant="outline" className={cn("text-[8px] h-4", categoryColors[template.category])}>
+          <Badge variant="outline" className={cn('text-[8px] h-4', categoryColors[template.category])}>
             {template.category}
           </Badge>
         </div>
@@ -357,11 +363,11 @@ function ServiceTemplateCard({
 
         {/* Status */}
         <div className={cn(
-          "flex items-center gap-2 px-3 py-2 rounded-lg border",
-          isRunning ? "bg-green-500/5 border-green-500/10" :
-          isStopped ? "bg-amber-500/5 border-amber-500/10" :
-          exists ? "bg-zinc-800/50 border-white/5" :
-          "bg-zinc-800/30 border-white/5"
+          'flex items-center gap-2 px-3 py-2 rounded-lg border',
+          isRunning ? 'bg-green-500/5 border-green-500/10' :
+          isStopped ? 'bg-amber-500/5 border-amber-500/10' :
+          exists ? 'bg-zinc-800/50 border-white/5' :
+          'bg-zinc-800/30 border-white/5',
         )}>
           {isRunning ? (
             <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
@@ -373,10 +379,10 @@ function ServiceTemplateCard({
             <Box className="w-3.5 h-3.5 text-zinc-600" />
           )}
           <span className={cn(
-            "text-[10px] font-mono",
-            isRunning ? "text-green-400" :
-            isStopped ? "text-amber-400" :
-            "text-zinc-500"
+            'text-[10px] font-mono',
+            isRunning ? 'text-green-400' :
+            isStopped ? 'text-amber-400' :
+            'text-zinc-500',
           )}>
             {isRunning ? `Running — ${existing!.Status}` :
              isStopped ? `Stopped — ${existing!.Status}` :
@@ -482,6 +488,7 @@ export function RemoteDockerDeploy() {
     setLoading(true);
     try {
       const ok = await docker.ping();
+
       setDockerConnected(ok);
 
       if (ok) {
@@ -489,6 +496,7 @@ export function RemoteDockerDeploy() {
           docker.info().catch(() => null),
           docker.containers.list(true).catch(() => []),
         ]);
+
         setDockerInfo(info);
         setContainers(containerList);
       }
@@ -516,21 +524,23 @@ export function RemoteDockerDeploy() {
       const pullUrl = dockerApiUrl(`/images/create?fromImage=${encodeURIComponent(template.image)}`);
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 60000);
-      
+
       const res = await fetch(pullUrl, {
         method: 'POST',
         signal: controller.signal,
       });
+
       clearTimeout(timeout);
 
       if (!res.ok) {
         const text = await res.text();
+
         // Image might already exist locally
         if (!text.includes('not found')) {
           addLog('warn', `Image pull warning: ${text.slice(0, 100)}`);
         }
       }
-      
+
       addLog('success', `Image ready: ${template.image}`);
     } catch (err) {
       addLog('warn', `Image pull skipped (may exist locally): ${err instanceof Error ? err.message : 'timeout'}`);
@@ -540,15 +550,18 @@ export function RemoteDockerDeploy() {
     setDeployStep('creating');
     addLog('info', `Creating container: ${template.containerName}...`);
     let containerId: string;
+
     try {
       containerId = await createContainerFromTemplate(template);
       addLog('success', `Container created: ${containerId.slice(0, 12)}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
+
       if (msg.includes('Conflict') || msg.includes('already in use')) {
         addLog('warn', `Container "${template.containerName}" already exists. Attempting start...`);
         // Try to find and start existing container
         const existing = containers.find(c => c.Names.some(n => n === `/${template.containerName}`));
+
         if (existing) {
           containerId = existing.Id;
         } else {
@@ -556,6 +569,7 @@ export function RemoteDockerDeploy() {
           setDeployStep('error');
           eventBus.system('deploy_error', `Deploy failed: ${template.name} - container conflict`, 'error');
           setActiveDeployId(null);
+
           return;
         }
       } else {
@@ -563,6 +577,7 @@ export function RemoteDockerDeploy() {
         setDeployStep('error');
         eventBus.system('deploy_error', `Deploy failed: ${template.name} - ${msg}`, 'error');
         setActiveDeployId(null);
+
         return;
       }
     }
@@ -575,12 +590,14 @@ export function RemoteDockerDeploy() {
       addLog('success', `Container started successfully!`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : '';
+
       if (msg.includes('304') || msg.includes('already started')) {
         addLog('info', `Container was already running.`);
       } else {
         addLog('error', `Start failed: ${msg}`);
         setDeployStep('error');
         setActiveDeployId(null);
+
         return;
       }
     }
@@ -592,9 +609,10 @@ export function RemoteDockerDeploy() {
 
     try {
       const updatedContainers = await docker.containers.list(true);
+
       setContainers(updatedContainers);
       const deployed = updatedContainers.find(c =>
-        c.Names.some(n => n === `/${template.containerName}`)
+        c.Names.some(n => n === `/${template.containerName}`),
       );
 
       if (deployed?.State === 'running') {
@@ -635,7 +653,7 @@ export function RemoteDockerDeploy() {
             Phase 22
           </Badge>
           <Button size="sm" variant="ghost" className="h-7 px-2" onClick={refresh} disabled={loading}>
-            <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
+            <RefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin')} />
           </Button>
         </div>
       </div>
@@ -646,8 +664,8 @@ export function RemoteDockerDeploy() {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               <div className={cn(
-                "w-10 h-10 rounded-lg flex items-center justify-center",
-                dockerConnected ? "bg-green-500/10" : "bg-red-500/10"
+                'w-10 h-10 rounded-lg flex items-center justify-center',
+                dockerConnected ? 'bg-green-500/10' : 'bg-red-500/10',
               )}>
                 {loading ? (
                   <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
@@ -720,10 +738,10 @@ export function RemoteDockerDeploy() {
             </div>
             {deployStep !== 'idle' && (
               <Badge variant="outline" className={cn(
-                "text-[8px] h-5",
-                deployStep === 'done' ? "border-green-500/20 text-green-400" :
-                deployStep === 'error' ? "border-red-500/20 text-red-400" :
-                "border-cyan-500/20 text-cyan-400"
+                'text-[8px] h-5',
+                deployStep === 'done' ? 'border-green-500/20 text-green-400' :
+                deployStep === 'error' ? 'border-red-500/20 text-red-400' :
+                'border-cyan-500/20 text-cyan-400',
               )}>
                 {deployStep === 'pulling' && <><Loader2 className="w-2.5 h-2.5 mr-1 animate-spin" /> Pulling image...</>}
                 {deployStep === 'creating' && <><Loader2 className="w-2.5 h-2.5 mr-1 animate-spin" /> Creating container...</>}
@@ -758,16 +776,16 @@ export function RemoteDockerDeploy() {
                 >
                   <div className="flex items-center gap-3">
                     <div className={cn(
-                      "w-2 h-2 rounded-full",
-                      container.State === 'running' ? "bg-green-500 animate-pulse" : "bg-zinc-600"
+                      'w-2 h-2 rounded-full',
+                      container.State === 'running' ? 'bg-green-500 animate-pulse' : 'bg-zinc-600',
                     )} />
                     <span className="text-xs text-white font-mono">{container.Names[0]?.replace('/', '')}</span>
                     <span className="text-[9px] text-zinc-600 font-mono">{container.Image}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={cn(
-                      "text-[9px] font-mono",
-                      container.State === 'running' ? "text-green-400" : "text-zinc-500"
+                      'text-[9px] font-mono',
+                      container.State === 'running' ? 'text-green-400' : 'text-zinc-500',
                     )}>
                       {container.Status}
                     </span>

@@ -3,19 +3,20 @@
 // Phase 23: Comprehensive API Reference
 // ============================================================
 
-import * as React from 'react';
 import {
   FileText, Search, ChevronRight, Copy, CheckCircle2,
   Server, Database, Cpu, Shield, Network, Box,
-  Activity, Layers, ExternalLink, Code
+  Activity, Layers,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Button } from '@/app/components/ui/button';
+import * as React from 'react';
+
 import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card } from '@/app/components/ui/card';
 import { Input } from '@/app/components/ui/input';
 import { ScrollArea } from '@/app/components/ui/scroll-area';
+import type { ApiEndpoint } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import type { ApiEndpoint, ApiParameter, ApiResponse } from '@/lib/types';
 
 // ============================================================
 // API Registry — Full Documentation
@@ -404,7 +405,7 @@ const API_DOCS: ApiEndpoint[] = [
     requestBody: {
       contentType: 'application/json',
       schema: { db: 'string', sql: 'string', params: 'array' },
-      example: JSON.stringify({ db: '/Volume2/yyc3/yyc3.db', sql: "INSERT INTO metrics_snapshots (timestamp, node_id, cpu, memory, disk, network) VALUES (?, ?, ?, ?, ?, ?)", params: [Date.now(), 'm4-max', 45.2, 62.8, 31.5, 120.3] }, null, 2),
+      example: JSON.stringify({ db: '/Volume2/yyc3/yyc3.db', sql: 'INSERT INTO metrics_snapshots (timestamp, node_id, cpu, memory, disk, network) VALUES (?, ?, ?, ?, ?, ?)', params: [Date.now(), 'm4-max', 45.2, 62.8, 31.5, 120.3] }, null, 2),
     },
     parameters: [],
     responses: [
@@ -422,7 +423,7 @@ const API_DOCS: ApiEndpoint[] = [
     requestBody: {
       contentType: 'application/json',
       schema: { db: 'string', sql: 'string', params: 'array' },
-      example: JSON.stringify({ db: '/Volume2/yyc3/yyc3.db', sql: "INSERT INTO knowledge_base (id, title, content, category, tags, created_at) VALUES (?, ?, ?, ?, ?, ?)", params: ['kb-001', 'Docker Best Practices', 'Content here...', 'devops', 'docker,containers', Date.now()] }, null, 2),
+      example: JSON.stringify({ db: '/Volume2/yyc3/yyc3.db', sql: 'INSERT INTO knowledge_base (id, title, content, category, tags, created_at) VALUES (?, ?, ?, ?, ?, ?)', params: ['kb-001', 'Docker Best Practices', 'Content here...', 'devops', 'docker,containers', Date.now()] }, null, 2),
     },
     parameters: [],
     responses: [
@@ -514,6 +515,7 @@ export function ApiDocsViewer() {
       api.path.toLowerCase().includes(searchQuery.toLowerCase()) ||
       api.tags.some(t => t.includes(searchQuery.toLowerCase()));
     const matchesCategory = !selectedCategory || api.category === selectedCategory;
+
     return matchesSearch && matchesCategory;
   });
 
@@ -545,7 +547,7 @@ export function ApiDocsViewer() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
           <Input
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search APIs by name, path, or tag..."
             className="pl-9 bg-black/40 border-white/10 font-mono text-xs"
           />
@@ -563,6 +565,7 @@ export function ApiDocsViewer() {
             const catMeta = CATEGORIES[cat];
             const count = API_DOCS.filter(a => a.category === cat).length;
             const CatIcon = catMeta?.icon || Server;
+
             return (
               <Button
                 key={cat}
@@ -570,7 +573,7 @@ export function ApiDocsViewer() {
                 size="sm"
                 className={cn(
                   'text-xs border-white/10 gap-1.5',
-                  selectedCategory === cat && 'bg-white/10 border-white/20'
+                  selectedCategory === cat && 'bg-white/10 border-white/20',
                 )}
                 onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
               >
@@ -620,7 +623,7 @@ function ApiCard({ api, expanded, onToggle, onCopy, copiedId }: {
   return (
     <Card className={cn(
       'bg-zinc-900/40 border-white/5 transition-all cursor-pointer hover:border-white/10',
-      expanded && 'border-primary/20'
+      expanded && 'border-primary/20',
     )}>
       <div className="flex items-center gap-3 p-4" onClick={onToggle}>
         <Badge className={cn('font-mono text-[10px] px-2 py-0.5 border shrink-0', METHOD_COLORS[api.method])}>
@@ -683,7 +686,7 @@ function ApiCard({ api, expanded, onToggle, onCopy, copiedId }: {
                   variant="ghost"
                   size="sm"
                   className="h-6 px-2 text-[10px] gap-1 text-zinc-500"
-                  onClick={(e) => { e.stopPropagation(); onCopy(api.requestBody!.example, `req-${api.id}`); }}
+                  onClick={e => { e.stopPropagation(); onCopy(api.requestBody!.example, `req-${api.id}`); }}
                 >
                   {copiedId === `req-${api.id}` ? <CheckCircle2 className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
                   Copy
@@ -706,7 +709,7 @@ function ApiCard({ api, expanded, onToggle, onCopy, copiedId }: {
                       'text-[10px] px-1.5 py-0',
                       res.status < 300 ? 'bg-green-500/20 text-green-400' :
                       res.status < 400 ? 'bg-amber-500/20 text-amber-400' :
-                      'bg-red-500/20 text-red-400'
+                      'bg-red-500/20 text-red-400',
                     )}>
                       {res.status}
                     </Badge>
@@ -716,7 +719,7 @@ function ApiCard({ api, expanded, onToggle, onCopy, copiedId }: {
                         variant="ghost"
                         size="sm"
                         className="h-5 px-1.5 text-[10px] text-zinc-600 ml-auto"
-                        onClick={(e) => { e.stopPropagation(); onCopy(res.example!, `res-${api.id}-${i}`); }}
+                        onClick={e => { e.stopPropagation(); onCopy(res.example!, `res-${api.id}-${i}`); }}
                       >
                         {copiedId === `res-${api.id}-${i}` ? <CheckCircle2 className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
                       </Button>

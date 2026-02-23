@@ -1,28 +1,27 @@
-import * as React from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { X, Server, Cpu, GitBranch, Box, Shield, Settings2, Lock, Fingerprint, Eye, FileWarning, Plus, Trash2, Edit3, Save, CheckCircle2, Puzzle, Code2, Palette, Bot, Upload, ImageIcon, Type, Search, Layers, Sparkles, Monitor, RotateCcw, ArrowRight, Grip, ChevronRight, ArrowLeft, ArrowUp } from "lucide-react";
-import { useSystemStore } from "@/lib/store";
-import { cn } from "@/lib/utils";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { Switch } from "@/app/components/ui/switch";
-import { Slider } from "@/app/components/ui/slider";
-import { useTranslation } from "@/lib/i18n";
-import {
-  loadProviderConfigs,
-  saveProviderConfigs,
-  type ProviderConfig,
-} from "@/lib/llm-bridge";
-import { PROVIDERS } from "@/lib/llm-providers";
-import { maskApiKey } from "@/lib/crypto";
-import { AGENT_REGISTRY } from "@/lib/types";
+import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { X, Server, Cpu, GitBranch, Box, Shield, Settings2, Lock, Fingerprint, Eye, FileWarning, Plus, Trash2, Edit3, Save, CheckCircle2, Puzzle, Code2, Palette, Bot, Upload, ImageIcon, Type, Search, Layers, Sparkles, Monitor, RotateCcw, ArrowRight, Grip, ChevronRight, ArrowLeft, ArrowUp } from 'lucide-react';
+import * as React from 'react';
+
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { Slider } from '@/app/components/ui/slider';
+import { Switch } from '@/app/components/ui/switch';
 import {
   loadBranding, saveBranding, DEFAULT_BRANDING,
   loadAgentCustomConfig, saveAgentCustomConfig, getMergedAgents,
   AGENT_COLOR_PRESETS,
   type BrandingConfig, type AgentCustomConfig, type CustomAgent, type AgentOverride,
-} from "@/lib/branding-config";
+} from '@/lib/branding-config';
+import { useTranslation } from '@/lib/i18n';
+import {
+  saveProviderConfigs,
+  type ProviderConfig,
+} from '@/lib/llm-bridge';
+import { PROVIDERS } from '@/lib/llm-providers';
+import { useSystemStore } from '@/lib/store';
+import { AGENT_REGISTRY } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 interface SettingsModalProps {
   open: boolean;
@@ -30,14 +29,15 @@ interface SettingsModalProps {
   defaultTab?: string;
 }
 
-export function SettingsModal({ open, onOpenChange, defaultTab = "general" }: SettingsModalProps) {
+export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: SettingsModalProps) {
   const { t, language, setLanguage } = useTranslation();
   const [activeTab, setActiveTab] = React.useState(defaultTab);
-  const isMobile = useSystemStore((s) => s.isMobile);
+  const isMobile = useSystemStore(s => s.isMobile);
   // Mobile: show sidebar or content (not both)
   const [mobileShowContent, setMobileShowContent] = React.useState(false);
   const [brandingLabel, setBrandingLabel] = React.useState(() => {
     const b = loadBranding();
+
     return `${b.appName || 'YYC3'} Kernel v${b.version || '3.0.1'}`;
   });
 
@@ -47,12 +47,15 @@ export function SettingsModal({ open, onOpenChange, defaultTab = "general" }: Se
 
   React.useEffect(() => {
     const sentinel = topSentinelRef.current;
+
     if (!sentinel) return;
     const observer = new IntersectionObserver(
       ([entry]) => setShowScrollTop(!entry.isIntersecting),
-      { threshold: 0 }
+      { threshold: 0 },
     );
+
     observer.observe(sentinel);
+
     return () => observer.disconnect();
   }, [activeTab, mobileShowContent]);
 
@@ -76,9 +79,12 @@ export function SettingsModal({ open, onOpenChange, defaultTab = "general" }: Se
   React.useEffect(() => {
     const handler = () => {
       const b = loadBranding();
+
       setBrandingLabel(`${b.appName || 'YYC3'} Kernel v${b.version || '3.0.1'}`);
     };
+
     window.addEventListener('yyc3-branding-update', handler);
+
     return () => window.removeEventListener('yyc3-branding-update', handler);
   }, []);
 
@@ -107,12 +113,12 @@ export function SettingsModal({ open, onOpenChange, defaultTab = "general" }: Se
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-300 yyc3-overlay-bg" />
         <DialogPrimitive.Content className={cn(
-          "fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] border border-border shadow-lg duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-10 p-0 overflow-hidden yyc3-panel-bg",
+          'fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] border border-border shadow-lg duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-10 p-0 overflow-hidden yyc3-panel-bg',
           isMobile
-            ? "max-w-[100vw] w-full h-[100dvh] rounded-none"
-            : "max-w-5xl sm:rounded-lg md:w-[90vw] h-[85vh]"
+            ? 'max-w-[100vw] w-full h-[100dvh] rounded-none'
+            : 'max-w-5xl sm:rounded-lg md:w-[90vw] h-[85vh]',
         )}>
-          
+
           <DialogPrimitive.Title className="sr-only">{t('settings.title')}</DialogPrimitive.Title>
           <DialogPrimitive.Description className="sr-only">
             {t('settings.desc')}
@@ -121,15 +127,15 @@ export function SettingsModal({ open, onOpenChange, defaultTab = "general" }: Se
           <div className="flex h-full">
             {/* Sidebar — hidden on mobile when showing content */}
             <div className={cn(
-              "bg-muted/30 border-r border-border flex flex-col",
+              'bg-muted/30 border-r border-border flex flex-col',
               isMobile
-                ? (mobileShowContent ? "hidden" : "w-full")
-                : "w-64"
+                ? (mobileShowContent ? 'hidden' : 'w-full')
+                : 'w-64',
             )}>
               <div className="h-14 flex items-center px-6 border-b border-border shrink-0">
                 <h2 className="text-lg font-bold font-mono tracking-wider text-primary flex items-center gap-2 flex-1">
-                   <Settings2 className="w-5 h-5 animate-spin-slow" />
-                   {t('settings.title')}
+                  <Settings2 className="w-5 h-5 animate-spin-slow" />
+                  {t('settings.title')}
                 </h2>
                 {isMobile && (
                   <DialogPrimitive.Close asChild>
@@ -140,16 +146,16 @@ export function SettingsModal({ open, onOpenChange, defaultTab = "general" }: Se
                 )}
               </div>
               <ScrollArea className="flex-1">
-                 <div className="p-2 space-y-1">
-                    <TabButton active={activeTab === 'general'} onClick={() => handleTabClick('general')} icon={Server} label={t('settings.tab.general')} />
-                     <TabButton active={activeTab === 'models'} onClick={() => handleTabClick('models')} icon={Cpu} label={t('settings.tab.models')} />
-                     <TabButton active={activeTab === 'gitops'} onClick={() => handleTabClick('gitops')} icon={GitBranch} label={t('settings.tab.gitops')} />
-                     <TabButton active={activeTab === 'extensions'} onClick={() => handleTabClick('extensions')} icon={Box} label={t('settings.tab.extensions')} />
-                     <TabButton active={activeTab === 'security'} onClick={() => handleTabClick('security')} icon={Shield} label={t('settings.tab.security')} />
-                    <div className="my-2 border-t border-border/30 mx-4" />
-                    <TabButton active={activeTab === 'appearance'} onClick={() => handleTabClick('appearance')} icon={Palette} label={t('settings.tab.appearance')} />
-                    <TabButton active={activeTab === 'agents'} onClick={() => handleTabClick('agents')} icon={Bot} label={t('settings.tab.agents')} />
-                 </div>
+                <div className="p-2 space-y-1">
+                  <TabButton active={activeTab === 'general'} onClick={() => handleTabClick('general')} icon={Server} label={t('settings.tab.general')} />
+                  <TabButton active={activeTab === 'models'} onClick={() => handleTabClick('models')} icon={Cpu} label={t('settings.tab.models')} />
+                  <TabButton active={activeTab === 'gitops'} onClick={() => handleTabClick('gitops')} icon={GitBranch} label={t('settings.tab.gitops')} />
+                  <TabButton active={activeTab === 'extensions'} onClick={() => handleTabClick('extensions')} icon={Box} label={t('settings.tab.extensions')} />
+                  <TabButton active={activeTab === 'security'} onClick={() => handleTabClick('security')} icon={Shield} label={t('settings.tab.security')} />
+                  <div className="my-2 border-t border-border/30 mx-4" />
+                  <TabButton active={activeTab === 'appearance'} onClick={() => handleTabClick('appearance')} icon={Palette} label={t('settings.tab.appearance')} />
+                  <TabButton active={activeTab === 'agents'} onClick={() => handleTabClick('agents')} icon={Bot} label={t('settings.tab.agents')} />
+                </div>
               </ScrollArea>
               <div className="p-4 border-t border-border text-xs text-muted-foreground font-mono">
                 {brandingLabel}
@@ -158,57 +164,57 @@ export function SettingsModal({ open, onOpenChange, defaultTab = "general" }: Se
 
             {/* Content — on mobile, full-width when showing content */}
             <div className={cn(
-              "flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-background/50",
-              isMobile && !mobileShowContent && "hidden"
+              'flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-background/50',
+              isMobile && !mobileShowContent && 'hidden',
             )}>
-               <div className={cn(
-                 "h-14 border-b border-border flex items-center justify-between bg-background/50 backdrop-blur-xl shrink-0",
-                 isMobile ? "px-4" : "px-8"
-               )}>
-                  <div className="flex items-center gap-3 min-w-0">
-                    {/* Mobile back button */}
-                    {isMobile && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 shrink-0 text-muted-foreground hover:text-primary"
-                        onClick={() => setMobileShowContent(false)}
-                      >
-                        <ArrowLeft className="w-4 h-4" />
-                      </Button>
-                    )}
-                    <div className="min-w-0">
-                      <h3 className="text-sm font-semibold font-mono uppercase animate-in fade-in slide-in-from-left-2 truncate">{t(`settings.tab.${activeTab}`)}</h3>
-                      <p className="text-[10px] text-muted-foreground font-mono truncate">{t('settings.desc')}</p>
-                    </div>
-                  </div>
-                  <DialogPrimitive.Close asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive transition-all hover:rotate-90 shrink-0">
-                      <X className="w-4 h-4" />
-                      <span className="sr-only">Close</span>
+              <div className={cn(
+                'h-14 border-b border-border flex items-center justify-between bg-background/50 backdrop-blur-xl shrink-0',
+                 isMobile ? 'px-4' : 'px-8',
+              )}>
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Mobile back button */}
+                  {isMobile && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0 text-muted-foreground hover:text-primary"
+                      onClick={() => setMobileShowContent(false)}
+                    >
+                      <ArrowLeft className="w-4 h-4" />
                     </Button>
-                  </DialogPrimitive.Close>
-               </div>
+                  )}
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-semibold font-mono uppercase animate-in fade-in slide-in-from-left-2 truncate">{t(`settings.tab.${activeTab}`)}</h3>
+                    <p className="text-[10px] text-muted-foreground font-mono truncate">{t('settings.desc')}</p>
+                  </div>
+                </div>
+                <DialogPrimitive.Close asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive transition-all hover:rotate-90 shrink-0">
+                    <X className="w-4 h-4" />
+                    <span className="sr-only">Close</span>
+                  </Button>
+                </DialogPrimitive.Close>
+              </div>
 
-               {/* Scrollable content — absolute positioning ensures deterministic height for ScrollArea */}
-               <div className="flex-1 min-h-0 relative">
-                 <ScrollArea className="absolute inset-0" showTrack>
-                   <div ref={topSentinelRef} className="h-0 w-0" aria-hidden />
-                   <div className={cn(isMobile ? "p-4 pb-8" : "p-8")}>
-                     {settingsContent}
-                   </div>
-                 </ScrollArea>
-                 {/* Floating scroll-to-top button */}
-                 {showScrollTop && (
-                   <button
-                     onClick={scrollToTop}
-                     className="absolute bottom-4 right-4 z-10 w-9 h-9 rounded-full bg-primary/80 hover:bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/30 backdrop-blur-sm transition-all hover:scale-110 animate-in fade-in zoom-in-75 duration-200"
-                     title={t('settings.tab.general') === '通用设置' ? '回到顶部' : 'Back to top'}
-                   >
-                     <ArrowUp className="w-4 h-4" />
-                   </button>
-                 )}
-               </div>
+              {/* Scrollable content — absolute positioning ensures deterministic height for ScrollArea */}
+              <div className="flex-1 min-h-0 relative">
+                <ScrollArea className="absolute inset-0" showTrack>
+                  <div ref={topSentinelRef} className="h-0 w-0" aria-hidden />
+                  <div className={cn(isMobile ? 'p-4 pb-8' : 'p-8')}>
+                    {settingsContent}
+                  </div>
+                </ScrollArea>
+                {/* Floating scroll-to-top button */}
+                {showScrollTop && (
+                  <button
+                    onClick={scrollToTop}
+                    className="absolute bottom-4 right-4 z-10 w-9 h-9 rounded-full bg-primary/80 hover:bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/30 backdrop-blur-sm transition-all hover:scale-110 animate-in fade-in zoom-in-75 duration-200"
+                    title={t('settings.tab.general') === '通用设置' ? '回到顶部' : 'Back to top'}
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -261,15 +267,15 @@ function TabButton({ active, onClick, icon: Icon, label }: TabButtonProps) {
     <button
       onClick={onClick}
       className={cn(
-        "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200 rounded-md font-mono relative overflow-hidden group",
-        active 
-          ? "bg-primary/15 text-primary shadow-[inset_3px_0_0_0_hsl(var(--primary))] border border-primary/20" 
-          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground active:scale-[0.98] border border-transparent"
+        'w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200 rounded-md font-mono relative overflow-hidden group',
+        active
+          ? 'bg-primary/15 text-primary shadow-[inset_3px_0_0_0_hsl(var(--primary))] border border-primary/20'
+          : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground active:scale-[0.98] border border-transparent',
       )}
     >
       <Icon className={cn(
-        "w-4 h-4 transition-all duration-300",
-        active ? "scale-110 text-primary drop-shadow-[0_0_4px_rgba(14,165,233,0.5)]" : "group-hover:scale-110 group-hover:text-primary/60"
+        'w-4 h-4 transition-all duration-300',
+        active ? 'scale-110 text-primary drop-shadow-[0_0_4px_rgba(14,165,233,0.5)]' : 'group-hover:scale-110 group-hover:text-primary/60',
       )} />
       <span className="relative z-10">{label}</span>
       {active && (
@@ -279,7 +285,7 @@ function TabButton({ active, onClick, icon: Icon, label }: TabButtonProps) {
         </>
       )}
     </button>
-  )
+  );
 }
 
 interface GeneralSettingsWithTabProps extends GeneralSettingsProps {
@@ -296,10 +302,13 @@ function GeneralSettings({ language, setLanguage, t, onSwitchTab }: GeneralSetti
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (!file || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+
+    reader.onload = ev => {
       const dataUrl = ev.target?.result as string;
+
       setBranding(prev => ({ ...prev, logoDataUrl: dataUrl, logoFileName: file.name }));
     };
     reader.readAsDataURL(file);
@@ -436,49 +445,49 @@ function GeneralSettings({ language, setLanguage, t, onSwitchTab }: GeneralSetti
       {/* ============ SECTION: System Preferences ============ */}
       <div className="grid gap-4">
         <div className="space-y-2">
-           <label className="text-sm font-medium font-mono">{t('settings.workspace_name')}</label>
-           <Input placeholder="Enter workspace name" defaultValue="DevOps_Playground_Alpha" className="font-mono bg-muted/20 focus-visible:ring-primary transition-all" />
+          <label className="text-sm font-medium font-mono">{t('settings.workspace_name')}</label>
+          <Input placeholder="Enter workspace name" defaultValue="DevOps_Playground_Alpha" className="font-mono bg-muted/20 focus-visible:ring-primary transition-all" />
         </div>
 
         <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
-           <div className="space-y-0.5">
-              <label className="text-sm font-medium font-mono block">{t('settings.language')}</label>
-              <span className="text-xs text-muted-foreground">Select system interface language</span>
-           </div>
-           <div className="flex items-center gap-2 bg-muted p-1 rounded-lg border border-border">
-              <button 
-                onClick={() => setLanguage('en')}
-                className={cn("text-xs font-mono px-3 py-1 rounded transition-all", language === 'en' ? "bg-primary text-primary-foreground shadow-sm" : "hover:text-foreground text-muted-foreground")}
-              >
+          <div className="space-y-0.5">
+            <label className="text-sm font-medium font-mono block">{t('settings.language')}</label>
+            <span className="text-xs text-muted-foreground">Select system interface language</span>
+          </div>
+          <div className="flex items-center gap-2 bg-muted p-1 rounded-lg border border-border">
+            <button
+              onClick={() => setLanguage('en')}
+              className={cn('text-xs font-mono px-3 py-1 rounded transition-all', language === 'en' ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:text-foreground text-muted-foreground')}
+            >
                 EN
-              </button>
-              <button 
-                onClick={() => setLanguage('zh')}
-                className={cn("text-xs font-mono px-3 py-1 rounded transition-all", language === 'zh' ? "bg-primary text-primary-foreground shadow-sm" : "hover:text-foreground text-muted-foreground")}
-              >
+            </button>
+            <button
+              onClick={() => setLanguage('zh')}
+              className={cn('text-xs font-mono px-3 py-1 rounded transition-all', language === 'zh' ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:text-foreground text-muted-foreground')}
+            >
                 中文
-              </button>
-           </div>
+            </button>
+          </div>
         </div>
-        
+
         <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
-           <div className="space-y-0.5">
-              <label className="text-sm font-medium font-mono block">{t('settings.dev_mode')}</label>
-              <span className="text-xs text-muted-foreground">{t('settings.dev_mode_desc')}</span>
-           </div>
-           <Switch defaultChecked />
+          <div className="space-y-0.5">
+            <label className="text-sm font-medium font-mono block">{t('settings.dev_mode')}</label>
+            <span className="text-xs text-muted-foreground">{t('settings.dev_mode_desc')}</span>
+          </div>
+          <Switch defaultChecked />
         </div>
-        
+
         <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
-           <div className="space-y-0.5">
-              <label className="text-sm font-medium font-mono block">{t('settings.auto_save')}</label>
-              <span className="text-xs text-muted-foreground">{t('settings.auto_save_desc')}</span>
-           </div>
-           <Switch />
+          <div className="space-y-0.5">
+            <label className="text-sm font-medium font-mono block">{t('settings.auto_save')}</label>
+            <span className="text-xs text-muted-foreground">{t('settings.auto_save_desc')}</span>
+          </div>
+          <Switch />
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 const MODELS_STORAGE_KEY = 'yyc3-models-config';
@@ -506,8 +515,10 @@ const DEFAULT_MODELS: ModelConfig[] = [
 function loadModels(): ModelConfig[] {
   try {
     const raw = localStorage.getItem(MODELS_STORAGE_KEY);
+
     if (raw) return JSON.parse(raw);
   } catch { /* ignore */ }
+
   return DEFAULT_MODELS;
 }
 
@@ -530,6 +541,7 @@ function ModelsSettings({ t }: TranslationProps) {
 
     // Map model configs to provider configs for the LLM Bridge
     const providerMap: Record<string, ProviderConfig> = {};
+
     for (const model of models) {
       // Try to match to a known provider
       const providerLower = model.provider.toLowerCase();
@@ -582,6 +594,7 @@ function ModelsSettings({ t }: TranslationProps) {
   const handleAddModel = () => {
     if (!newModel.name.trim()) return;
     const id = `custom-${Date.now()}`;
+
     setModels(prev => [...prev, {
       id,
       name: newModel.name,
@@ -629,10 +642,10 @@ function ModelsSettings({ t }: TranslationProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {models.map(model => (
           <div key={model.id} className={cn(
-            "p-4 rounded-lg border flex flex-col gap-2 transition-all group relative",
+            'p-4 rounded-lg border flex flex-col gap-2 transition-all group relative',
             model.status === 'active'
-              ? "bg-primary/5 border-primary shadow-[0_0_15px_rgba(14,165,233,0.1)]"
-              : "bg-background border-border hover:border-primary/50 hover:bg-muted/5"
+              ? 'bg-primary/5 border-primary shadow-[0_0_15px_rgba(14,165,233,0.1)]'
+              : 'bg-background border-border hover:border-primary/50 hover:bg-muted/5',
           )}>
             {editingId === model.id ? (
               /* Edit Mode */
@@ -660,8 +673,8 @@ function ModelsSettings({ t }: TranslationProps) {
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={() => handleToggleStatus(model.id)} className={cn(
-                      "w-2 h-2 rounded-full transition-shadow duration-500 cursor-pointer",
-                      model.status === 'active' ? "bg-green-500 shadow-[0_0_5px_#22c55e] animate-pulse" : "bg-muted-foreground hover:bg-amber-500"
+                      'w-2 h-2 rounded-full transition-shadow duration-500 cursor-pointer',
+                      model.status === 'active' ? 'bg-green-500 shadow-[0_0_5px_#22c55e] animate-pulse' : 'bg-muted-foreground hover:bg-amber-500',
                     )} title={`Click to ${model.status === 'active' ? 'deactivate' : 'activate'}`} />
                   </div>
                 </div>
@@ -708,60 +721,60 @@ function ModelsSettings({ t }: TranslationProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function GitOpsSettings({ t }: TranslationProps) {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-       <div className="p-4 rounded-lg border border-dashed border-border bg-muted/5 hover:bg-muted/10 transition-colors">
-          <div className="flex items-center gap-4">
-             <div className="w-12 h-12 rounded-full bg-background flex items-center justify-center border border-border group-hover:border-primary transition-colors">
-                <GitBranch className="w-6 h-6 text-foreground" />
-             </div>
-             <div>
-               <h4 className="font-bold text-sm font-mono">GitHub Connection</h4>
-               <p className="text-xs text-muted-foreground">Connected as @dev_operator</p>
-             </div>
-             <Button variant="outline" size="sm" className="ml-auto text-xs font-mono hover:bg-primary hover:text-primary-foreground transition-all">Re-Connect</Button>
+      <div className="p-4 rounded-lg border border-dashed border-border bg-muted/5 hover:bg-muted/10 transition-colors">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-background flex items-center justify-center border border-border group-hover:border-primary transition-colors">
+            <GitBranch className="w-6 h-6 text-foreground" />
           </div>
-       </div>
+          <div>
+            <h4 className="font-bold text-sm font-mono">GitHub Connection</h4>
+            <p className="text-xs text-muted-foreground">Connected as @dev_operator</p>
+          </div>
+          <Button variant="outline" size="sm" className="ml-auto text-xs font-mono hover:bg-primary hover:text-primary-foreground transition-all">Re-Connect</Button>
+        </div>
+      </div>
 
-       <div className="space-y-4">
-          <h4 className="text-sm font-medium font-mono">Repositories</h4>
-          <div className="grid gap-2">
-             <RepoItem name="yyc3-core-infrastructure" branch="main" status="Synced" />
-             <RepoItem name="yyc3-frontend-v2" branch="develop" status="1 commit ahead" />
-             <RepoItem name="yyc3-agent-swarm" branch="feature/new-planner" status="Syncing..." />
-          </div>
-       </div>
-       
-       <div className="flex gap-2 pt-4">
-          <Button className="flex-1 font-mono text-xs gap-2 hover:scale-[1.02] transition-transform">
-             <GitBranch className="w-3 h-3" />
+      <div className="space-y-4">
+        <h4 className="text-sm font-medium font-mono">Repositories</h4>
+        <div className="grid gap-2">
+          <RepoItem name="yyc3-core-infrastructure" branch="main" status="Synced" />
+          <RepoItem name="yyc3-frontend-v2" branch="develop" status="1 commit ahead" />
+          <RepoItem name="yyc3-agent-swarm" branch="feature/new-planner" status="Syncing..." />
+        </div>
+      </div>
+
+      <div className="flex gap-2 pt-4">
+        <Button className="flex-1 font-mono text-xs gap-2 hover:scale-[1.02] transition-transform">
+          <GitBranch className="w-3 h-3" />
              PULL REQUEST
-          </Button>
-          <Button variant="outline" className="flex-1 font-mono text-xs gap-2 hover:scale-[1.02] transition-transform">
+        </Button>
+        <Button variant="outline" className="flex-1 font-mono text-xs gap-2 hover:scale-[1.02] transition-transform">
              SYNC ALL
-          </Button>
-       </div>
+        </Button>
+      </div>
     </div>
-  )
+  );
 }
 
 function RepoItem({ name, branch, status }: RepoItemProps) {
   return (
     <div className="flex items-center justify-between p-3 rounded bg-muted/10 border border-border/50 font-mono text-xs hover:bg-muted/30 hover:border-primary/30 transition-all cursor-pointer group">
-       <div className="flex items-center gap-2">
-          <GitBranch className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
-          <span className="text-foreground">{name}</span>
-       </div>
-       <div className="flex items-center gap-3">
-          <span className="text-primary bg-primary/10 px-1.5 rounded">{branch}</span>
-          <span className="text-muted-foreground">{status}</span>
-       </div>
+      <div className="flex items-center gap-2">
+        <GitBranch className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
+        <span className="text-foreground">{name}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-primary bg-primary/10 px-1.5 rounded">{branch}</span>
+        <span className="text-muted-foreground">{status}</span>
+      </div>
     </div>
-  )
+  );
 }
 
 const PLUGINS_STORAGE_KEY = 'yyc3-plugins-config';
@@ -792,8 +805,10 @@ const DEFAULT_PLUGINS: PluginConfig[] = [
 function loadPlugins(): PluginConfig[] {
   try {
     const raw = localStorage.getItem(PLUGINS_STORAGE_KEY);
+
     if (raw) return JSON.parse(raw);
   } catch { /* ignore */ }
+
   return DEFAULT_PLUGINS;
 }
 
@@ -868,10 +883,10 @@ function ExtensionsSettings({ t }: TranslationProps) {
               key={cat}
               onClick={() => setFilterCategory(cat)}
               className={cn(
-                "px-2.5 py-1 rounded text-xs font-mono transition-colors",
+                'px-2.5 py-1 rounded text-xs font-mono transition-colors',
                 filterCategory === cat
-                  ? "bg-primary/15 text-primary border border-primary/30"
-                  : "text-muted-foreground hover:text-foreground border border-transparent hover:border-border"
+                  ? 'bg-primary/15 text-primary border border-primary/30'
+                  : 'text-muted-foreground hover:text-foreground border border-transparent hover:border-border',
               )}
             >
               {cat === 'all' ? 'ALL' : cat === 'self-developed' ? '自研' : cat === 'community' ? 'Community' : 'Official'}
@@ -908,10 +923,10 @@ function ExtensionsSettings({ t }: TranslationProps) {
           <div
             key={plugin.id}
             className={cn(
-              "p-4 rounded-lg border transition-all group",
+              'p-4 rounded-lg border transition-all group',
               plugin.enabled
-                ? "bg-muted/5 border-border hover:border-primary/30"
-                : "bg-muted/5 border-border/50 opacity-60 hover:opacity-80"
+                ? 'bg-muted/5 border-border hover:border-primary/30'
+                : 'bg-muted/5 border-border/50 opacity-60 hover:opacity-80',
             )}
           >
             <div className="flex items-start gap-3">
@@ -922,10 +937,10 @@ function ExtensionsSettings({ t }: TranslationProps) {
                 <div className="flex items-center gap-2">
                   <h4 className="text-sm font-mono truncate">{plugin.name}</h4>
                   <span className={cn(
-                    "text-[9px] font-mono px-1.5 py-0.5 rounded border shrink-0",
-                    plugin.category === 'self-developed' ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                      : plugin.category === 'official' ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
-                      : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
+                    'text-[9px] font-mono px-1.5 py-0.5 rounded border shrink-0',
+                    plugin.category === 'self-developed' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                      : plugin.category === 'official' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                      : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
                   )}>
                     {plugin.category === 'self-developed' ? '自研' : plugin.category}
                   </span>
@@ -950,70 +965,70 @@ function ExtensionsSettings({ t }: TranslationProps) {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 function SecuritySettings({ t }: TranslationProps) {
-    return (
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-         <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-green-500/10 border-green-500/20">
-            <div className="flex items-center gap-4">
-               <Shield className="w-8 h-8 text-green-500" />
-               <div>
-                  <h4 className="font-bold text-sm text-green-500">SYSTEM SECURE</h4>
-                  <p className="text-xs text-muted-foreground">All security systems operational. No threats detected.</p>
-               </div>
-            </div>
-            <Button size="sm" className="bg-green-500/20 text-green-500 hover:bg-green-500/30 border-green-500/50">RUN AUDIT</Button>
-         </div>
-
-         <div className="grid gap-4">
-            <div className="flex items-center justify-between p-3 rounded bg-muted/5 border border-border">
-               <div className="flex items-center gap-3">
-                  <Lock className="w-4 h-4 text-primary" />
-                  <div className="space-y-0.5">
-                     <div className="text-sm font-medium font-mono">Data Encryption (AES-256)</div>
-                     <div className="text-xs text-muted-foreground">At-rest data protection active</div>
-                  </div>
-               </div>
-               <Switch defaultChecked disabled />
-            </div>
-
-            <div className="flex items-center justify-between p-3 rounded bg-muted/5 border border-border">
-               <div className="flex items-center gap-3">
-                  <Fingerprint className="w-4 h-4 text-primary" />
-                  <div className="space-y-0.5">
-                     <div className="text-sm font-medium font-mono">Biometric / MFA Auth</div>
-                     <div className="text-xs text-muted-foreground">Require YubiKey or Authenticator</div>
-                  </div>
-               </div>
-               <Switch defaultChecked />
-            </div>
-
-            <div className="flex items-center justify-between p-3 rounded bg-muted/5 border border-border">
-               <div className="flex items-center gap-3">
-                  <Eye className="w-4 h-4 text-primary" />
-                  <div className="space-y-0.5">
-                     <div className="text-sm font-medium font-mono">Input Sanitization</div>
-                     <div className="text-xs text-muted-foreground">XSS/SQLi filter middleware</div>
-                  </div>
-               </div>
-               <Switch defaultChecked disabled />
-            </div>
-            
-            <div className="flex items-center justify-between p-3 rounded bg-muted/5 border border-border">
-               <div className="flex items-center gap-3">
-                  <FileWarning className="w-4 h-4 text-primary" />
-                  <div className="space-y-0.5">
-                     <div className="text-sm font-medium font-mono">Access Logs</div>
-                     <div className="text-xs text-muted-foreground">Retention: 90 Days</div>
-                  </div>
-               </div>
-               <Button variant="outline" size="sm" className="h-7 text-xs">VIEW LOGS</Button>
-            </div>
-         </div>
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-green-500/10 border-green-500/20">
+        <div className="flex items-center gap-4">
+          <Shield className="w-8 h-8 text-green-500" />
+          <div>
+            <h4 className="font-bold text-sm text-green-500">SYSTEM SECURE</h4>
+            <p className="text-xs text-muted-foreground">All security systems operational. No threats detected.</p>
+          </div>
+        </div>
+        <Button size="sm" className="bg-green-500/20 text-green-500 hover:bg-green-500/30 border-green-500/50">RUN AUDIT</Button>
       </div>
-    )
+
+      <div className="grid gap-4">
+        <div className="flex items-center justify-between p-3 rounded bg-muted/5 border border-border">
+          <div className="flex items-center gap-3">
+            <Lock className="w-4 h-4 text-primary" />
+            <div className="space-y-0.5">
+              <div className="text-sm font-medium font-mono">Data Encryption (AES-256)</div>
+              <div className="text-xs text-muted-foreground">At-rest data protection active</div>
+            </div>
+          </div>
+          <Switch defaultChecked disabled />
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded bg-muted/5 border border-border">
+          <div className="flex items-center gap-3">
+            <Fingerprint className="w-4 h-4 text-primary" />
+            <div className="space-y-0.5">
+              <div className="text-sm font-medium font-mono">Biometric / MFA Auth</div>
+              <div className="text-xs text-muted-foreground">Require YubiKey or Authenticator</div>
+            </div>
+          </div>
+          <Switch defaultChecked />
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded bg-muted/5 border border-border">
+          <div className="flex items-center gap-3">
+            <Eye className="w-4 h-4 text-primary" />
+            <div className="space-y-0.5">
+              <div className="text-sm font-medium font-mono">Input Sanitization</div>
+              <div className="text-xs text-muted-foreground">XSS/SQLi filter middleware</div>
+            </div>
+          </div>
+          <Switch defaultChecked disabled />
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded bg-muted/5 border border-border">
+          <div className="flex items-center gap-3">
+            <FileWarning className="w-4 h-4 text-primary" />
+            <div className="space-y-0.5">
+              <div className="text-sm font-medium font-mono">Access Logs</div>
+              <div className="text-xs text-muted-foreground">Retention: 90 Days</div>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" className="h-7 text-xs">VIEW LOGS</Button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 const ACCENT_PRESETS = [
@@ -1078,8 +1093,10 @@ const DEFAULT_APPEARANCE: AppearanceConfig = {
 function loadAppearance(): AppearanceConfig {
   try {
     const raw = localStorage.getItem(APPEARANCE_STORAGE_KEY);
+
     if (raw) return { ...DEFAULT_APPEARANCE, ...JSON.parse(raw) };
   } catch { /* ignore */ }
+
   return DEFAULT_APPEARANCE;
 }
 
@@ -1094,17 +1111,20 @@ function saveAppearance(config: AppearanceConfig) {
       localStorage.removeItem(BG_IMAGE_STORAGE_KEY);
     }
     const toSave = { ...config, bgImageDataUrl: config.bgImageDataUrl ? '__stored__' : '' };
+
     localStorage.setItem(APPEARANCE_STORAGE_KEY, JSON.stringify(toSave));
   } catch { /* ignore - may exceed quota for large images */ }
 }
 
 function loadAppearanceFull(): AppearanceConfig {
   const base = loadAppearance();
+
   if (base.bgImageDataUrl === '__stored__') {
     try {
       base.bgImageDataUrl = localStorage.getItem(BG_IMAGE_STORAGE_KEY) || '';
     } catch { base.bgImageDataUrl = ''; }
   }
+
   return base;
 }
 
@@ -1132,9 +1152,12 @@ function AppearanceSettings({ t }: TranslationProps) {
   const [config, setConfig] = React.useState<AppearanceConfig>(() => loadAppearanceFull());
   const bgFileRef = React.useRef<HTMLInputElement>(null);
   const [brandingSnapshot, setBrandingSnapshot] = React.useState<BrandingConfig>(() => loadBranding());
+
   React.useEffect(() => {
     const handler = () => setBrandingSnapshot(loadBranding());
+
     window.addEventListener('yyc3-branding-update', handler);
+
     return () => window.removeEventListener('yyc3-branding-update', handler);
   }, []);
   const [localFonts, setLocalFonts] = React.useState<string[]>([]);
@@ -1151,10 +1174,12 @@ function AppearanceSettings({ t }: TranslationProps) {
       if ('queryLocalFonts' in window) {
         const fonts: FontData[] = await window.queryLocalFonts();
         const familySet = new Set<string>();
+
         for (const font of fonts) {
           familySet.add(font.family);
         }
         const sorted = Array.from(familySet).sort((a, b) => a.localeCompare(b));
+
         setLocalFonts(sorted);
       }
     } catch {
@@ -1169,7 +1194,9 @@ function AppearanceSettings({ t }: TranslationProps) {
       if (fontDropdownRef.current && !fontDropdownRef.current.contains(e.target as Node)) setShowFontDropdown(false);
       if (monoDropdownRef.current && !monoDropdownRef.current.contains(e.target as Node)) setShowMonoDropdown(false);
     };
+
     document.addEventListener('mousedown', handler);
+
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
@@ -1177,6 +1204,7 @@ function AppearanceSettings({ t }: TranslationProps) {
   React.useEffect(() => {
     saveAppearance(config);
     const root = document.documentElement;
+
     root.style.setProperty('--primary', config.accentColor);
     root.style.setProperty('--ring', config.accentColor);
     root.style.setProperty('--accent-foreground', config.accentColor);
@@ -1200,12 +1228,15 @@ function AppearanceSettings({ t }: TranslationProps) {
 
     // Scanline
     const scanlineEl = document.querySelector('.scanline') as HTMLElement | null;
+
     if (scanlineEl) scanlineEl.style.display = config.scanline ? '' : 'none';
 
     // Glow
     const existingStyle = document.getElementById('yyc3-glow-style');
+
     if (existingStyle) existingStyle.remove();
     const style = document.createElement('style');
+
     style.id = 'yyc3-glow-style';
     style.textContent = `.glow-text { text-shadow: ${config.glowEffect ? `0 0 10px ${config.glowColor}80, 0 0 20px ${config.glowColor}50` : 'none'}; }`;
     document.head.appendChild(style);
@@ -1221,11 +1252,14 @@ function AppearanceSettings({ t }: TranslationProps) {
   // Background image upload
   const handleBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (!file) return;
     if (!file.type.startsWith('image/')) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+
+    reader.onload = ev => {
       const dataUrl = ev.target?.result as string;
+
       setConfig(prev => ({ ...prev, bgImageDataUrl: dataUrl, bgImageName: file.name }));
     };
     reader.readAsDataURL(file);
@@ -1235,14 +1269,16 @@ function AppearanceSettings({ t }: TranslationProps) {
   // Build font list (merged local + popular)
   const allFonts = React.useMemo(() => {
     const set = new Set([...POPULAR_FONTS, ...localFonts]);
+
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [localFonts]);
 
   const allMonoFonts = React.useMemo(() => {
     const monoFromLocal = localFonts.filter(f =>
-      /mono|code|consol|courier|hack|fira|jetbrain|terminal|fixed|nerd/i.test(f)
+      /mono|code|consol|courier|hack|fira|jetbrain|terminal|fixed|nerd/i.test(f),
     );
     const set = new Set([...POPULAR_MONO_FONTS, ...monoFromLocal]);
+
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [localFonts]);
 
@@ -1277,7 +1313,7 @@ function AppearanceSettings({ t }: TranslationProps) {
           <div className="flex gap-1.5">
             {['#050505', '#0a0a0f', '#0f172a', '#1a1a2e', '#0d1117', '#000000'].map(c => (
               <button key={c} onClick={() => setConfig(prev => ({ ...prev, bgColor: c }))}
-                className={cn("w-6 h-6 rounded border transition-all hover:scale-110", config.bgColor === c ? "border-white/40 ring-1 ring-white/20" : "border-border/30")}
+                className={cn('w-6 h-6 rounded border transition-all hover:scale-110', config.bgColor === c ? 'border-white/40 ring-1 ring-white/20' : 'border-border/30')}
                 style={{ backgroundColor: c }} title={c} />
             ))}
           </div>
@@ -1357,8 +1393,8 @@ function AppearanceSettings({ t }: TranslationProps) {
         <div className="grid grid-cols-5 gap-3">
           {ACCENT_PRESETS.map(preset => (
             <button key={preset.id} onClick={() => setAccent(preset.color)}
-              className={cn("group relative flex flex-col items-center gap-2 p-3 rounded-lg border transition-all hover:scale-105",
-                config.accentColor === preset.color ? "border-white/30 bg-white/5 shadow-lg" : "border-border/30 hover:border-white/20")}>
+              className={cn('group relative flex flex-col items-center gap-2 p-3 rounded-lg border transition-all hover:scale-105',
+                config.accentColor === preset.color ? 'border-white/30 bg-white/5 shadow-lg' : 'border-border/30 hover:border-white/20')}>
               <div className="w-8 h-8 rounded-full border-2 transition-shadow"
                 style={{ backgroundColor: preset.color, borderColor: config.accentColor === preset.color ? '#fff' : 'transparent', boxShadow: config.accentColor === preset.color ? `0 0 12px ${preset.color}80` : 'none' }} />
               <span className="text-[9px] font-mono text-muted-foreground group-hover:text-foreground transition-colors">{preset.label}</span>
@@ -1396,8 +1432,8 @@ function AppearanceSettings({ t }: TranslationProps) {
               { label: 'B', color: '#4a5568' }, { label: 'A', color: config.accentColor },
             ].map(p => (
               <button key={p.label} onClick={() => setConfig(prev => ({ ...prev, borderColor: p.color }))}
-                className={cn("w-6 h-6 rounded border text-[8px] font-mono flex items-center justify-center transition-all hover:scale-110",
-                  config.borderColor === p.color ? "border-white/40" : "border-border/30")}
+                className={cn('w-6 h-6 rounded border text-[8px] font-mono flex items-center justify-center transition-all hover:scale-110',
+                  config.borderColor === p.color ? 'border-white/40' : 'border-border/30')}
                 style={{ backgroundColor: p.color }} title={p.label}>
                 <span className="text-white/60">{p.label}</span>
               </button>
@@ -1529,8 +1565,8 @@ function AppearanceSettings({ t }: TranslationProps) {
                     <button key={f}
                       onClick={() => { setConfig(prev => ({ ...prev, fontFamily: f })); setShowFontDropdown(false); }}
                       className={cn(
-                        "w-full text-left px-3 py-2 text-xs rounded-md transition-colors flex items-center justify-between group",
-                        config.fontFamily === f ? "bg-primary/10 text-primary" : "hover:bg-muted/30 text-foreground"
+                        'w-full text-left px-3 py-2 text-xs rounded-md transition-colors flex items-center justify-between group',
+                        config.fontFamily === f ? 'bg-primary/10 text-primary' : 'hover:bg-muted/30 text-foreground',
                       )}>
                       <span style={{ fontFamily: `"${f}", system-ui` }}>{f}</span>
                       <span className="text-[9px] text-muted-foreground opacity-0 group-hover:opacity-100" style={{ fontFamily: `"${f}", system-ui` }}>AaBbCc 你好</span>
@@ -1577,8 +1613,8 @@ function AppearanceSettings({ t }: TranslationProps) {
                     <button key={f}
                       onClick={() => { setConfig(prev => ({ ...prev, monoFontFamily: f })); setShowMonoDropdown(false); }}
                       className={cn(
-                        "w-full text-left px-3 py-2 text-xs rounded-md transition-colors flex items-center justify-between group",
-                        config.monoFontFamily === f ? "bg-primary/10 text-primary" : "hover:bg-muted/30 text-foreground"
+                        'w-full text-left px-3 py-2 text-xs rounded-md transition-colors flex items-center justify-between group',
+                        config.monoFontFamily === f ? 'bg-primary/10 text-primary' : 'hover:bg-muted/30 text-foreground',
                       )}>
                       <span style={{ fontFamily: `"${f}", monospace` }}>{f}</span>
                       <span className="text-[9px] text-muted-foreground opacity-0 group-hover:opacity-100" style={{ fontFamily: `"${f}", monospace` }}>const x = 42;</span>
@@ -1695,6 +1731,7 @@ function AppearanceSettings({ t }: TranslationProps) {
             setConfig(DEFAULT_APPEARANCE);
             localStorage.removeItem(BG_IMAGE_STORAGE_KEY);
             const root = document.documentElement;
+
             root.style.setProperty('--primary', DEFAULT_APPEARANCE.accentColor);
             root.style.setProperty('--ring', DEFAULT_APPEARANCE.accentColor);
             root.style.setProperty('--accent-foreground', DEFAULT_APPEARANCE.accentColor);
@@ -1716,8 +1753,10 @@ const AGENT_STATUS_STORAGE_KEY = 'yyc3-agent-status';
 function loadAgentStatus(): Record<string, boolean> {
   try {
     const raw = localStorage.getItem(AGENT_STATUS_STORAGE_KEY);
+
     if (raw) return JSON.parse(raw);
   } catch { /* ignore */ }
+
   return Object.fromEntries(AGENT_REGISTRY.map(a => [a.id, true]));
 }
 
@@ -1767,14 +1806,16 @@ function AgentsSettings({ t }: TranslationProps) {
       setCustomConfig(prev => ({
         ...prev,
         customAgents: prev.customAgents.map(ca =>
-          ca.id === agentId ? { ...ca, ...editForm } : ca
+          ca.id === agentId ? { ...ca, ...editForm } : ca,
         ),
       }));
     } else {
       // Save as override for built-in agent
       const builtIn = AGENT_REGISTRY.find(a => a.id === agentId);
+
       if (!builtIn) return;
       const override: AgentOverride = {};
+
       if (editForm.name !== builtIn.name) override.name = editForm.name;
       if (editForm.nameEn !== builtIn.nameEn) override.nameEn = editForm.nameEn;
       if (editForm.role !== builtIn.role) override.role = editForm.role;
@@ -1794,7 +1835,9 @@ function AgentsSettings({ t }: TranslationProps) {
   const resetBuiltinAgent = (agentId: string) => {
     setCustomConfig(prev => {
       const newOverrides = { ...prev.overrides };
+
       delete newOverrides[agentId];
+
       return { ...prev, overrides: newOverrides };
     });
     setEditingId(null);
@@ -1806,6 +1849,7 @@ function AgentsSettings({ t }: TranslationProps) {
       customAgents: prev.customAgents.filter(ca => ca.id !== agentId),
     }));
     const newStatus = { ...agentStatus };
+
     delete newStatus[agentId];
     setAgentStatus(newStatus);
   };
@@ -1827,6 +1871,7 @@ function AgentsSettings({ t }: TranslationProps) {
       borderColor: preset.border,
       enabled: true,
     };
+
     setCustomConfig(prev => ({ ...prev, customAgents: [...prev.customAgents, ca] }));
     setAgentStatus(prev => ({ ...prev, [id]: true }));
     setNewAgent({ name: '', nameEn: '', role: '', desc: '', descEn: '', colorIdx: 0 });
@@ -1882,8 +1927,8 @@ function AgentsSettings({ t }: TranslationProps) {
               <div className="flex gap-1 flex-wrap">
                 {AGENT_COLOR_PRESETS.slice(0, 6).map((preset, idx) => (
                   <button key={preset.label} onClick={() => setNewAgent(p => ({ ...p, colorIdx: idx }))}
-                    className={cn("w-5 h-5 rounded-full border-2 transition-all hover:scale-110",
-                      newAgent.colorIdx === idx ? "border-white/60 scale-110" : "border-transparent"
+                    className={cn('w-5 h-5 rounded-full border-2 transition-all hover:scale-110',
+                      newAgent.colorIdx === idx ? 'border-white/60 scale-110' : 'border-transparent',
                     )}
                     style={{ backgroundColor: preset.color.includes('amber') ? '#f59e0b' : preset.color.includes('blue') ? '#3b82f6' : preset.color.includes('purple') ? '#a855f7' : preset.color.includes('pink') ? '#ec4899' : preset.color.includes('cyan') ? '#06b6d4' : preset.color.includes('red') ? '#ef4444' : '#8b8b8b' }}
                     title={preset.label}
@@ -1917,12 +1962,12 @@ function AgentsSettings({ t }: TranslationProps) {
             <div
               key={agent.id}
               className={cn(
-                "p-4 rounded-lg border transition-all group relative overflow-hidden",
+                'p-4 rounded-lg border transition-all group relative overflow-hidden',
                 isEditing
-                  ? "bg-primary/5 border-primary/40 shadow-lg"
+                  ? 'bg-primary/5 border-primary/40 shadow-lg'
                   : isEnabled
-                    ? "bg-muted/5 border-border hover:border-primary/30"
-                    : "bg-muted/5 border-border/50 opacity-60"
+                    ? 'bg-muted/5 border-border hover:border-primary/30'
+                    : 'bg-muted/5 border-border/50 opacity-60',
               )}
             >
               {isEditing ? (
@@ -1974,10 +2019,10 @@ function AgentsSettings({ t }: TranslationProps) {
                         <button key={preset.label}
                           onClick={() => setEditForm(p => ({ ...p, color: preset.color, bgColor: preset.bg, borderColor: preset.border }))}
                           className={cn(
-                            "px-2 py-0.5 rounded text-[9px] font-mono border transition-all hover:scale-105",
+                            'px-2 py-0.5 rounded text-[9px] font-mono border transition-all hover:scale-105',
                             editForm.color === preset.color
                               ? `${preset.bg} ${preset.border} ${preset.color}`
-                              : "border-border/30 text-muted-foreground hover:border-border"
+                              : 'border-border/30 text-muted-foreground hover:border-border',
                           )}
                         >
                           {preset.label}
@@ -2007,19 +2052,19 @@ function AgentsSettings({ t }: TranslationProps) {
                 /* ─── View Mode ─── */
                 <>
                   <div className="flex items-start gap-3">
-                    <div className={cn("w-10 h-10 rounded-lg border flex items-center justify-center text-lg shrink-0", agent.bgColor, agent.borderColor)}>
-                      <Bot className={cn("w-5 h-5", agent.color)} />
+                    <div className={cn('w-10 h-10 rounded-lg border flex items-center justify-center text-lg shrink-0', agent.bgColor, agent.borderColor)}>
+                      <Bot className={cn('w-5 h-5', agent.color)} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h4 className={cn("text-sm font-mono", "text-foreground")}>{agent.name}</h4>
+                        <h4 className={cn('text-sm font-mono', 'text-foreground')}>{agent.name}</h4>
                         <span className="text-[9px] font-mono text-muted-foreground">{agent.nameEn}</span>
                       </div>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                        <span className={cn("text-[9px] font-mono px-1.5 py-0.5 rounded border", agent.bgColor, agent.borderColor, agent.color)}>
+                        <span className={cn('text-[9px] font-mono px-1.5 py-0.5 rounded border', agent.bgColor, agent.borderColor, agent.color)}>
                           {agent.role}
                         </span>
-                        <span className={cn("text-[9px] font-mono", isEnabled ? "text-green-400" : "text-zinc-500")}>
+                        <span className={cn('text-[9px] font-mono', isEnabled ? 'text-green-400' : 'text-zinc-500')}>
                           {isEnabled ? 'ACTIVE' : 'STANDBY'}
                         </span>
                         {isCustom && (
@@ -2061,6 +2106,7 @@ function AgentsSettings({ t }: TranslationProps) {
           className="flex-1 h-8 text-xs font-mono gap-1.5"
           onClick={() => {
             const all: Record<string, boolean> = {};
+
             mergedAgents.forEach(a => { all[a.id] = true; });
             setAgentStatus(all);
           }}
@@ -2074,6 +2120,7 @@ function AgentsSettings({ t }: TranslationProps) {
           className="flex-1 h-8 text-xs font-mono gap-1.5 text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
           onClick={() => {
             const all: Record<string, boolean> = {};
+
             mergedAgents.forEach(a => { all[a.id] = false; });
             setAgentStatus(all);
           }}

@@ -1,24 +1,26 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   Package, FileCode, Download, Eye, Clock,
-  Search, Filter, Copy, Check, MoreHorizontal,
+  Search, Copy, Check,
   Terminal, Globe, Code, FileText, Image,
-  Trash2, Archive, Star, ChevronDown, ExternalLink,
+  Trash2, Star,
   Layers, Tag, GitCommit, Cpu, Sparkles,
-  Plus, X, Save, Edit3, ArrowLeft
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { Input } from "@/app/components/ui/input";
-import { useSystemStore } from "@/lib/store";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+  Plus, X, Save, ArrowLeft,
+} from 'lucide-react';
+import * as React from 'react';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Input } from '@/app/components/ui/input';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { useSystemStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
+
 
 // --- Types ---
 
-type ArtifactType = "react" | "api" | "config" | "script" | "doc" | "image" | "schema";
+type ArtifactType = 'react' | 'api' | 'config' | 'script' | 'doc' | 'image' | 'schema';
 
 interface ArtifactItem {
   id: string;
@@ -39,138 +41,138 @@ interface ArtifactItem {
 
 const INITIAL_ARTIFACTS: ArtifactItem[] = [
   {
-    id: "art-001",
-    title: "ClusterTopology.tsx",
-    type: "react",
-    language: "TypeScript/React",
-    size: "4.8 KB",
-    createdAt: "2026-02-14 10:42",
-    generatedBy: "智愈·领航员",
-    agentColor: "text-amber-500",
+    id: 'art-001',
+    title: 'ClusterTopology.tsx',
+    type: 'react',
+    language: 'TypeScript/React',
+    size: '4.8 KB',
+    createdAt: '2026-02-14 10:42',
+    generatedBy: '智愈·领航员',
+    agentColor: 'text-amber-500',
     starred: true,
-    version: "v3.2",
+    version: 'v3.2',
     preview: `export function ClusterTopology() {\n  const nodes = useClusterNodes();\n  return (\n    <div className="grid grid-cols-4 gap-4">\n      {nodes.map(node => (\n        <NodeCard key={node.id} {...node} />\n      ))}\n    </div>\n  );\n}`,
-    tags: ["component", "dashboard", "topology"]
+    tags: ['component', 'dashboard', 'topology'],
   },
   {
-    id: "art-002",
-    title: "agent-runtime-config.yaml",
-    type: "config",
-    language: "YAML",
-    size: "2.1 KB",
-    createdAt: "2026-02-13 16:30",
-    generatedBy: "元启·天枢",
-    agentColor: "text-cyan-500",
+    id: 'art-002',
+    title: 'agent-runtime-config.yaml',
+    type: 'config',
+    language: 'YAML',
+    size: '2.1 KB',
+    createdAt: '2026-02-13 16:30',
+    generatedBy: '元启·天枢',
+    agentColor: 'text-cyan-500',
     starred: false,
-    version: "v1.4",
+    version: 'v1.4',
     preview: `agents:\n  navigator:\n    model: claude-3.5-opus\n    temperature: 0.7\n    max_tokens: 8192\n    tools:\n      - search\n      - calculator\n      - code_interpreter`,
-    tags: ["config", "agents", "runtime"]
+    tags: ['config', 'agents', 'runtime'],
   },
   {
-    id: "art-003",
-    title: "security-audit-report.md",
-    type: "doc",
-    language: "Markdown",
-    size: "6.3 KB",
-    createdAt: "2026-02-13 12:00",
-    generatedBy: "卫安·哨兵",
-    agentColor: "text-red-500",
+    id: 'art-003',
+    title: 'security-audit-report.md',
+    type: 'doc',
+    language: 'Markdown',
+    size: '6.3 KB',
+    createdAt: '2026-02-13 12:00',
+    generatedBy: '卫安·哨兵',
+    agentColor: 'text-red-500',
     starred: true,
-    version: "v2.0",
+    version: 'v2.0',
     preview: `# Security Audit Report\n## Summary\n- Threat Level: LOW\n- Vulnerabilities Found: 6 (0 Critical)\n- Compliance Status: PASS\n## Detailed Findings\n...`,
-    tags: ["security", "audit", "report"]
+    tags: ['security', 'audit', 'report'],
   },
   {
-    id: "art-004",
-    title: "deploy-staging.sh",
-    type: "script",
-    language: "Bash",
-    size: "1.2 KB",
-    createdAt: "2026-02-12 20:15",
-    generatedBy: "智愈·领航员",
-    agentColor: "text-amber-500",
+    id: 'art-004',
+    title: 'deploy-staging.sh',
+    type: 'script',
+    language: 'Bash',
+    size: '1.2 KB',
+    createdAt: '2026-02-12 20:15',
+    generatedBy: '智愈·领航员',
+    agentColor: 'text-amber-500',
     starred: false,
-    version: "v2.1",
+    version: 'v2.1',
     preview: `#!/bin/bash\n# YYC3 Staging Deployment Script\nset -euo pipefail\n\necho "Building Docker image..."\ndocker build -t yyc3-core:latest .\ndocker push registry.yyc3.local/yyc3-core:latest\nkubectl rollout restart deployment/yyc3-staging`,
-    tags: ["deploy", "staging", "docker"]
+    tags: ['deploy', 'staging', 'docker'],
   },
   {
-    id: "art-005",
-    title: "api-gateway-routes.ts",
-    type: "api",
-    language: "TypeScript",
-    size: "3.7 KB",
-    createdAt: "2026-02-12 14:00",
-    generatedBy: "洞见·思想家",
-    agentColor: "text-blue-500",
+    id: 'art-005',
+    title: 'api-gateway-routes.ts',
+    type: 'api',
+    language: 'TypeScript',
+    size: '3.7 KB',
+    createdAt: '2026-02-12 14:00',
+    generatedBy: '洞见·思想家',
+    agentColor: 'text-blue-500',
     starred: false,
-    version: "v1.8",
+    version: 'v1.8',
     preview: `import { Router } from 'express';\n\nconst router = Router();\n\nrouter.get('/api/v1/agents', getAgents);\nrouter.post('/api/v1/agents/:id/chat', chatWithAgent);\nrouter.get('/api/v1/cluster/status', getClusterStatus);\nrouter.get('/api/v1/metrics', getMetrics);`,
-    tags: ["api", "routes", "gateway"]
+    tags: ['api', 'routes', 'gateway'],
   },
   {
-    id: "art-006",
-    title: "knowledge-graph-schema.json",
-    type: "schema",
-    language: "JSON",
-    size: "5.1 KB",
-    createdAt: "2026-02-11 09:30",
-    generatedBy: "格物·宗师",
-    agentColor: "text-green-500",
+    id: 'art-006',
+    title: 'knowledge-graph-schema.json',
+    type: 'schema',
+    language: 'JSON',
+    size: '5.1 KB',
+    createdAt: '2026-02-11 09:30',
+    generatedBy: '格物·宗师',
+    agentColor: 'text-green-500',
     starred: true,
-    version: "v1.2",
+    version: 'v1.2',
     preview: `{\n  "entities": {\n    "Agent": {\n      "properties": {\n        "name": "string",\n        "role": "string",\n        "capabilities": "string[]"\n      }\n    },\n    "Knowledge": {\n      "properties": {\n        "topic": "string",\n        "embeddings": "float[]"\n      }\n    }\n  }\n}`,
-    tags: ["schema", "knowledge", "graph"]
+    tags: ['schema', 'knowledge', 'graph'],
   },
   {
-    id: "art-007",
-    title: "trend-prediction-model.py",
-    type: "script",
-    language: "Python",
-    size: "8.4 KB",
-    createdAt: "2026-02-10 17:45",
-    generatedBy: "预见·先知",
-    agentColor: "text-purple-500",
+    id: 'art-007',
+    title: 'trend-prediction-model.py',
+    type: 'script',
+    language: 'Python',
+    size: '8.4 KB',
+    createdAt: '2026-02-10 17:45',
+    generatedBy: '预见·先知',
+    agentColor: 'text-purple-500',
     starred: false,
-    version: "v1.0",
+    version: 'v1.0',
     preview: `import torch\nfrom transformers import AutoModel\n\nclass TrendPredictor:\n    def __init__(self, window_size=90):\n        self.window_size = window_size\n        self.model = AutoModel.from_pretrained(\n            'yyc3/trend-v1'\n        )\n    \n    def predict(self, data):\n        return self.model(data)`,
-    tags: ["ai", "prediction", "model"]
+    tags: ['ai', 'prediction', 'model'],
   },
   {
-    id: "art-008",
-    title: "DevOpsTerminal.tsx",
-    type: "react",
-    language: "TypeScript/React",
-    size: "12.1 KB",
-    createdAt: "2026-02-09 22:00",
-    generatedBy: "智愈·领航员",
-    agentColor: "text-amber-500",
+    id: 'art-008',
+    title: 'DevOpsTerminal.tsx',
+    type: 'react',
+    language: 'TypeScript/React',
+    size: '12.1 KB',
+    createdAt: '2026-02-09 22:00',
+    generatedBy: '智愈·领航员',
+    agentColor: 'text-amber-500',
     starred: true,
-    version: "v2.5",
+    version: 'v2.5',
     preview: `export function DevOpsTerminal() {\n  return (\n    <Tabs defaultValue="pipeline">\n      <TabsTrigger value="pipeline">Pipeline</TabsTrigger>\n      <TabsTrigger value="containers">Containers</TabsTrigger>\n      <TabsTrigger value="shell">Shell</TabsTrigger>\n    </Tabs>\n  );\n}`,
-    tags: ["component", "devops", "terminal"]
+    tags: ['component', 'devops', 'terminal'],
   },
 ];
 
 // --- Type Config ---
 const typeConfig: Record<ArtifactType, { icon: typeof FileCode; color: string; label: string }> = {
-  react: { icon: Code, color: "text-blue-400", label: "React Component" },
-  api: { icon: Globe, color: "text-green-400", label: "API Route" },
-  config: { icon: Layers, color: "text-amber-400", label: "Configuration" },
-  script: { icon: Terminal, color: "text-purple-400", label: "Script" },
-  doc: { icon: FileText, color: "text-cyan-400", label: "Document" },
-  image: { icon: Image, color: "text-pink-400", label: "Image" },
-  schema: { icon: FileCode, color: "text-orange-400", label: "Schema" },
+  react: { icon: Code, color: 'text-blue-400', label: 'React Component' },
+  api: { icon: Globe, color: 'text-green-400', label: 'API Route' },
+  config: { icon: Layers, color: 'text-amber-400', label: 'Configuration' },
+  script: { icon: Terminal, color: 'text-purple-400', label: 'Script' },
+  doc: { icon: FileText, color: 'text-cyan-400', label: 'Document' },
+  image: { icon: Image, color: 'text-pink-400', label: 'Image' },
+  schema: { icon: FileCode, color: 'text-orange-400', label: 'Schema' },
 };
 
 const AGENT_COLORS: Record<string, string> = {
-  "智愈·领航员": "text-amber-500",
-  "洞见·思想家": "text-blue-500",
-  "预见·先知": "text-purple-500",
-  "知遇·伯乐": "text-pink-500",
-  "元启·天枢": "text-cyan-500",
-  "卫安·哨兵": "text-red-500",
-  "格物·宗师": "text-green-500",
+  '智愈·领航员': 'text-amber-500',
+  '洞见·思想家': 'text-blue-500',
+  '预见·先知': 'text-purple-500',
+  '知遇·伯乐': 'text-pink-500',
+  '元启·天枢': 'text-cyan-500',
+  '卫安·哨兵': 'text-red-500',
+  '格物·宗师': 'text-green-500',
 };
 
 // --- Copy Button ---
@@ -181,6 +183,7 @@ function CopyBtn({ text }: { text: string }) {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
   return (
     <Button variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 hover:text-white" onClick={handleCopy}>
       {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -197,12 +200,12 @@ interface CreateArtifactDialogProps {
 }
 
 function CreateArtifactDialog({ open, onClose, onCreate }: CreateArtifactDialogProps) {
-  const [title, setTitle] = React.useState("");
-  const [artifactType, setArtifactType] = React.useState<ArtifactType>("react");
-  const [language, setLanguage] = React.useState("TypeScript");
-  const [content, setContent] = React.useState("");
-  const [tags, setTags] = React.useState("");
-  const [generatedBy, setGeneratedBy] = React.useState("智愈·领航员");
+  const [title, setTitle] = React.useState('');
+  const [artifactType, setArtifactType] = React.useState<ArtifactType>('react');
+  const [language, setLanguage] = React.useState('TypeScript');
+  const [content, setContent] = React.useState('');
+  const [tags, setTags] = React.useState('');
+  const [generatedBy, setGeneratedBy] = React.useState('智愈·领航员');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -215,19 +218,19 @@ function CreateArtifactDialog({ open, onClose, onCreate }: CreateArtifactDialogP
       type: artifactType,
       language,
       size: `${sizeKb} KB`,
-      createdAt: new Date().toISOString().slice(0, 16).replace("T", " "),
+      createdAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
       generatedBy,
-      agentColor: AGENT_COLORS[generatedBy] ?? "text-zinc-500",
+      agentColor: AGENT_COLORS[generatedBy] ?? 'text-zinc-500',
       starred: false,
-      version: "v1.0",
+      version: 'v1.0',
       preview: content,
-      tags: tags.split(",").map(t => t.trim()).filter(Boolean),
+      tags: tags.split(',').map(t => t.trim()).filter(Boolean),
     };
 
     onCreate(newArtifact);
-    setTitle("");
-    setContent("");
-    setTags("");
+    setTitle('');
+    setContent('');
+    setTags('');
     onClose();
   };
 
@@ -266,10 +269,10 @@ function CreateArtifactDialog({ open, onClose, onCreate }: CreateArtifactDialogP
                     type="button"
                     onClick={() => setArtifactType(t)}
                     className={cn(
-                      "px-2 py-1 rounded text-[10px] font-mono transition-colors",
+                      'px-2 py-1 rounded text-[10px] font-mono transition-colors',
                       artifactType === t
-                        ? "bg-primary/20 text-primary border border-primary/30"
-                        : "text-zinc-500 hover:text-zinc-300 bg-white/5"
+                        ? 'bg-primary/20 text-primary border border-primary/30'
+                        : 'text-zinc-500 hover:text-zinc-300 bg-white/5',
                     )}
                   >
                     {t}
@@ -286,13 +289,13 @@ function CreateArtifactDialog({ open, onClose, onCreate }: CreateArtifactDialogP
                     type="button"
                     onClick={() => setGeneratedBy(agent)}
                     className={cn(
-                      "px-2 py-1 rounded text-[10px] font-mono transition-colors",
+                      'px-2 py-1 rounded text-[10px] font-mono transition-colors',
                       generatedBy === agent
-                        ? cn("bg-opacity-20 border", AGENT_COLORS[agent])
-                        : "text-zinc-500 hover:text-zinc-300 bg-white/5"
+                        ? cn('bg-opacity-20 border', AGENT_COLORS[agent])
+                        : 'text-zinc-500 hover:text-zinc-300 bg-white/5',
                     )}
                   >
-                    {agent.split("·")[1]}
+                    {agent.split('·')[1]}
                   </button>
                 ))}
               </div>
@@ -341,14 +344,14 @@ function CreateArtifactDialog({ open, onClose, onCreate }: CreateArtifactDialogP
 
 export function ArtifactsView() {
   const [artifacts, setArtifacts] = React.useState<ArtifactItem[]>(INITIAL_ARTIFACTS);
-  const [selectedArtifact, setSelectedArtifact] = React.useState<string | null>("art-001");
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [filterType, setFilterType] = React.useState<string>("all");
+  const [selectedArtifact, setSelectedArtifact] = React.useState<string | null>('art-001');
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [filterType, setFilterType] = React.useState<string>('all');
   const [showCreate, setShowCreate] = React.useState(false);
   const [confirmDelete, setConfirmDelete] = React.useState<string | null>(null);
-  const addLog = useSystemStore((s) => s.addLog);
-  const isMobile = useSystemStore((s) => s.isMobile);
-  const isTablet = useSystemStore((s) => s.isTablet);
+  const addLog = useSystemStore(s => s.addLog);
+  const isMobile = useSystemStore(s => s.isMobile);
+  const isTablet = useSystemStore(s => s.isTablet);
   const [mobileShowDetail, setMobileShowDetail] = React.useState(false);
 
   const handleSelectArtifact = (id: string) => {
@@ -358,14 +361,15 @@ export function ArtifactsView() {
 
   const toggleStar = (id: string) => {
     setArtifacts(prev => prev.map(a =>
-      a.id === id ? { ...a, starred: !a.starred } : a
+      a.id === id ? { ...a, starred: !a.starred } : a,
     ));
   };
 
   const filteredArtifacts = artifacts.filter(a => {
     const matchesSearch = a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       a.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesType = filterType === "all" || a.type === filterType;
+    const matchesType = filterType === 'all' || a.type === filterType;
+
     return matchesSearch && matchesType;
   });
 
@@ -381,6 +385,7 @@ export function ArtifactsView() {
 
   const handleDelete = (id: string) => {
     const art = artifacts.find(a => a.id === id);
+
     setArtifacts(prev => prev.filter(a => a.id !== id));
     if (selectedArtifact === id) setSelectedArtifact(null);
     setConfirmDelete(null);
@@ -497,15 +502,15 @@ export function ArtifactsView() {
             />
           </div>
           <div className="flex gap-1 flex-wrap">
-            {["all", "react", "api", "config", "script", "doc", "schema"].map(type => (
+            {['all', 'react', 'api', 'config', 'script', 'doc', 'schema'].map(type => (
               <button
                 key={type}
                 onClick={() => setFilterType(type)}
                 className={cn(
-                  "px-2 py-0.5 rounded text-[10px] font-mono uppercase transition-colors",
+                  'px-2 py-0.5 rounded text-[10px] font-mono uppercase transition-colors',
                   filterType === type
-                    ? "bg-primary/20 text-primary border border-primary/30"
-                    : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
+                    ? 'bg-primary/20 text-primary border border-primary/30'
+                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5',
                 )}
               >
                 {type}
@@ -520,25 +525,26 @@ export function ArtifactsView() {
             {filteredArtifacts.map(artifact => {
               const config = typeConfig[artifact.type];
               const TypeIcon = config.icon;
+
               return (
                 <button
                   key={artifact.id}
                   onClick={() => handleSelectArtifact(artifact.id)}
                   className={cn(
-                    "w-full text-left p-3 rounded-lg transition-all group",
+                    'w-full text-left p-3 rounded-lg transition-all group',
                     selectedArtifact === artifact.id
-                      ? "bg-primary/10 border border-primary/20"
-                      : "hover:bg-white/5 border border-transparent"
+                      ? 'bg-primary/10 border border-primary/20'
+                      : 'hover:bg-white/5 border border-transparent',
                   )}
                 >
                   <div className="flex items-start gap-3">
                     <div className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 border",
+                      'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 border',
                       selectedArtifact === artifact.id
-                        ? "bg-primary/20 border-primary/30"
-                        : "bg-zinc-900 border-white/5"
+                        ? 'bg-primary/20 border-primary/30'
+                        : 'bg-zinc-900 border-white/5',
                     )}>
-                      <TypeIcon className={cn("w-4 h-4", config.color)} />
+                      <TypeIcon className={cn('w-4 h-4', config.color)} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -550,7 +556,7 @@ export function ArtifactsView() {
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] font-mono text-zinc-500">{artifact.size}</span>
                         <span className="text-[10px] text-zinc-600">·</span>
-                        <span className={cn("text-[10px] font-mono", artifact.agentColor)}>{artifact.generatedBy}</span>
+                        <span className={cn('text-[10px] font-mono', artifact.agentColor)}>{artifact.generatedBy}</span>
                       </div>
                       <div className="flex items-center gap-1.5 mt-1.5">
                         {artifact.tags.map(tag => (
@@ -604,7 +610,7 @@ export function ArtifactsView() {
                 <Badge variant="outline" className="text-[10px] font-mono border-white/10 text-zinc-400">
                   {sel.version}
                 </Badge>
-                <Badge variant="outline" className={cn("text-[10px] font-mono", typeConfig[sel.type].color)}>
+                <Badge variant="outline" className={cn('text-[10px] font-mono', typeConfig[sel.type].color)}>
                   {typeConfig[sel.type].label}
                 </Badge>
               </div>
@@ -628,11 +634,11 @@ export function ArtifactsView() {
               <Button
                 size="sm"
                 variant="ghost"
-                className={cn("h-8 text-xs font-mono gap-1", sel.starred ? "text-amber-500" : "text-zinc-400")}
+                className={cn('h-8 text-xs font-mono gap-1', sel.starred ? 'text-amber-500' : 'text-zinc-400')}
                 onClick={() => toggleStar(sel.id)}
               >
-                <Star className={cn("w-3 h-3", sel.starred && "fill-amber-500")} />
-                {sel.starred ? "Starred" : "Star"}
+                <Star className={cn('w-3 h-3', sel.starred && 'fill-amber-500')} />
+                {sel.starred ? 'Starred' : 'Star'}
               </Button>
               <CopyBtn text={sel.preview} />
               <Button size="sm" variant="outline" className="h-8 text-xs font-mono border-white/10 gap-1">
@@ -677,7 +683,7 @@ export function ArtifactsView() {
               </CardHeader>
               <CardContent className="p-0">
                 <pre className="p-4 text-[12px] font-mono text-zinc-300 overflow-x-auto whitespace-pre leading-relaxed">
-                  {sel.preview.split("\n").map((line, i) => (
+                  {sel.preview.split('\n').map((line, i) => (
                     <div key={i} className="flex hover:bg-white/[0.02] transition-colors">
                       <span className="text-zinc-600 w-8 text-right pr-4 select-none shrink-0">{i + 1}</span>
                       <span className="flex-1">{line}</span>

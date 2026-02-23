@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+
 import { useSystemStore } from './store';
 
 // ============================================================
@@ -20,10 +21,10 @@ export interface NodeMetrics {
   cpu: number;
   memory: number;
   disk: number;
-  network: number;       // Mbps
-  temperature: number;   // Celsius
+  network: number; // Mbps
+  temperature: number; // Celsius
   processes: number;
-  uptime: number;        // hours
+  uptime: number; // hours
 }
 
 /** 全集群指标 */
@@ -57,7 +58,7 @@ function walk(
   volatility: number,
   momentum: number,
   min: number,
-  max: number
+  max: number,
 ): number {
   // 均值回归力
   const reversion = (base - current) * 0.05;
@@ -81,6 +82,7 @@ function walk(
  */
 function getTimeAwareBase(defaultBase: number, isWorkstation: boolean): number {
   const hour = new Date().getHours();
+
   if (!isWorkstation) return defaultBase;
 
   // 工作时段 9-18 点负载较高
@@ -91,6 +93,7 @@ function getTimeAwareBase(defaultBase: number, isWorkstation: boolean): number {
   if (hour >= 0 && hour <= 6) {
     return defaultBase * 0.5;
   }
+
   return defaultBase;
 }
 
@@ -122,7 +125,7 @@ const NODE_CONFIGS: Record<string, NodeConfig> = {
   'matebook': {
     cpuBase: 5, memBase: 15, diskBase: 28, netBase: 8,
     tempBase: 35, processBase: 82, uptimeBase: 48,
-    volatility: 3, isWorkstation: false,  // standby most of the time
+    volatility: 3, isWorkstation: false, // standby most of the time
   },
   'yanyucloud': {
     cpuBase: 8, memBase: 62, diskBase: 61, netBase: 200,
@@ -137,13 +140,14 @@ export function useMetricsSimulator(intervalMs = 2000) {
   const metricsRef = useRef<ClusterMetrics | null>(null);
   const historyRef = useRef<Record<string, Record<string, MetricDataPoint[]>>>({});
   const currentRef = useRef<Record<string, NodeMetrics>>({});
-  const addLog = useSystemStore((s) => s.addLog);
-  const setStatus = useSystemStore((s) => s.setStatus);
-  const updateMetrics = useSystemStore((s) => s.updateMetrics);
+  const addLog = useSystemStore(s => s.addLog);
+  const setStatus = useSystemStore(s => s.setStatus);
+  const updateMetrics = useSystemStore(s => s.updateMetrics);
 
   // Initialize current values
   const initMetrics = useCallback(() => {
     const nodes: Record<string, NodeMetrics> = {};
+
     for (const [nodeId, config] of Object.entries(NODE_CONFIGS)) {
       nodes[nodeId] = {
         cpu: config.cpuBase + (Math.random() - 0.5) * config.volatility,
@@ -160,11 +164,13 @@ export function useMetricsSimulator(intervalMs = 2000) {
     // Init history (20 points each)
     const history: Record<string, Record<string, MetricDataPoint[]>> = {};
     const now = Date.now();
+
     for (const nodeId of Object.keys(NODE_CONFIGS)) {
       history[nodeId] = { cpu: [], memory: [], network: [], disk: [] };
       for (let i = 19; i >= 0; i--) {
         const t = now - i * intervalMs;
         const n = nodes[nodeId];
+
         history[nodeId].cpu.push({ time: t, value: n.cpu + (Math.random() - 0.5) * 5 });
         history[nodeId].memory.push({ time: t, value: n.memory + (Math.random() - 0.5) * 2 });
         history[nodeId].network.push({ time: t, value: n.network + (Math.random() - 0.5) * 15 });
@@ -193,12 +199,14 @@ export function useMetricsSimulator(intervalMs = 2000) {
         processes: Math.max(10, Math.round(walk(prev.processes, config.processBase, 5, 0.3, 10, 1000))),
         uptime: prev.uptime + intervalMs / 3600000,
       };
+
       nodes[nodeId] = next;
 
       // Push history
       for (const metric of ['cpu', 'memory', 'network', 'disk'] as const) {
         if (!history[nodeId]) history[nodeId] = { cpu: [], memory: [], network: [], disk: [] };
         const arr = history[nodeId][metric];
+
         arr.push({ time: now, value: next[metric] });
         if (arr.length > 60) arr.shift(); // 保留 60 个数据点
       }
@@ -219,6 +227,7 @@ export function useMetricsSimulator(intervalMs = 2000) {
 
     // 全局状态推断
     const m4Cpu = nodes['m4-max'].cpu;
+
     if (m4Cpu > 85) {
       setStatus('warning');
     } else if (m4Cpu > 95) {
@@ -240,10 +249,11 @@ export function useMetricsSimulator(intervalMs = 2000) {
         `iMac heartbeat: CPU ${Math.round(nodes['imac-m4'].cpu)}%`,
         `Edge sync: MateBook status ${nodes['matebook'].cpu < 10 ? 'STANDBY' : 'ACTIVE'}`,
       ];
+
       addLog(
         'info',
         sources[Math.floor(Math.random() * sources.length)],
-        messages[Math.floor(Math.random() * messages.length)]
+        messages[Math.floor(Math.random() * messages.length)],
       );
     }
   }, [intervalMs, addLog, setStatus, updateMetrics]);
@@ -257,6 +267,7 @@ export function useMetricsSimulator(intervalMs = 2000) {
     tick();
 
     const id = setInterval(tick, intervalMs);
+
     return () => clearInterval(id);
   }, [initMetrics, tick, intervalMs]);
 

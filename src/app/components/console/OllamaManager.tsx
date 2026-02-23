@@ -3,26 +3,28 @@
 // Phase 23: Local Model Discovery & Management
 // ============================================================
 
-import * as React from 'react';
 import {
   Cpu, RefreshCw, Wifi, WifiOff, Download, Trash2,
-  HardDrive, Zap, Settings, Play, CheckCircle2, XCircle,
-  Loader2, AlertTriangle, Server, MemoryStick, Clock
+  HardDrive, Zap, Settings, Play,
+  Loader2, AlertTriangle, Server, MemoryStick, Clock,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
-import { Button } from '@/app/components/ui/button';
+import * as React from 'react';
+
 import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
 import { Input } from '@/app/components/ui/input';
 import { ScrollArea } from '@/app/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
-import { useOllamaDiscovery } from '@/lib/useOllamaDiscovery';
 import type { OllamaModelInfo } from '@/lib/types';
+import { useOllamaDiscovery } from '@/lib/useOllamaDiscovery';
+import { cn } from '@/lib/utils';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
+
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
@@ -66,6 +68,7 @@ export function OllamaManager() {
     setIsPulling(true);
     setPullStatus(`Pulling ${pullInput}...`);
     const ok = await pullModel(pullInput.trim());
+
     setPullStatus(ok ? `${pullInput} pulled successfully!` : `Failed to pull ${pullInput}`);
     setIsPulling(false);
     if (ok) {
@@ -80,7 +83,7 @@ export function OllamaManager() {
     setTestOutput('');
     setIsGenerating(true);
     try {
-      await generate(modelName, 'Say "Hello, YYC3!" in a cyberpunk style. Keep it under 50 words.', (chunk) => {
+      await generate(modelName, 'Say "Hello, YYC3!" in a cyberpunk style. Keep it under 50 words.', chunk => {
         setTestOutput(prev => prev + chunk);
       });
     } catch (err) {
@@ -141,7 +144,7 @@ export function OllamaManager() {
               <label className="text-xs text-zinc-400 font-mono w-20 shrink-0">Endpoint</label>
               <Input
                 value={endpointInput}
-                onChange={(e) => setEndpointInput(e.target.value)}
+                onChange={e => setEndpointInput(e.target.value)}
                 className="bg-black/40 border-white/10 font-mono text-xs h-8"
                 placeholder="http://localhost:11434"
               />
@@ -154,7 +157,7 @@ export function OllamaManager() {
                 <input
                   type="checkbox"
                   checked={config.autoDiscover}
-                  onChange={(e) => updateConfig({ autoDiscover: e.target.checked })}
+                  onChange={e => updateConfig({ autoDiscover: e.target.checked })}
                   className="accent-primary"
                 />
                 Auto-discover
@@ -163,7 +166,7 @@ export function OllamaManager() {
                 <span>Poll interval:</span>
                 <select
                   value={config.pollInterval}
-                  onChange={(e) => updateConfig({ pollInterval: Number(e.target.value) })}
+                  onChange={e => updateConfig({ pollInterval: Number(e.target.value) })}
                   className="bg-black/60 border border-white/10 rounded px-2 py-0.5 text-xs"
                 >
                   <option value={0}>Off</option>
@@ -206,10 +209,10 @@ export function OllamaManager() {
           <div className="flex gap-2">
             <Input
               value={pullInput}
-              onChange={(e) => setPullInput(e.target.value)}
+              onChange={e => setPullInput(e.target.value)}
               placeholder="Model name (e.g., qwen2.5:7b)"
               className="bg-black/40 border-white/10 font-mono text-xs"
-              onKeyDown={(e) => e.key === 'Enter' && handlePull()}
+              onKeyDown={e => e.key === 'Enter' && handlePull()}
               disabled={isPulling || status !== 'connected'}
             />
             <Button
@@ -246,7 +249,7 @@ export function OllamaManager() {
           ) : (
             <ScrollArea className="max-h-[500px]">
               <div className="divide-y divide-white/5">
-                {models.map((model) => (
+                {models.map(model => (
                   <ModelRow
                     key={model.name}
                     model={model}
@@ -291,7 +294,7 @@ export function OllamaManager() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {runningModels.map((rm) => (
+              {runningModels.map(rm => (
                 <div key={rm.digest} className="flex items-center justify-between p-3 bg-black/30 rounded-lg border border-green-500/10">
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -348,7 +351,7 @@ function ModelRow({ model, running, testing, onTest, onDelete }: {
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <div className={cn(
           'w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-mono border shrink-0',
-          running ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-zinc-800/60 border-white/5 text-zinc-400'
+          running ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-zinc-800/60 border-white/5 text-zinc-400',
         )}>
           {running ? <Zap className="w-4 h-4" /> : <Cpu className="w-4 h-4" />}
         </div>

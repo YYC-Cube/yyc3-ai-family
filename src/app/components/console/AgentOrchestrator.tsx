@@ -1,17 +1,14 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
   Brain, Shield, Sparkles, Activity, Users, Network, Book,
   Play, Loader2, CheckCircle2, AlertCircle, Clock, ArrowRight,
-  ChevronRight, Zap, Scale, GitPullRequest, BookOpen,
-  AlertTriangle, Send, X, User, BarChart3, Layers,
-  Eye, MessageCircle, Trophy, Target, Globe
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { useSystemStore } from "@/lib/store";
+  ChevronRight, Zap, Scale, Layers, Trophy, Globe,
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
 import {
   AGENT_CAPABILITIES,
   COLLABORATION_PRESETS,
@@ -29,7 +26,9 @@ import {
   type TimelineEvent,
   type AgentResult,
   type CollaborationPreset,
-} from "@/lib/agent-orchestrator";
+} from '@/lib/agent-orchestrator';
+import { useSystemStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
 
 // --- Icon mapping ---
 const AGENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -90,8 +89,8 @@ const STATUS_BADGES: Record<string, { color: string; icon: typeof CheckCircle2 }
 type ViewMode = 'presets' | 'create' | 'executing' | 'history' | 'detail';
 
 export function AgentOrchestrator() {
-  const addLog = useSystemStore((s) => s.addLog);
-  const isMobile = useSystemStore((s) => s.isMobile);
+  const addLog = useSystemStore(s => s.addLog);
+  const isMobile = useSystemStore(s => s.isMobile);
 
   const [view, setView] = React.useState<ViewMode>('presets');
   const [tasks, setTasks] = React.useState<CollaborationTask[]>(loadTasks);
@@ -99,7 +98,7 @@ export function AgentOrchestrator() {
   // Create task state
   const [intent, setIntent] = React.useState('');
   const [selectedMode, setSelectedMode] = React.useState<CollaborationMode>('pipeline');
-  const [selectedAgents, setSelectedAgents] = React.useState<Array<{ agentId: string; role: AgentRole }>>([]);
+  const [selectedAgents, setSelectedAgents] = React.useState<{ agentId: string; role: AgentRole }[]>([]);
   const [recommendations, setRecommendations] = React.useState<ReturnType<typeof recommendAgents>>([]);
   const [execMode, setExecMode] = React.useState<ExecutionMode>('simulation');
   const [llmAvailable, setLlmAvailable] = React.useState(false);
@@ -129,6 +128,7 @@ export function AgentOrchestrator() {
   React.useEffect(() => {
     if (intent.length > 3) {
       const recs = recommendAgents(intent, selectedMode);
+
       setRecommendations(recs);
       setSelectedAgents(recs.map(r => ({ agentId: r.agentId, role: r.role })));
     }
@@ -145,6 +145,7 @@ export function AgentOrchestrator() {
     if (!intent.trim() || selectedAgents.length === 0) return;
 
     const task = createTask(intent, selectedMode, selectedAgents);
+
     setActiveTask(task);
     setLiveTimeline(task.timeline);
     setLiveAgentStatus({});
@@ -157,22 +158,22 @@ export function AgentOrchestrator() {
     try {
       const executeFn = execMode === 'real-llm' ? executeRealCollaboration : simulateCollaboration;
       const completed = await executeFn(task, {
-        onTimelineEvent: (event) => {
+        onTimelineEvent: event => {
           setLiveTimeline(prev => [...prev, event]);
         },
         onAgentStatusChange: (agentId, status) => {
           setLiveAgentStatus(prev => ({ ...prev, [agentId]: status }));
         },
-        onResultReceived: (result) => {
+        onResultReceived: result => {
           setLiveResults(prev => [...prev, result]);
         },
-        onStatusChange: (status) => {
+        onStatusChange: status => {
           setActiveTask(prev => prev ? { ...prev, status } : null);
         },
         onToolConfirmation: async (toolName, args, agentId) => {
           return true;
         },
-        onComplete: (completedTask) => {
+        onComplete: completedTask => {
           setActiveTask(completedTask);
           setTasks(loadTasks());
           addLog('success', 'ORCHESTRATOR', `Collaboration completed. Consensus: ${Math.round((completedTask.consensusScore || 0) * 100)}%`);
@@ -189,11 +190,13 @@ export function AgentOrchestrator() {
   const toggleAgent = (agentId: string) => {
     setSelectedAgents(prev => {
       const exists = prev.find(a => a.agentId === agentId);
+
       if (exists) {
         return prev.filter(a => a.agentId !== agentId);
-      } else {
-        return [...prev, { agentId, role: prev.length === 0 ? 'lead' : 'contributor' }];
       }
+
+      return [...prev, { agentId, role: prev.length === 0 ? 'lead' : 'contributor' }];
+
     });
   };
 
@@ -216,8 +219,8 @@ export function AgentOrchestrator() {
               key={v}
               onClick={() => setView(v)}
               className={cn(
-                "px-3 py-1.5 rounded-lg text-[11px] font-mono uppercase transition-colors",
-                view === v ? "bg-primary/20 text-primary border border-primary/30" : "text-zinc-500 hover:text-zinc-300 bg-zinc-900/50 border border-white/5"
+                'px-3 py-1.5 rounded-lg text-[11px] font-mono uppercase transition-colors',
+                view === v ? 'bg-primary/20 text-primary border border-primary/30' : 'text-zinc-500 hover:text-zinc-300 bg-zinc-900/50 border border-white/5',
               )}
             >
               {v}
@@ -233,9 +236,10 @@ export function AgentOrchestrator() {
             <h3 className="text-sm text-zinc-400">Collaboration Templates</h3>
             <p className="text-[10px] text-zinc-600 font-mono">Select a preset or create custom collaboration</p>
           </div>
-          <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-2 xl:grid-cols-3")}>
+          <div className={cn('grid gap-4', isMobile ? 'grid-cols-1' : 'grid-cols-2 xl:grid-cols-3')}>
             {COLLABORATION_PRESETS.map(preset => {
               const ModeIcon = MODE_ICONS[preset.mode];
+
               return (
                 <Card
                   key={preset.id}
@@ -244,11 +248,11 @@ export function AgentOrchestrator() {
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
-                      <CardTitle className={cn("text-sm flex items-center gap-2", MODE_LABELS[preset.mode].color)}>
+                      <CardTitle className={cn('text-sm flex items-center gap-2', MODE_LABELS[preset.mode].color)}>
                         <ModeIcon className="w-4 h-4" />
                         {preset.nameZh}
                       </CardTitle>
-                      <Badge variant="outline" className={cn("text-[9px] font-mono", MODE_LABELS[preset.mode].color)}>
+                      <Badge variant="outline" className={cn('text-[9px] font-mono', MODE_LABELS[preset.mode].color)}>
                         {preset.mode}
                       </Badge>
                     </div>
@@ -258,13 +262,14 @@ export function AgentOrchestrator() {
                     <div className="flex items-center gap-1.5 mt-1">
                       {preset.agents.map(a => {
                         const Icon = AGENT_ICONS[a.agentId] || Brain;
+
                         return (
                           <div
                             key={a.agentId}
-                            className={cn("w-7 h-7 rounded-full flex items-center justify-center", AGENT_BG[a.agentId])}
+                            className={cn('w-7 h-7 rounded-full flex items-center justify-center', AGENT_BG[a.agentId])}
                             title={`${AGENT_CAPABILITIES[a.agentId]?.nameZh} (${a.role})`}
                           >
-                            <Icon className={cn("w-3.5 h-3.5", AGENT_COLORS[a.agentId])} />
+                            <Icon className={cn('w-3.5 h-3.5', AGENT_COLORS[a.agentId])} />
                           </div>
                         );
                       })}
@@ -288,7 +293,7 @@ export function AgentOrchestrator() {
                 <label className="text-xs font-mono text-zinc-500 mb-1 block">Task Intent (意图描述)</label>
                 <textarea
                   value={intent}
-                  onChange={(e) => setIntent(e.target.value)}
+                  onChange={e => setIntent(e.target.value)}
                   placeholder="Describe what you want the agents to collaboratively work on..."
                   rows={3}
                   className="w-full bg-zinc-900/50 border border-white/10 rounded-lg text-sm p-3 text-white resize-none focus:outline-none focus:border-primary/50 placeholder:text-zinc-600"
@@ -301,18 +306,19 @@ export function AgentOrchestrator() {
                 <div className="flex flex-wrap gap-2">
                   {(Object.entries(MODE_LABELS) as [CollaborationMode, typeof MODE_LABELS[CollaborationMode]][]).map(([mode, meta]) => {
                     const ModeIcon = MODE_ICONS[mode];
+
                     return (
                       <button
                         key={mode}
                         onClick={() => setSelectedMode(mode)}
                         className={cn(
-                          "flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-xs font-mono",
+                          'flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-xs font-mono',
                           selectedMode === mode
-                            ? "bg-primary/10 border-primary/30 text-white"
-                            : "border-white/5 text-zinc-500 hover:border-white/15"
+                            ? 'bg-primary/10 border-primary/30 text-white'
+                            : 'border-white/5 text-zinc-500 hover:border-white/15',
                         )}
                       >
-                        <ModeIcon className={cn("w-3.5 h-3.5", meta.color)} />
+                        <ModeIcon className={cn('w-3.5 h-3.5', meta.color)} />
                         <span>{meta.labelZh}</span>
                         <span className="text-[9px] text-zinc-600">({meta.label})</span>
                       </button>
@@ -341,14 +347,14 @@ export function AgentOrchestrator() {
                         key={cap.id}
                         onClick={() => toggleAgent(cap.id)}
                         className={cn(
-                          "flex items-center gap-2 p-2.5 rounded-lg border transition-all text-left",
+                          'flex items-center gap-2 p-2.5 rounded-lg border transition-all text-left',
                           isSelected
-                            ? "bg-white/5 border-white/20 text-white"
-                            : "border-white/5 text-zinc-500 hover:border-white/15"
+                            ? 'bg-white/5 border-white/20 text-white'
+                            : 'border-white/5 text-zinc-500 hover:border-white/15',
                         )}
                       >
-                        <div className={cn("w-8 h-8 rounded-full flex items-center justify-center shrink-0", AGENT_BG[cap.id])}>
-                          <Icon className={cn("w-4 h-4", AGENT_COLORS[cap.id])} />
+                        <div className={cn('w-8 h-8 rounded-full flex items-center justify-center shrink-0', AGENT_BG[cap.id])}>
+                          <Icon className={cn('w-4 h-4', AGENT_COLORS[cap.id])} />
                         </div>
                         <div className="min-w-0">
                           <div className="text-[11px] font-mono truncate">{cap.nameZh}</div>
@@ -374,10 +380,10 @@ export function AgentOrchestrator() {
                   <button
                     onClick={() => setExecMode('simulation')}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border transition-all text-xs font-mono",
+                      'flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border transition-all text-xs font-mono',
                       execMode === 'simulation'
-                        ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
-                        : "border-white/5 text-zinc-500 hover:border-white/15"
+                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                        : 'border-white/5 text-zinc-500 hover:border-white/15',
                     )}
                   >
                     <Zap className="w-3.5 h-3.5" />
@@ -386,11 +392,11 @@ export function AgentOrchestrator() {
                   <button
                     onClick={() => llmAvailable ? setExecMode('real-llm') : null}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border transition-all text-xs font-mono",
-                      !llmAvailable && "opacity-40 cursor-not-allowed",
+                      'flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border transition-all text-xs font-mono',
+                      !llmAvailable && 'opacity-40 cursor-not-allowed',
                       execMode === 'real-llm'
-                        ? "bg-green-500/10 border-green-500/30 text-green-400"
-                        : "border-white/5 text-zinc-500 hover:border-white/15"
+                        ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                        : 'border-white/5 text-zinc-500 hover:border-white/15',
                     )}
                   >
                     <Globe className="w-3.5 h-3.5" />
@@ -421,9 +427,9 @@ export function AgentOrchestrator() {
 
       {/* VIEW: Executing */}
       {view === 'executing' && activeTask && (
-        <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-12")}>
+        <div className={cn('grid gap-4', isMobile ? 'grid-cols-1' : 'grid-cols-12')}>
           {/* Agent Status Panel */}
-          <div className={cn(isMobile ? "" : "col-span-3")}>
+          <div className={cn(isMobile ? '' : 'col-span-3')}>
             <Card className="bg-black/40 border-white/10">
               <CardHeader className="pb-2 border-b border-white/5">
                 <CardTitle className="text-xs font-mono text-zinc-400">Agent Status</CardTitle>
@@ -437,15 +443,15 @@ export function AgentOrchestrator() {
 
                   return (
                     <div key={agent.agentId} className="flex items-center gap-2 px-2 py-2 rounded-lg bg-white/3">
-                      <div className={cn("w-7 h-7 rounded-full flex items-center justify-center", AGENT_BG[agent.agentId])}>
-                        <Icon className={cn("w-3.5 h-3.5", AGENT_COLORS[agent.agentId])} />
+                      <div className={cn('w-7 h-7 rounded-full flex items-center justify-center', AGENT_BG[agent.agentId])}>
+                        <Icon className={cn('w-3.5 h-3.5', AGENT_COLORS[agent.agentId])} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-[10px] font-mono text-zinc-300 truncate">
                           {AGENT_CAPABILITIES[agent.agentId]?.nameZh}
                         </div>
-                        <div className={cn("text-[9px] font-mono flex items-center gap-1", statusColor)}>
-                          <StatusIcon className={cn("w-2.5 h-2.5", status === 'thinking' || status === 'executing' ? 'animate-pulse' : '')} />
+                        <div className={cn('text-[9px] font-mono flex items-center gap-1', statusColor)}>
+                          <StatusIcon className={cn('w-2.5 h-2.5', status === 'thinking' || status === 'executing' ? 'animate-pulse' : '')} />
                           {status}
                         </div>
                       </div>
@@ -459,10 +465,10 @@ export function AgentOrchestrator() {
                   <div className="flex items-center justify-between text-[10px] font-mono">
                     <span className="text-zinc-500">Status</span>
                     <Badge className={cn(
-                      "text-[9px]",
-                      activeTask.status === 'completed' ? "bg-green-500/10 text-green-400" :
-                      activeTask.status === 'failed' ? "bg-red-500/10 text-red-400" :
-                      "bg-amber-500/10 text-amber-400"
+                      'text-[9px]',
+                      activeTask.status === 'completed' ? 'bg-green-500/10 text-green-400' :
+                      activeTask.status === 'failed' ? 'bg-red-500/10 text-red-400' :
+                      'bg-amber-500/10 text-amber-400',
                     )}>
                       {activeTask.status}
                     </Badge>
@@ -479,7 +485,7 @@ export function AgentOrchestrator() {
           </div>
 
           {/* Timeline + Results */}
-          <div className={cn("space-y-4", isMobile ? "" : "col-span-9")}>
+          <div className={cn('space-y-4', isMobile ? '' : 'col-span-9')}>
             {/* Live Timeline */}
             <Card className="bg-black/40 border-white/10">
               <CardHeader className="pb-2 border-b border-white/5">
@@ -494,7 +500,7 @@ export function AgentOrchestrator() {
                   <div className="p-3 space-y-1">
                     {liveTimeline.map(event => {
                       const Icon = event.agentId ? (AGENT_ICONS[event.agentId] || Brain) : Zap;
-                      const color = event.agentId ? (AGENT_COLORS[event.agentId] || 'text-zinc-400') : 
+                      const color = event.agentId ? (AGENT_COLORS[event.agentId] || 'text-zinc-400') :
                         event.type === 'task_completed' ? 'text-green-400' :
                         event.type === 'consensus_reached' ? 'text-amber-400' :
                         'text-zinc-400';
@@ -504,7 +510,7 @@ export function AgentOrchestrator() {
                           <span className="text-[9px] text-zinc-700 w-16 shrink-0">
                             {new Date(event.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                           </span>
-                          <Icon className={cn("w-3 h-3 mt-0.5 shrink-0", color)} />
+                          <Icon className={cn('w-3 h-3 mt-0.5 shrink-0', color)} />
                           <span className="text-zinc-400">{event.message}</span>
                         </div>
                       );
@@ -527,11 +533,12 @@ export function AgentOrchestrator() {
                       {liveResults.map((result, i) => {
                         const Icon = AGENT_ICONS[result.agentId] || Brain;
                         const cap = AGENT_CAPABILITIES[result.agentId];
+
                         return (
                           <div key={i} className="p-3 bg-zinc-900/40 border border-white/5 rounded-lg">
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2">
-                                <Icon className={cn("w-4 h-4", AGENT_COLORS[result.agentId])} />
+                                <Icon className={cn('w-4 h-4', AGENT_COLORS[result.agentId])} />
                                 <span className="text-xs font-mono text-zinc-300">{cap?.nameZh || result.agentId}</span>
                                 <Badge variant="outline" className="text-[8px] font-mono text-zinc-600">{result.role}</Badge>
                               </div>
@@ -589,6 +596,7 @@ export function AgentOrchestrator() {
             <div className="space-y-2">
               {tasks.map(task => {
                 const ModeIcon = MODE_ICONS[task.mode];
+
                 return (
                   <Card
                     key={task.id}
@@ -596,7 +604,7 @@ export function AgentOrchestrator() {
                     onClick={() => { setDetailTask(task); setActiveTask(task); setLiveTimeline(task.timeline); setLiveResults(task.results); setLiveAgentStatus({}); setView('executing'); }}
                   >
                     <CardContent className="p-3 flex items-center gap-4">
-                      <ModeIcon className={cn("w-5 h-5 shrink-0", MODE_LABELS[task.mode].color)} />
+                      <ModeIcon className={cn('w-5 h-5 shrink-0', MODE_LABELS[task.mode].color)} />
                       <div className="flex-1 min-w-0">
                         <div className="text-xs font-mono text-zinc-300 truncate">{task.title}</div>
                         <div className="text-[10px] text-zinc-600 font-mono flex items-center gap-2 mt-0.5">
@@ -609,10 +617,10 @@ export function AgentOrchestrator() {
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <Badge className={cn(
-                          "text-[9px]",
-                          task.status === 'completed' ? "bg-green-500/10 text-green-400" :
-                          task.status === 'failed' ? "bg-red-500/10 text-red-400" :
-                          "bg-zinc-500/10 text-zinc-400"
+                          'text-[9px]',
+                          task.status === 'completed' ? 'bg-green-500/10 text-green-400' :
+                          task.status === 'failed' ? 'bg-red-500/10 text-red-400' :
+                          'bg-zinc-500/10 text-zinc-400',
                         )}>
                           {task.status}
                         </Badge>

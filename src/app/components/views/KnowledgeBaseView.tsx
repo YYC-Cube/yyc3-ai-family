@@ -1,14 +1,15 @@
-import * as React from "react";
 import {
   BookOpen, Plus, Trash2, Search, FileText,
   Tag, Clock, Edit3, Save, Star, SortAsc,
   Upload, Download, Sparkles, Loader2, Zap,
-} from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n";
+} from 'lucide-react';
+import * as React from 'react';
+
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import type { KnowledgeEntry } from '@/lib/agent-identity';
+import { useTranslation } from '@/lib/i18n';
 import {
   exportKnowledgeJSON,
   pickJSONFile,
@@ -18,11 +19,10 @@ import {
   getHighlightSegments,
   canGenerateSummary,
   generateEntrySummary,
-  type HighlightSegment,
   type KBImportResult,
   type SimpleDoc,
-} from "@/lib/kb-utils";
-import type { KnowledgeEntry } from "@/lib/agent-identity";
+} from '@/lib/kb-utils';
+import { cn } from '@/lib/utils';
 
 // --- Knowledge Doc Types ---
 interface KnowledgeDoc {
@@ -34,7 +34,7 @@ interface KnowledgeDoc {
   starred: boolean;
   createdAt: string;
   updatedAt: string;
-  size: number;  // characters
+  size: number; // characters
 }
 
 interface DocCategory {
@@ -71,8 +71,10 @@ const DEFAULT_DOCS: KnowledgeDoc[] = [
 function loadKB(): KnowledgeDoc[] {
   try {
     const raw = localStorage.getItem(KB_STORAGE_KEY);
+
     if (raw) return JSON.parse(raw);
   } catch { /* ignore */ }
+
   return DEFAULT_DOCS;
 }
 
@@ -83,6 +85,7 @@ function saveKB(docs: KnowledgeDoc[]) {
 // --- Highlight text component ---
 function HighlightText({ text, query }: { text: string; query: string }) {
   const segments = getHighlightSegments(text, query);
+
   return (
     <>
       {segments.map((seg, i) =>
@@ -90,7 +93,7 @@ function HighlightText({ text, query }: { text: string; query: string }) {
           <mark key={i} className="bg-[#0EA5E9]/25 text-[#0EA5E9] rounded-sm px-0.5">{seg.text}</mark>
         ) : (
           <span key={i}>{seg.text}</span>
-        )
+        ),
       )}
     </>
   );
@@ -114,6 +117,7 @@ function AISummaryButton({
     if (generating) {
       abortRef.current?.abort();
       setGenerating(false);
+
       return;
     }
 
@@ -132,7 +136,7 @@ function AISummaryButton({
           setGenerating(false);
         }
       },
-      abortRef.current.signal
+      abortRef.current.signal,
     );
 
     if (!result) setGenerating(false);
@@ -146,10 +150,10 @@ function AISummaryButton({
         size="sm"
         variant="outline"
         className={cn(
-          "h-6 text-[10px] gap-1 font-mono",
+          'h-6 text-[10px] gap-1 font-mono',
           generating
-            ? "border-amber-500/30 text-amber-400"
-            : "border-[#0EA5E9]/30 text-[#0EA5E9]"
+            ? 'border-amber-500/30 text-amber-400'
+            : 'border-[#0EA5E9]/30 text-[#0EA5E9]',
         )}
         onClick={handleGenerate}
         disabled={!hasProvider && !generating}
@@ -174,12 +178,13 @@ function AISummaryButton({
 // --- Import Result Toast ---
 function ImportResultBanner({ result, language, onDismiss }: { result: KBImportResult | null; language: string; onDismiss: () => void }) {
   if (!result) return null;
+
   return (
     <div className={cn(
-      "mx-3 mt-2 p-2.5 rounded-lg border text-[10px] font-mono animate-in slide-in-from-top-2 duration-200 shrink-0",
+      'mx-3 mt-2 p-2.5 rounded-lg border text-[10px] font-mono animate-in slide-in-from-top-2 duration-200 shrink-0',
       result.success
-        ? "bg-green-500/5 border-green-500/20 text-green-400"
-        : "bg-red-500/5 border-red-500/20 text-red-400"
+        ? 'bg-green-500/5 border-green-500/20 text-green-400'
+        : 'bg-red-500/5 border-red-500/20 text-red-400',
     )}>
       <div className="flex items-center justify-between">
         <span>
@@ -217,6 +222,7 @@ export function KnowledgeBaseView() {
   const addDoc = () => {
     if (!form.title.trim()) return;
     const now = new Date().toISOString().slice(0, 10);
+
     setDocs(prev => [...prev, {
       id: `kb-${Date.now()}`,
       title: form.title,
@@ -264,12 +270,14 @@ export function KnowledgeBaseView() {
       updatedAt: d.updatedAt,
       accessCount: 0,
     }));
+
     exportKnowledgeJSON(entries);
   };
 
   // --- Import handler ---
   const handleImport = async () => {
     const content = await pickJSONFile();
+
     if (!content) return;
 
     // Convert current docs to KnowledgeEntry format for merge
@@ -281,6 +289,7 @@ export function KnowledgeBaseView() {
     }));
 
     const result = parseImportJSON(content, existingEntries);
+
     setImportResult(result);
 
     if (result.success) {
@@ -293,6 +302,7 @@ export function KnowledgeBaseView() {
         createdAt: e.createdAt, updatedAt: e.updatedAt,
         size: e.content.length,
       }));
+
       setDocs(newDocs);
     }
 
@@ -306,6 +316,7 @@ export function KnowledgeBaseView() {
 
     if (search.trim()) {
       const fuzzyResults = fuzzySearchSimpleDocs(results as unknown as SimpleDoc[], search);
+
       results = fuzzyResults.map(r => r.item as unknown as KnowledgeDoc);
       // If sorting by score and we have search
       if (sortBy === 'score') {
@@ -318,6 +329,7 @@ export function KnowledgeBaseView() {
       if (sortBy === 'updated') return b.updatedAt.localeCompare(a.updatedAt);
       if (sortBy === 'title') return a.title.localeCompare(b.title);
       if (sortBy === 'size') return b.size - a.size;
+
       return 0;
     });
   }, [docs, search, activeCategory, sortBy]);
@@ -377,11 +389,11 @@ export function KnowledgeBaseView() {
             )}
           </div>
           <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
-            <button onClick={() => setActiveCategory('all')} className={cn("px-2 py-0.5 rounded text-[9px] font-mono whitespace-nowrap transition-colors", activeCategory === 'all' ? "bg-[#0EA5E9]/15 text-[#0EA5E9]" : "text-zinc-500 hover:text-zinc-300")}>
+            <button onClick={() => setActiveCategory('all')} className={cn('px-2 py-0.5 rounded text-[9px] font-mono whitespace-nowrap transition-colors', activeCategory === 'all' ? 'bg-[#0EA5E9]/15 text-[#0EA5E9]' : 'text-zinc-500 hover:text-zinc-300')}>
               ALL
             </button>
             {DOC_CATEGORIES.map(cat => (
-              <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={cn("px-2 py-0.5 rounded text-[9px] font-mono whitespace-nowrap transition-colors", activeCategory === cat.id ? "bg-[#0EA5E9]/15 text-[#0EA5E9]" : "text-zinc-500 hover:text-zinc-300")}>
+              <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className={cn('px-2 py-0.5 rounded text-[9px] font-mono whitespace-nowrap transition-colors', activeCategory === cat.id ? 'bg-[#0EA5E9]/15 text-[#0EA5E9]' : 'text-zinc-500 hover:text-zinc-300')}>
                 {language === 'zh' ? cat.label : cat.labelEn}
               </button>
             ))}
@@ -389,7 +401,7 @@ export function KnowledgeBaseView() {
           <div className="flex items-center gap-1">
             <SortAsc className="w-3 h-3 text-zinc-600" />
             {(['updated', 'title', 'size', ...(hasSearch ? ['score'] as const : [])] as const).map(s => (
-              <button key={s} onClick={() => setSortBy(s as typeof sortBy)} className={cn("px-1.5 py-0.5 rounded text-[9px] font-mono", sortBy === s ? "bg-zinc-800 text-zinc-200" : "text-zinc-600 hover:text-zinc-400")}>
+              <button key={s} onClick={() => setSortBy(s as typeof sortBy)} className={cn('px-1.5 py-0.5 rounded text-[9px] font-mono', sortBy === s ? 'bg-zinc-800 text-zinc-200' : 'text-zinc-600 hover:text-zinc-400')}>
                 {s === 'updated' ? (language === 'zh' ? '最近' : 'Recent') : s === 'title' ? (language === 'zh' ? '标题' : 'Title') : s === 'size' ? (language === 'zh' ? '大小' : 'Size') : (language === 'zh' ? '匹配度' : 'Score')}
               </button>
             ))}
@@ -419,19 +431,20 @@ export function KnowledgeBaseView() {
           <div className="p-2 space-y-1">
             {filtered.map(doc => {
               const cat = DOC_CATEGORIES.find(c => c.id === doc.category);
+
               return (
                 <button
                   key={doc.id}
                   onClick={() => { setSelectedDoc(doc.id); setIsEditing(false); setEditContent(doc.content); }}
                   className={cn(
-                    "w-full text-left px-3 py-2.5 rounded-lg transition-all group",
+                    'w-full text-left px-3 py-2.5 rounded-lg transition-all group',
                     selectedDoc === doc.id
-                      ? "bg-[#0EA5E9]/10 border border-[#0EA5E9]/30"
-                      : "hover:bg-white/5 border border-transparent"
+                      ? 'bg-[#0EA5E9]/10 border border-[#0EA5E9]/30'
+                      : 'hover:bg-white/5 border border-transparent',
                   )}
                 >
                   <div className="flex items-start gap-2">
-                    <FileText className={cn("w-3.5 h-3.5 mt-0.5 shrink-0", cat?.color || 'text-zinc-500')} />
+                    <FileText className={cn('w-3.5 h-3.5 mt-0.5 shrink-0', cat?.color || 'text-zinc-500')} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[11px] font-mono truncate">
@@ -440,7 +453,7 @@ export function KnowledgeBaseView() {
                         {doc.starred && <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400 shrink-0" />}
                       </div>
                       <div className="flex items-center gap-2 mt-1 text-[9px] text-zinc-600 font-mono">
-                        <span className={cn("px-1 py-0.5 rounded", cat?.color || 'text-zinc-500')} style={{ background: 'rgba(255,255,255,0.05)' }}>
+                        <span className={cn('px-1 py-0.5 rounded', cat?.color || 'text-zinc-500')} style={{ background: 'rgba(255,255,255,0.05)' }}>
                           {language === 'zh' ? cat?.label : cat?.labelEn}
                         </span>
                         <span>{doc.updatedAt}</span>
@@ -492,7 +505,7 @@ export function KnowledgeBaseView() {
                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleStar(currentDoc.id)} title={currentDoc.starred ? 'Unstar' : 'Star'}>
                   {currentDoc.starred ? <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> : <Star className="w-3.5 h-3.5 text-zinc-500" />}
                 </Button>
-                <Button variant="ghost" size="icon" className={cn("h-7 w-7", isEditing ? "text-[#0EA5E9]" : "text-zinc-500")} onClick={() => { setIsEditing(!isEditing); setEditContent(currentDoc.content); }}>
+                <Button variant="ghost" size="icon" className={cn('h-7 w-7', isEditing ? 'text-[#0EA5E9]' : 'text-zinc-500')} onClick={() => { setIsEditing(!isEditing); setEditContent(currentDoc.content); }}>
                   <Edit3 className="w-3.5 h-3.5" />
                 </Button>
                 {isEditing && (
@@ -530,6 +543,7 @@ export function KnowledgeBaseView() {
                       if (line.startsWith('- ')) return <div key={i} className="text-xs font-mono text-zinc-400 pl-4 py-0.5">{renderLine(line)}</div>;
                       if (line.match(/^\d+\./)) return <div key={i} className="text-xs font-mono text-zinc-400 pl-4 py-0.5">{renderLine(line)}</div>;
                       if (line.trim() === '') return <div key={i} className="h-2" />;
+
                       return <p key={i} className="text-xs text-zinc-300 leading-relaxed">{renderLine(line)}</p>;
                     })}
                   </div>
@@ -540,7 +554,7 @@ export function KnowledgeBaseView() {
                   <AISummaryButton
                     doc={currentDoc}
                     language={language}
-                    onSummaryDone={(_summary) => {
+                    onSummaryDone={_summary => {
                       // Could auto-save summary to doc metadata in future
                     }}
                   />

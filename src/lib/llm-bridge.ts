@@ -24,10 +24,10 @@
 //            → Template Response (null return)
 // ============================================================
 
+import { encryptValue, decryptValue, isCryptoAvailable } from './crypto';
 import { PROVIDERS, AGENT_ROUTES, type ProviderDefinition } from './llm-providers';
 import { getRouter, type FailoverResult } from './llm-router';
 import { resolveProviderEndpoint } from './proxy-endpoints';
-import { encryptValue, decryptValue, isCryptoAvailable } from './crypto';
 
 // ============================================================
 // Types
@@ -43,12 +43,12 @@ export interface LLMRequestOptions {
   modelId: string;
   messages: LLMMessage[];
   apiKey: string;
-  endpoint?: string;       // override default endpoint
+  endpoint?: string; // override default endpoint
   temperature?: number;
   maxTokens?: number;
   stream?: boolean;
   signal?: AbortSignal;
-  proxyUrl?: string;       // optional CORS proxy
+  proxyUrl?: string; // optional CORS proxy
 }
 
 export interface LLMResponse {
@@ -81,7 +81,7 @@ export class LLMError extends Error {
     public code: LLMErrorCode,
     public provider: string,
     public statusCode?: number,
-    public retryable: boolean = false,
+    public retryable = false,
   ) {
     super(message);
     this.name = 'LLMError';
@@ -108,19 +108,21 @@ let _cachedConfigs: ProviderConfig[] = [];
 
 export interface ProviderConfig {
   providerId: string;
-  apiKey: string;          // may be encrypted or plaintext
-  endpoint: string;        // override endpoint
+  apiKey: string; // may be encrypted or plaintext
+  endpoint: string; // override endpoint
   enabled: boolean;
   defaultModel: string;
-  encrypted?: boolean;     // Phase 35: encryption status flag
+  encrypted?: boolean; // Phase 35: encryption status flag
 }
 
 export function loadProviderConfigs(): ProviderConfig[] {
   if (_cachedConfigs.length > 0) return _cachedConfigs;
   try {
     const raw = localStorage.getItem(PROVIDER_CONFIG_KEY);
+
     if (raw) return JSON.parse(raw);
   } catch { /* ignore */ }
+
   return [];
 }
 
@@ -131,8 +133,10 @@ export async function saveProviderConfigs(configs: ProviderConfig[]) {
       if (c.apiKey && !c.encrypted && encryptEnabled) {
         return { ...c, apiKey: await encryptValue(c.apiKey), encrypted: true };
       }
+
       return c;
     }));
+
     localStorage.setItem(PROVIDER_CONFIG_KEY, JSON.stringify(processedConfigs));
     _cachedConfigs = configs.map(c => ({ ...c, encrypted: false })); // keep decrypted in cache
   } catch { /* ignore */ }
@@ -144,19 +148,22 @@ export async function saveProviderConfigs(configs: ProviderConfig[]) {
 export async function initProviderConfigs(): Promise<ProviderConfig[]> {
   try {
     const raw = localStorage.getItem(PROVIDER_CONFIG_KEY);
+
     if (!raw) return [];
     const configs = JSON.parse(raw) as ProviderConfig[];
-    
+
     const decrypted = await Promise.all(configs.map(async c => {
       if (c.apiKey && c.encrypted) {
         try {
           return { ...c, apiKey: await decryptValue(c.apiKey), encrypted: false };
         } catch { return c; }
       }
+
       return c;
     }));
-    
+
     _cachedConfigs = decrypted;
+
     return decrypted;
   } catch { return []; }
 }
@@ -186,6 +193,13 @@ export function getEnabledProviderIds(): string[] {
   return enabled;
 }
 
+/**
+ * Clear the provider config cache (for testing)
+ */
+export function clearProviderCache(): void {
+  _cachedConfigs = [];
+}
+
 // ============================================================
 // Request Builders
 // ============================================================
@@ -201,7 +215,7 @@ interface BuildResult {
  */
 function buildOpenAIRequest(
   provider: ProviderDefinition,
-  opts: LLMRequestOptions
+  opts: LLMRequestOptions,
 ): BuildResult {
   const endpoint = opts.endpoint || provider.defaultEndpoint;
   const url = `${endpoint.replace(/\/$/, '')}/chat/completions`;
@@ -230,7 +244,7 @@ function buildOpenAIRequest(
  */
 function buildAnthropicRequest(
   provider: ProviderDefinition,
-  opts: LLMRequestOptions
+  opts: LLMRequestOptions,
 ): BuildResult {
   const endpoint = opts.endpoint || provider.defaultEndpoint;
   const url = `${endpoint.replace(/\/$/, '')}/messages`;
@@ -267,11 +281,12 @@ function buildAnthropicRequest(
  */
 function buildRequest(opts: LLMRequestOptions): BuildResult {
   const provider = PROVIDERS[opts.providerId];
+
   if (!provider) {
     throw new LLMError(
       `Unknown provider: ${opts.providerId}`,
       'PROVIDER_ERROR',
-      opts.providerId
+      opts.providerId,
     );
   }
 
@@ -292,7 +307,7 @@ function buildRequest(opts: LLMRequestOptions): BuildResult {
  * 解析 OpenAI SSE 流
  */
 async function* parseOpenAIStream(
-  reader: ReadableStreamDefaultReader<Uint8Array>
+  reader: ReadableStreamDefaultReader<Uint8Array>,
 ): AsyncGenerator<StreamChunk> {
   const decoder = new TextDecoder();
   let buffer = '';
@@ -300,18 +315,22 @@ async function* parseOpenAIStream(
   try {
     while (true) {
       const { done, value } = await reader.read();
+
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
+
       buffer = lines.pop() || '';
 
       for (const line of lines) {
         const trimmed = line.trim();
+
         if (!trimmed || trimmed === ':') continue;
 
         if (trimmed === 'data: [DONE]') {
           yield { type: 'done', content: '' };
+
           return;
         }
 
@@ -351,7 +370,7 @@ async function* parseOpenAIStream(
  * 解析 Anthropic SSE 流
  */
 async function* parseAnthropicStream(
-  reader: ReadableStreamDefaultReader<Uint8Array>
+  reader: ReadableStreamDefaultReader<Uint8Array>,
 ): AsyncGenerator<StreamChunk> {
   const decoder = new TextDecoder();
   let buffer = '';
@@ -361,14 +380,17 @@ async function* parseAnthropicStream(
   try {
     while (true) {
       const { done, value } = await reader.read();
+
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
+
       buffer = lines.pop() || '';
 
       for (const line of lines) {
         const trimmed = line.trim();
+
         if (!trimmed || trimmed.startsWith(':')) continue;
 
         if (trimmed.startsWith('data: ')) {
@@ -438,7 +460,7 @@ async function* parseAnthropicStream(
  */
 export async function streamChat(
   opts: LLMRequestOptions,
-  onChunk: StreamCallback
+  onChunk: StreamCallback,
 ): Promise<LLMResponse> {
   const startTime = performance.now();
   const provider = PROVIDERS[opts.providerId];
@@ -447,7 +469,7 @@ export async function streamChat(
     throw new LLMError(
       `Provider "${opts.providerId}" not found`,
       'PROVIDER_ERROR',
-      opts.providerId
+      opts.providerId,
     );
   }
 
@@ -463,6 +485,7 @@ export async function streamChat(
     });
   } catch (error: unknown) {
     const err = error as Error;
+
     if (err.name === 'AbortError') {
       throw new LLMError('Request aborted', 'TIMEOUT', opts.providerId);
     }
@@ -474,7 +497,7 @@ export async function streamChat(
         'CORS_ERROR',
         opts.providerId,
         undefined,
-        true
+        true,
       );
     }
 
@@ -483,7 +506,7 @@ export async function streamChat(
       'NETWORK_ERROR',
       opts.providerId,
       undefined,
-      true
+      true,
     );
   }
 
@@ -497,7 +520,7 @@ export async function streamChat(
       errorCode,
       opts.providerId,
       response.status,
-      response.status === 429 || response.status >= 500
+      response.status === 429 || response.status >= 500,
     );
   }
 
@@ -506,7 +529,7 @@ export async function streamChat(
     throw new LLMError(
       'Response body is null',
       'PROVIDER_ERROR',
-      opts.providerId
+      opts.providerId,
     );
   }
 
@@ -560,13 +583,14 @@ export async function chat(opts: LLMRequestOptions): Promise<LLMResponse> {
     throw new LLMError(
       `Provider "${opts.providerId}" not found`,
       'PROVIDER_ERROR',
-      opts.providerId
+      opts.providerId,
     );
   }
 
   const request = buildRequest({ ...opts, stream: false });
 
   let response: Response;
+
   try {
     response = await fetch(request.url, {
       method: 'POST',
@@ -576,6 +600,7 @@ export async function chat(opts: LLMRequestOptions): Promise<LLMResponse> {
     });
   } catch (error: unknown) {
     const err = error as Error;
+
     if (err.name === 'AbortError') {
       throw new LLMError('Request aborted', 'TIMEOUT', opts.providerId);
     }
@@ -584,18 +609,19 @@ export async function chat(opts: LLMRequestOptions): Promise<LLMResponse> {
       'NETWORK_ERROR',
       opts.providerId,
       undefined,
-      true
+      true,
     );
   }
 
   if (!response.ok) {
     const errorBody = await response.text().catch(() => '');
+
     throw new LLMError(
       `${provider.name} API error (${response.status}): ${errorBody.slice(0, 200)}`,
       mapHttpStatusToCode(response.status),
       opts.providerId,
       response.status,
-      response.status === 429 || response.status >= 500
+      response.status === 429 || response.status >= 500,
     );
   }
 
@@ -604,6 +630,7 @@ export async function chat(opts: LLMRequestOptions): Promise<LLMResponse> {
 
   if (provider.apiFormat === 'anthropic') {
     const content = data.content?.[0]?.text || '';
+
     return {
       content,
       model: opts.modelId,
@@ -620,6 +647,7 @@ export async function chat(opts: LLMRequestOptions): Promise<LLMResponse> {
 
   // OpenAI format
   const choice = data.choices?.[0];
+
   return {
     content: choice?.message?.content || '',
     model: opts.modelId,
@@ -655,9 +683,10 @@ export async function agentStreamChat(
   chatHistory: LLMMessage[],
   onChunk: StreamCallback,
   signal?: AbortSignal,
-  overrideSystemPrompt?: string
+  overrideSystemPrompt?: string,
 ): Promise<LLMResponse | null> {
   const route = AGENT_ROUTES[agentId];
+
   if (!route) return null;
 
   // 查找有 API Key 的 Provider
@@ -680,10 +709,12 @@ export async function agentStreamChat(
 
   // 从 Agent 的推荐列表中找出有 Key 的候选 Providers
   const candidates = route.preferredProviders.filter(pid => enabledIds.includes(pid));
+
   if (candidates.length === 0) return null;
 
   // 通过 Router 健康评分 + 熔断器排序得到 Failover 链
   const failoverChain = router.getFailoverChain(candidates);
+
   if (failoverChain.length === 0) return null;
 
   // 记录 Failover 路径
@@ -691,6 +722,7 @@ export async function agentStreamChat(
 
   for (const providerId of failoverChain) {
     const config = configs.find(c => c.providerId === providerId);
+
     if (!config || !config.apiKey) continue;
 
     // 检查熔断器
@@ -707,10 +739,11 @@ export async function agentStreamChat(
 
     // 解析该 Provider 的最佳模型
     const provider = PROVIDERS[providerId];
+
     if (!provider) { router.releaseSlot(providerId); continue; }
 
     const modelId = route.preferredModels.find(
-      mid => provider.models.some(m => m.id === mid)
+      mid => provider.models.some(m => m.id === mid),
     ) || config.defaultModel || provider.defaultModel;
 
     try {
@@ -726,7 +759,7 @@ export async function agentStreamChat(
           stream: true,
           signal,
         },
-        onChunk
+        onChunk,
       );
 
       // 成功 → 更新路由器健康指标
@@ -817,7 +850,7 @@ export async function generalStreamChat(
   userMessage: string,
   chatHistory: LLMMessage[],
   onChunk: StreamCallback,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<LLMResponse | null> {
   const configs = loadProviderConfigs();
   const enabledConfigs = configs.filter(c => c.enabled && c.apiKey);
@@ -838,12 +871,14 @@ export async function generalStreamChat(
 
   for (const providerId of failoverChain) {
     const config = enabledConfigs.find(c => c.providerId === providerId);
+
     if (!config) continue;
 
     if (!router.canRequest(providerId)) continue;
     if (!router.acquireSlot(providerId)) continue;
 
     const provider = PROVIDERS[providerId];
+
     if (!provider) { router.releaseSlot(providerId); continue; }
 
     const modelId = config.defaultModel || provider.defaultModel;
@@ -861,15 +896,17 @@ export async function generalStreamChat(
           stream: true,
           signal,
         },
-        onChunk
+        onChunk,
       );
 
       router.recordSuccess(providerId, response.latencyMs);
       router.releaseSlot(providerId);
+
       return response;
     } catch (error) {
       router.releaseSlot(providerId);
       const err = error as LLMError;
+
       if (err.code === 'TIMEOUT' && err.message === 'Request aborted') throw err;
       router.recordFailure(providerId, err.code, err.retryable ? 500 : 0);
       continue;
@@ -884,6 +921,7 @@ export async function generalStreamChat(
  */
 export function hasConfiguredProvider(): boolean {
   const configs = loadProviderConfigs();
+
   return configs.some(c => c.enabled && c.apiKey);
 }
 
@@ -905,9 +943,10 @@ export interface ProviderHealthResult {
 export async function checkProviderHealth(
   providerId: string,
   apiKey: string,
-  endpoint?: string
+  endpoint?: string,
 ): Promise<ProviderHealthResult> {
   const provider = PROVIDERS[providerId];
+
   if (!provider) {
     return { providerId, status: 'error', error: 'Unknown provider' };
   }
@@ -939,6 +978,7 @@ export async function checkProviderHealth(
     };
   } catch (error) {
     const err = error as LLMError;
+
     return {
       providerId,
       status: 'error',
@@ -955,7 +995,7 @@ export async function checkProviderHealth(
 const USAGE_STORAGE_KEY = 'yyc3-llm-usage';
 
 export interface UsageRecord {
-  date: string;  // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   provider: string;
   model: string;
   agentId: string;
@@ -968,15 +1008,15 @@ export interface UsageRecord {
 
 export function trackUsage(
   response: LLMResponse,
-  agentId: string
+  agentId: string,
 ): void {
   try {
     const records: UsageRecord[] = JSON.parse(
-      localStorage.getItem(USAGE_STORAGE_KEY) || '[]'
+      localStorage.getItem(USAGE_STORAGE_KEY) || '[]',
     );
 
     const model = PROVIDERS[response.provider]?.models.find(
-      m => m.id === response.model
+      m => m.id === response.model,
     );
 
     const costUsd = model
@@ -998,6 +1038,7 @@ export function trackUsage(
 
     // Keep last 1000 records
     const trimmed = records.slice(-1000);
+
     localStorage.setItem(USAGE_STORAGE_KEY, JSON.stringify(trimmed));
   } catch { /* ignore */ }
 }
@@ -1010,10 +1051,10 @@ export function getUsageSummary(): {
   byAgent: Record<string, { tokens: number; cost: number; calls: number }>;
   todayTokens: number;
   todayCost: number;
-} {
+  } {
   try {
     const records: UsageRecord[] = JSON.parse(
-      localStorage.getItem(USAGE_STORAGE_KEY) || '[]'
+      localStorage.getItem(USAGE_STORAGE_KEY) || '[]',
     );
 
     const today = new Date().toISOString().slice(0, 10);
@@ -1086,7 +1127,7 @@ function mapHttpStatusToCode(status: number): LLMErrorCode {
  */
 function estimateTokens(
   messages: LLMMessage[],
-  completionText: string
+  completionText: string,
 ): TokenUsage {
   const promptChars = messages.reduce((sum, m) => sum + m.content.length, 0);
   const completionChars = completionText.length;
