@@ -1,27 +1,60 @@
-import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { X, Server, Cpu, GitBranch, Box, Shield, Settings2, Lock, Fingerprint, Eye, FileWarning, Plus, Trash2, Edit3, Save, CheckCircle2, Puzzle, Code2, Palette, Bot, Upload, ImageIcon, Type, Search, Layers, Sparkles, Monitor, RotateCcw, ArrowRight, Grip, ChevronRight, ArrowLeft, ArrowUp } from 'lucide-react';
-import * as React from 'react';
-
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { ScrollArea } from '@/app/components/ui/scroll-area';
 import { Slider } from '@/app/components/ui/slider';
 import { Switch } from '@/app/components/ui/switch';
 import {
-  loadBranding, saveBranding, DEFAULT_BRANDING,
-  loadAgentCustomConfig, saveAgentCustomConfig, getMergedAgents,
   AGENT_COLOR_PRESETS,
-  type BrandingConfig, type AgentCustomConfig, type CustomAgent, type AgentOverride,
+  DEFAULT_BRANDING,
+  getMergedAgents,
+  loadAgentCustomConfig,
+  loadBranding,
+  saveAgentCustomConfig,
+  saveBranding,
+  type AgentCustomConfig,
+  type AgentOverride,
+  type BrandingConfig,
+  type CustomAgent,
 } from '@/lib/branding-config';
+import { maskApiKey } from '@/lib/crypto';
 import { useTranslation } from '@/lib/i18n';
-import {
-  saveProviderConfigs,
-  type ProviderConfig,
-} from '@/lib/llm-bridge';
-import { PROVIDERS } from '@/lib/llm-providers';
+import { loadProviderConfigs, saveProviderConfigs, type ProviderConfig } from '@/lib/llm-bridge';
 import { useSystemStore } from '@/lib/store';
 import { AGENT_REGISTRY } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bot,
+  Box,
+  ChevronRight,
+  ChevronsDown,
+  ChevronsUp,
+  Code2,
+  Cpu,
+  Edit3,
+  Eye,
+  Fingerprint,
+  GitBranch,
+  Grip,
+  Lock,
+  Monitor,
+  Palette,
+  Plus,
+  Puzzle,
+  RotateCcw,
+  Save,
+  Server,
+  Settings2,
+  Shield,
+  Sparkles,
+  Trash2,
+  Type,
+  Upload,
+  X,
+} from 'lucide-react';
+import * as React from 'react';
 
 interface SettingsModalProps {
   open: boolean;
@@ -37,30 +70,54 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
   const [mobileShowContent, setMobileShowContent] = React.useState(false);
   const [brandingLabel, setBrandingLabel] = React.useState(() => {
     const b = loadBranding();
-
     return `${b.appName || 'YYC3'} Kernel v${b.version || '3.0.1'}`;
   });
 
-  // Scroll-to-top: sentinel ref + visibility tracking
+  // Scroll-to-top/bottom: sentinel refs + visibility tracking
   const topSentinelRef = React.useRef<HTMLDivElement>(null);
+  const bottomSentinelRef = React.useRef<HTMLDivElement>(null);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = React.useState(false);
+  const [showScrollBottom, setShowScrollBottom] = React.useState(true);
 
   React.useEffect(() => {
     const sentinel = topSentinelRef.current;
-
     if (!sentinel) return;
     const observer = new IntersectionObserver(
       ([entry]) => setShowScrollTop(!entry.isIntersecting),
       { threshold: 0 },
     );
-
     observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [activeTab, mobileShowContent]);
 
+  React.useEffect(() => {
+    const sentinel = bottomSentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowScrollBottom(!entry.isIntersecting),
+      { threshold: 0 },
+    );
+    observer.observe(sentinel);
     return () => observer.disconnect();
   }, [activeTab, mobileShowContent]);
 
   const scrollToTop = React.useCallback(() => {
     topSentinelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  const scrollToBottom = React.useCallback(() => {
+    bottomSentinelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, []);
+
+  const scrollByPage = React.useCallback((direction: 'up' | 'down') => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const pageHeight = container.clientHeight * 0.8;
+    container.scrollBy({
+      top: direction === 'down' ? pageHeight : -pageHeight,
+      behavior: 'smooth',
+    });
   }, []);
 
   React.useEffect(() => {
@@ -79,12 +136,9 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
   React.useEffect(() => {
     const handler = () => {
       const b = loadBranding();
-
       setBrandingLabel(`${b.appName || 'YYC3'} Kernel v${b.version || '3.0.1'}`);
     };
-
     window.addEventListener('yyc3-branding-update', handler);
-
     return () => window.removeEventListener('yyc3-branding-update', handler);
   }, []);
 
@@ -98,7 +152,14 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
 
   const settingsContent = (
     <>
-      {activeTab === 'general' && <GeneralSettings language={language} setLanguage={setLanguage} t={t} onSwitchTab={handleTabClick} />}
+      {activeTab === 'general' && (
+        <GeneralSettings
+          language={language}
+          setLanguage={setLanguage}
+          t={t}
+          onSwitchTab={handleTabClick}
+        />
+      )}
       {activeTab === 'models' && <ModelsSettings t={t} />}
       {activeTab === 'gitops' && <GitOpsSettings t={t} />}
       {activeTab === 'extensions' && <ExtensionsSettings t={t} />}
@@ -112,13 +173,14 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-300 yyc3-overlay-bg" />
-        <DialogPrimitive.Content className={cn(
-          'fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] border border-border shadow-lg duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-10 p-0 overflow-hidden yyc3-panel-bg',
-          isMobile
-            ? 'max-w-[100vw] w-full h-[100dvh] rounded-none'
-            : 'max-w-5xl sm:rounded-lg md:w-[90vw] h-[85vh]',
-        )}>
-
+        <DialogPrimitive.Content
+          className={cn(
+            'fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] border border-border shadow-lg duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-10 p-0 overflow-hidden yyc3-panel-bg',
+            isMobile
+              ? 'max-w-[100vw] w-full h-[100dvh] rounded-none'
+              : 'max-w-5xl sm:rounded-lg md:w-[90vw] h-[85vh]',
+          )}
+        >
           <DialogPrimitive.Title className="sr-only">{t('settings.title')}</DialogPrimitive.Title>
           <DialogPrimitive.Description className="sr-only">
             {t('settings.desc')}
@@ -126,12 +188,12 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
 
           <div className="flex h-full">
             {/* Sidebar — hidden on mobile when showing content */}
-            <div className={cn(
-              'bg-muted/30 border-r border-border flex flex-col',
-              isMobile
-                ? (mobileShowContent ? 'hidden' : 'w-full')
-                : 'w-64',
-            )}>
+            <div
+              className={cn(
+                'bg-muted/30 border-r border-border flex flex-col',
+                isMobile ? (mobileShowContent ? 'hidden' : 'w-full') : 'w-64',
+              )}
+            >
               <div className="h-14 flex items-center px-6 border-b border-border shrink-0">
                 <h2 className="text-lg font-bold font-mono tracking-wider text-primary flex items-center gap-2 flex-1">
                   <Settings2 className="w-5 h-5 animate-spin-slow" />
@@ -139,7 +201,11 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
                 </h2>
                 {isMobile && (
                   <DialogPrimitive.Close asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive transition-all shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive transition-all shrink-0"
+                    >
                       <X className="w-4 h-4" />
                     </Button>
                   </DialogPrimitive.Close>
@@ -147,14 +213,49 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
               </div>
               <ScrollArea className="flex-1">
                 <div className="p-2 space-y-1">
-                  <TabButton active={activeTab === 'general'} onClick={() => handleTabClick('general')} icon={Server} label={t('settings.tab.general')} />
-                  <TabButton active={activeTab === 'models'} onClick={() => handleTabClick('models')} icon={Cpu} label={t('settings.tab.models')} />
-                  <TabButton active={activeTab === 'gitops'} onClick={() => handleTabClick('gitops')} icon={GitBranch} label={t('settings.tab.gitops')} />
-                  <TabButton active={activeTab === 'extensions'} onClick={() => handleTabClick('extensions')} icon={Box} label={t('settings.tab.extensions')} />
-                  <TabButton active={activeTab === 'security'} onClick={() => handleTabClick('security')} icon={Shield} label={t('settings.tab.security')} />
+                  <TabButton
+                    active={activeTab === 'general'}
+                    onClick={() => handleTabClick('general')}
+                    icon={Server}
+                    label={t('settings.tab.general')}
+                  />
+                  <TabButton
+                    active={activeTab === 'models'}
+                    onClick={() => handleTabClick('models')}
+                    icon={Cpu}
+                    label={t('settings.tab.models')}
+                  />
+                  <TabButton
+                    active={activeTab === 'gitops'}
+                    onClick={() => handleTabClick('gitops')}
+                    icon={GitBranch}
+                    label={t('settings.tab.gitops')}
+                  />
+                  <TabButton
+                    active={activeTab === 'extensions'}
+                    onClick={() => handleTabClick('extensions')}
+                    icon={Box}
+                    label={t('settings.tab.extensions')}
+                  />
+                  <TabButton
+                    active={activeTab === 'security'}
+                    onClick={() => handleTabClick('security')}
+                    icon={Shield}
+                    label={t('settings.tab.security')}
+                  />
                   <div className="my-2 border-t border-border/30 mx-4" />
-                  <TabButton active={activeTab === 'appearance'} onClick={() => handleTabClick('appearance')} icon={Palette} label={t('settings.tab.appearance')} />
-                  <TabButton active={activeTab === 'agents'} onClick={() => handleTabClick('agents')} icon={Bot} label={t('settings.tab.agents')} />
+                  <TabButton
+                    active={activeTab === 'appearance'}
+                    onClick={() => handleTabClick('appearance')}
+                    icon={Palette}
+                    label={t('settings.tab.appearance')}
+                  />
+                  <TabButton
+                    active={activeTab === 'agents'}
+                    onClick={() => handleTabClick('agents')}
+                    icon={Bot}
+                    label={t('settings.tab.agents')}
+                  />
                 </div>
               </ScrollArea>
               <div className="p-4 border-t border-border text-xs text-muted-foreground font-mono">
@@ -163,14 +264,18 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
             </div>
 
             {/* Content — on mobile, full-width when showing content */}
-            <div className={cn(
-              'flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-background/50',
-              isMobile && !mobileShowContent && 'hidden',
-            )}>
-              <div className={cn(
-                'h-14 border-b border-border flex items-center justify-between bg-background/50 backdrop-blur-xl shrink-0',
-                 isMobile ? 'px-4' : 'px-8',
-              )}>
+            <div
+              className={cn(
+                'flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-background/50',
+                isMobile && !mobileShowContent && 'hidden',
+              )}
+            >
+              <div
+                className={cn(
+                  'h-14 border-b border-border flex items-center justify-between bg-background/50 backdrop-blur-xl shrink-0',
+                  isMobile ? 'px-4' : 'px-8',
+                )}
+              >
                 <div className="flex items-center gap-3 min-w-0">
                   {/* Mobile back button */}
                   {isMobile && (
@@ -184,40 +289,72 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
                     </Button>
                   )}
                   <div className="min-w-0">
-                    <h3 className="text-sm font-semibold font-mono uppercase animate-in fade-in slide-in-from-left-2 truncate">{t(`settings.tab.${activeTab}`)}</h3>
-                    <p className="text-[10px] text-muted-foreground font-mono truncate">{t('settings.desc')}</p>
+                    <h3 className="text-sm font-semibold font-mono uppercase animate-in fade-in slide-in-from-left-2 truncate">
+                      {t(`settings.tab.${activeTab}`)}
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground font-mono truncate">
+                      {t('settings.desc')}
+                    </p>
                   </div>
                 </div>
                 <DialogPrimitive.Close asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive transition-all hover:rotate-90 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive transition-all hover:rotate-90 shrink-0"
+                  >
                     <X className="w-4 h-4" />
                     <span className="sr-only">Close</span>
                   </Button>
                 </DialogPrimitive.Close>
               </div>
 
-              {/* Scrollable content — absolute positioning ensures deterministic height for ScrollArea */}
+              {/* Scrollable content — native overflow-y-auto for reliable scrolling */}
               <div className="flex-1 min-h-0 relative">
-                <ScrollArea className="absolute inset-0" showTrack>
+                <div
+                  className="absolute inset-0 overflow-y-auto"
+                  ref={scrollContainerRef}
+                  style={{ WebkitOverflowScrolling: 'touch' }}
+                >
                   <div ref={topSentinelRef} className="h-0 w-0" aria-hidden />
-                  <div className={cn(isMobile ? 'p-4 pb-8' : 'p-8')}>
-                    {settingsContent}
-                  </div>
-                </ScrollArea>
-                {/* Floating scroll-to-top button */}
-                {showScrollTop && (
-                  <button
-                    onClick={scrollToTop}
-                    className="absolute bottom-4 right-4 z-10 w-9 h-9 rounded-full bg-primary/80 hover:bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/30 backdrop-blur-sm transition-all hover:scale-110 animate-in fade-in zoom-in-75 duration-200"
-                    title={t('settings.tab.general') === '通用设置' ? '回到顶部' : 'Back to top'}
-                  >
-                    <ArrowUp className="w-4 h-4" />
-                  </button>
-                )}
+                  <div className={cn(isMobile ? 'p-4 pb-8' : 'p-8')}>{settingsContent}</div>
+                  <div ref={bottomSentinelRef} className="h-0 w-0" aria-hidden />
+                </div>
+
+                {/* Floating scroll navigation buttons — outside scroll container */}
+                <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
+                  {showScrollTop && (
+                    <button
+                      onClick={() => scrollByPage('up')}
+                      onDoubleClick={scrollToTop}
+                      className="w-9 h-9 rounded-full bg-primary/60 hover:bg-primary/90 text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20 backdrop-blur-sm transition-all hover:scale-110 animate-in fade-in zoom-in-75 duration-200"
+                      title={
+                        t('settings.tab.general') === '通用设置'
+                          ? '向上滚动 (双击回顶部)'
+                          : 'Scroll up (double-click = top)'
+                      }
+                    >
+                      <ChevronsUp className="w-4 h-4" />
+                    </button>
+                  )}
+                  {showScrollBottom && (
+                    <button
+                      onClick={() => scrollByPage('down')}
+                      onDoubleClick={scrollToBottom}
+                      className="w-9 h-9 rounded-full bg-primary/60 hover:bg-primary/90 text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20 backdrop-blur-sm transition-all hover:scale-110 animate-in fade-in zoom-in-75 duration-200"
+                      title={
+                        t('settings.tab.general') === '通用设置'
+                          ? '向下滚动 (双击到底部)'
+                          : 'Scroll down (double-click = bottom)'
+                      }
+                    >
+                      <ChevronsDown className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>
@@ -273,10 +410,14 @@ function TabButton({ active, onClick, icon: Icon, label }: TabButtonProps) {
           : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground active:scale-[0.98] border border-transparent',
       )}
     >
-      <Icon className={cn(
-        'w-4 h-4 transition-all duration-300',
-        active ? 'scale-110 text-primary drop-shadow-[0_0_4px_rgba(14,165,233,0.5)]' : 'group-hover:scale-110 group-hover:text-primary/60',
-      )} />
+      <Icon
+        className={cn(
+          'w-4 h-4 transition-all duration-300',
+          active
+            ? 'scale-110 text-primary drop-shadow-[0_0_4px_rgba(14,165,233,0.5)]'
+            : 'group-hover:scale-110 group-hover:text-primary/60',
+        )}
+      />
       <span className="relative z-10">{label}</span>
       {active && (
         <>
@@ -302,13 +443,10 @@ function GeneralSettings({ language, setLanguage, t, onSwitchTab }: GeneralSetti
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-
     if (!file || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
-
     reader.onload = ev => {
       const dataUrl = ev.target?.result as string;
-
       setBranding(prev => ({ ...prev, logoDataUrl: dataUrl, logoFileName: file.name }));
     };
     reader.readAsDataURL(file);
@@ -317,7 +455,6 @@ function GeneralSettings({ language, setLanguage, t, onSwitchTab }: GeneralSetti
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-
       {/* ============ SECTION: Branding ============ */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -326,9 +463,12 @@ function GeneralSettings({ language, setLanguage, t, onSwitchTab }: GeneralSetti
             {t('settings.branding')}
           </h4>
           <Button
-            size="sm" variant="outline"
+            size="sm"
+            variant="outline"
             className="h-7 text-[10px] font-mono gap-1.5 text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
-            onClick={() => { setBranding({ ...DEFAULT_BRANDING }); }}
+            onClick={() => {
+              setBranding({ ...DEFAULT_BRANDING });
+            }}
           >
             <RotateCcw className="w-3 h-3" />
             {t('settings.branding_reset')}
@@ -338,7 +478,13 @@ function GeneralSettings({ language, setLanguage, t, onSwitchTab }: GeneralSetti
 
         {/* Logo Upload + Text */}
         <div className="p-4 rounded-lg border border-dashed border-primary/30 bg-primary/5 space-y-4">
-          <input ref={logoFileRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+          <input
+            ref={logoFileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleLogoUpload}
+          />
           <div className="flex items-center gap-4">
             {/* Logo Preview */}
             <div className="w-14 h-14 rounded-lg border border-primary/50 bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden shadow-[0_0_10px_rgba(14,165,233,0.3)]">
@@ -351,19 +497,34 @@ function GeneralSettings({ language, setLanguage, t, onSwitchTab }: GeneralSetti
             <div className="flex-1 min-w-0 space-y-1">
               <div className="text-xs font-mono text-foreground">{t('settings.logo_image')}</div>
               {branding.logoFileName ? (
-                <div className="text-[10px] text-muted-foreground truncate">{branding.logoFileName}</div>
+                <div className="text-[10px] text-muted-foreground truncate">
+                  {branding.logoFileName}
+                </div>
               ) : (
-                <div className="text-[10px] text-muted-foreground">PNG / SVG / JPG (rec. 64x64)</div>
+                <div className="text-[10px] text-muted-foreground">
+                  PNG / SVG / JPG (rec. 64x64)
+                </div>
               )}
             </div>
             <div className="flex gap-2 shrink-0">
-              <Button size="sm" variant="outline" className="h-7 text-[10px] font-mono gap-1" onClick={() => logoFileRef.current?.click()}>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-[10px] font-mono gap-1"
+                onClick={() => logoFileRef.current?.click()}
+              >
                 <Upload className="w-3 h-3" />
                 {t('settings.logo_upload')}
               </Button>
               {branding.logoDataUrl && (
-                <Button size="sm" variant="ghost" className="h-7 text-[10px] font-mono text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                  onClick={() => setBranding(prev => ({ ...prev, logoDataUrl: '', logoFileName: '' }))}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-[10px] font-mono text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  onClick={() =>
+                    setBranding(prev => ({ ...prev, logoDataUrl: '', logoFileName: '' }))
+                  }
+                >
                   {t('settings.logo_clear')}
                 </Button>
               )}
@@ -373,10 +534,14 @@ function GeneralSettings({ language, setLanguage, t, onSwitchTab }: GeneralSetti
           {/* Logo Text (when no image) */}
           {!branding.logoDataUrl && (
             <div className="space-y-1">
-              <label className="text-[10px] font-mono text-muted-foreground">{t('settings.logo_text')} — {t('settings.logo_text_desc')}</label>
+              <label className="text-[10px] font-mono text-muted-foreground">
+                {t('settings.logo_text')} — {t('settings.logo_text_desc')}
+              </label>
               <Input
                 value={branding.logoText}
-                onChange={e => setBranding(prev => ({ ...prev, logoText: e.target.value.slice(0, 4) }))}
+                onChange={e =>
+                  setBranding(prev => ({ ...prev, logoText: e.target.value.slice(0, 4) }))
+                }
                 placeholder="Y3"
                 maxLength={4}
                 className="h-8 text-xs font-mono bg-muted/20 w-32"
@@ -388,7 +553,9 @@ function GeneralSettings({ language, setLanguage, t, onSwitchTab }: GeneralSetti
         {/* App Name + Tagline + Version */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="space-y-1">
-            <label className="text-[10px] font-mono text-muted-foreground">{t('settings.app_name')}</label>
+            <label className="text-[10px] font-mono text-muted-foreground">
+              {t('settings.app_name')}
+            </label>
             <Input
               value={branding.appName}
               onChange={e => setBranding(prev => ({ ...prev, appName: e.target.value }))}
@@ -397,7 +564,9 @@ function GeneralSettings({ language, setLanguage, t, onSwitchTab }: GeneralSetti
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-mono text-muted-foreground">{t('settings.app_tagline')}</label>
+            <label className="text-[10px] font-mono text-muted-foreground">
+              {t('settings.app_tagline')}
+            </label>
             <Input
               value={branding.tagline}
               onChange={e => setBranding(prev => ({ ...prev, tagline: e.target.value }))}
@@ -406,7 +575,9 @@ function GeneralSettings({ language, setLanguage, t, onSwitchTab }: GeneralSetti
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-mono text-muted-foreground">{t('settings.app_version')}</label>
+            <label className="text-[10px] font-mono text-muted-foreground">
+              {t('settings.app_version')}
+            </label>
             <Input
               value={branding.version}
               onChange={e => setBranding(prev => ({ ...prev, version: e.target.value }))}
@@ -419,9 +590,14 @@ function GeneralSettings({ language, setLanguage, t, onSwitchTab }: GeneralSetti
         {/* Sidebar Preview */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">{t('settings.branding_preview')}</span>
+            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+              {t('settings.branding_preview')}
+            </span>
             {onSwitchTab && (
-              <button onClick={() => onSwitchTab('appearance')} className="text-[10px] font-mono text-primary hover:underline flex items-center gap-1">
+              <button
+                onClick={() => onSwitchTab('appearance')}
+                className="text-[10px] font-mono text-primary hover:underline flex items-center gap-1"
+              >
                 {t('settings.goto_appearance')} <ArrowRight className="w-3 h-3" />
               </button>
             )}
@@ -435,8 +611,12 @@ function GeneralSettings({ language, setLanguage, t, onSwitchTab }: GeneralSetti
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="font-mono text-sm tracking-wider text-primary glow-text truncate">{branding.appName || 'YYC3_DEVOPS'}</h1>
-              <p className="text-[10px] text-muted-foreground font-mono">{branding.tagline || 'v3.0.1-beta'}</p>
+              <h1 className="font-mono text-sm tracking-wider text-primary glow-text truncate">
+                {branding.appName || 'YYC3_DEVOPS'}
+              </h1>
+              <p className="text-[10px] text-muted-foreground font-mono">
+                {branding.tagline || 'v3.0.1-beta'}
+              </p>
             </div>
           </div>
         </div>
@@ -446,523 +626,349 @@ function GeneralSettings({ language, setLanguage, t, onSwitchTab }: GeneralSetti
       <div className="grid gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium font-mono">{t('settings.workspace_name')}</label>
-          <Input placeholder="Enter workspace name" defaultValue="DevOps_Playground_Alpha" className="font-mono bg-muted/20 focus-visible:ring-primary transition-all" />
+          <Input
+            placeholder="Enter workspace name"
+            defaultValue="DevOps_Playground_Alpha"
+            className="font-mono bg-muted/20 focus-visible:ring-primary transition-all"
+          />
         </div>
+      </div>
 
-        <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
-          <div className="space-y-0.5">
-            <label className="text-sm font-medium font-mono block">{t('settings.language')}</label>
-            <span className="text-xs text-muted-foreground">Select system interface language</span>
-          </div>
-          <div className="flex items-center gap-2 bg-muted p-1 rounded-lg border border-border">
-            <button
-              onClick={() => setLanguage('en')}
-              className={cn('text-xs font-mono px-3 py-1 rounded transition-all', language === 'en' ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:text-foreground text-muted-foreground')}
-            >
-                EN
-            </button>
-            <button
-              onClick={() => setLanguage('zh')}
-              className={cn('text-xs font-mono px-3 py-1 rounded transition-all', language === 'zh' ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:text-foreground text-muted-foreground')}
-            >
-                中文
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
-          <div className="space-y-0.5">
-            <label className="text-sm font-medium font-mono block">{t('settings.dev_mode')}</label>
-            <span className="text-xs text-muted-foreground">{t('settings.dev_mode_desc')}</span>
-          </div>
-          <Switch defaultChecked />
-        </div>
-
-        <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
-          <div className="space-y-0.5">
-            <label className="text-sm font-medium font-mono block">{t('settings.auto_save')}</label>
-            <span className="text-xs text-muted-foreground">{t('settings.auto_save_desc')}</span>
-          </div>
-          <Switch />
+      {/* ============ SECTION: Language ============ */}
+      <div className="space-y-4">
+        <h4 className="text-sm font-medium font-mono flex items-center gap-2">
+          <Type className="w-4 h-4 text-primary" />
+          {t('settings.language')}
+        </h4>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => setLanguage('zh')}
+            className={cn(
+              'p-3 rounded-lg border transition-all duration-200',
+              language === 'zh'
+                ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(14,165,233,0.2)]'
+                : 'border-border bg-muted/30 text-muted-foreground hover:bg-muted/60',
+            )}
+          >
+            <div className="text-sm font-medium">简体中文</div>
+            <div className="text-[10px] text-muted-foreground">Simplified Chinese</div>
+          </button>
+          <button
+            onClick={() => setLanguage('en')}
+            className={cn(
+              'p-3 rounded-lg border transition-all duration-200',
+              language === 'en'
+                ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(14,165,233,0.2)]'
+                : 'border-border bg-muted/30 text-muted-foreground hover:bg-muted/60',
+            )}
+          >
+            <div className="text-sm font-medium">English</div>
+            <div className="text-[10px] text-muted-foreground">English (US)</div>
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-const MODELS_STORAGE_KEY = 'yyc3-models-config';
-
-interface ModelConfig {
-  id: string;
-  name: string;
-  provider: string;
-  status: 'active' | 'standby';
-  latency: string;
-  apiKey: string;
-  endpoint: string;
-  isCustom: boolean;
-}
-
-const DEFAULT_MODELS: ModelConfig[] = [
-  { id: 'claude-4', name: 'Claude 4 Sonnet', provider: 'Anthropic', status: 'active', latency: '24ms', apiKey: '', endpoint: 'https://api.anthropic.com/v1', isCustom: false },
-  { id: 'gpt-4o', name: 'GPT-4o', provider: 'OpenAI', status: 'standby', latency: '45ms', apiKey: '', endpoint: 'https://api.openai.com/v1', isCustom: false },
-  { id: 'deepseek-r1', name: 'DeepSeek-R1', provider: 'DeepSeek', status: 'standby', latency: '18ms', apiKey: '', endpoint: 'https://api.deepseek.com/v1', isCustom: false },
-  { id: 'glm-4', name: 'GLM-4', provider: '智谱 AI (Zhipu)', status: 'standby', latency: '32ms', apiKey: '', endpoint: 'https://open.bigmodel.cn/api/paas/v4', isCustom: false },
-  { id: 'llama-3-70b', name: 'Llama-3-70b', provider: 'Groq', status: 'standby', latency: '12ms', apiKey: '', endpoint: 'https://api.groq.com/openai/v1', isCustom: false },
-  { id: 'gemini-2.5', name: 'Gemini 2.5 Pro', provider: 'Google', status: 'standby', latency: '38ms', apiKey: '', endpoint: 'https://generativelanguage.googleapis.com/v1beta', isCustom: false },
-];
-
-function loadModels(): ModelConfig[] {
-  try {
-    const raw = localStorage.getItem(MODELS_STORAGE_KEY);
-
-    if (raw) return JSON.parse(raw);
-  } catch { /* ignore */ }
-
-  return DEFAULT_MODELS;
-}
-
-function saveModels(models: ModelConfig[]) {
-  try {
-    localStorage.setItem(MODELS_STORAGE_KEY, JSON.stringify(models));
-  } catch { /* ignore */ }
-}
-
 function ModelsSettings({ t }: TranslationProps) {
-  const [models, setModels] = React.useState<ModelConfig[]>(() => loadModels());
-  const [editingId, setEditingId] = React.useState<string | null>(null);
-  const [editForm, setEditForm] = React.useState({ name: '', provider: '', apiKey: '', endpoint: '' });
-  const [showAddForm, setShowAddForm] = React.useState(false);
-  const [newModel, setNewModel] = React.useState({ name: '', provider: '', apiKey: '', endpoint: '' });
+  const [providerConfigs, setProviderConfigs] = React.useState<ProviderConfig[]>(() =>
+    loadProviderConfigs(),
+  );
 
-  // Sync model configs to LLM Bridge provider configs whenever models change
-  React.useEffect(() => {
-    saveModels(models);
-
-    // Map model configs to provider configs for the LLM Bridge
-    const providerMap: Record<string, ProviderConfig> = {};
-
-    for (const model of models) {
-      // Try to match to a known provider
-      const providerLower = model.provider.toLowerCase();
-      let providerId = '';
-
-      if (providerLower.includes('anthropic') || providerLower.includes('claude')) providerId = 'anthropic';
-      else if (providerLower.includes('openai') || providerLower.includes('gpt')) providerId = 'openai';
-      else if (providerLower.includes('deepseek')) providerId = 'deepseek';
-      else if (providerLower.includes('zhipu') || providerLower.includes('智谱') || providerLower.includes('glm') || providerLower.includes('z.ai')) providerId = 'zhipu';
-      else if (providerLower.includes('google') || providerLower.includes('gemini')) providerId = 'google';
-      else if (providerLower.includes('groq')) providerId = 'groq';
-      else if (providerLower.includes('ollama')) providerId = 'ollama';
-      else if (providerLower.includes('lm studio')) providerId = 'lmstudio';
-
-      if (providerId && model.apiKey) {
-        // Use the first match with an API key for each provider
-        if (!providerMap[providerId] || model.status === 'active') {
-          providerMap[providerId] = {
-            providerId,
-            apiKey: model.apiKey,
-            endpoint: model.endpoint || PROVIDERS[providerId]?.defaultEndpoint || '',
-            enabled: model.status === 'active',
-            defaultModel: PROVIDERS[providerId]?.defaultModel || model.id,
-          };
-        }
-      }
-    }
-
-    saveProviderConfigs(Object.values(providerMap));
-  }, [models]);
-
-  const handleToggleStatus = (id: string) => {
-    setModels(prev => prev.map(m => m.id === id ? { ...m, status: m.status === 'active' ? 'standby' as const : 'active' as const } : m));
+  const handleToggleProvider = (providerId: string) => {
+    setProviderConfigs(prev =>
+      prev.map(cfg => (cfg.id === providerId ? { ...cfg, enabled: !cfg.enabled } : cfg)),
+    );
+    saveProviderConfigs(
+      providerConfigs.map(cfg => (cfg.id === providerId ? { ...cfg, enabled: !cfg.enabled } : cfg)),
+    );
   };
 
-  const handleStartEdit = (model: ModelConfig) => {
-    setEditingId(model.id);
-    setEditForm({ name: model.name, provider: model.provider, apiKey: model.apiKey, endpoint: model.endpoint });
+  const handleUpdateConfig = (providerId: string, updates: Partial<ProviderConfig>) => {
+    const newConfigs = providerConfigs.map(cfg =>
+      cfg.id === providerId ? { ...cfg, ...updates } : cfg,
+    );
+    setProviderConfigs(newConfigs);
+    saveProviderConfigs(newConfigs);
   };
 
-  const handleSaveEdit = (id: string) => {
-    setModels(prev => prev.map(m => m.id === id ? { ...m, ...editForm } : m));
-    setEditingId(null);
-  };
-
-  const handleDelete = (id: string) => {
-    setModels(prev => prev.filter(m => m.id !== id));
-  };
-
-  const handleAddModel = () => {
-    if (!newModel.name.trim()) return;
-    const id = `custom-${Date.now()}`;
-
-    setModels(prev => [...prev, {
-      id,
-      name: newModel.name,
-      provider: newModel.provider || 'Custom',
-      status: 'standby',
-      latency: '-',
-      apiKey: newModel.apiKey,
-      endpoint: newModel.endpoint,
-      isCustom: true,
-    }]);
-    setNewModel({ name: '', provider: '', apiKey: '', endpoint: '' });
-    setShowAddForm(false);
+  const handleAddCustomProvider = () => {
+    const newProvider: ProviderConfig = {
+      id: `custom-${Date.now()}`,
+      name: 'Custom Provider',
+      provider: 'custom',
+      enabled: false,
+      apiKey: '',
+      endpoint: '',
+      model: '',
+    };
+    const newConfigs = [...providerConfigs, newProvider];
+    setProviderConfigs(newConfigs);
+    saveProviderConfigs(newConfigs);
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-      {/* Model Cards */}
-      <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium font-mono">Registered Models</h4>
-        <Button size="sm" variant="outline" className="h-7 text-xs font-mono gap-1.5" onClick={() => setShowAddForm(!showAddForm)}>
-          <Plus className="w-3 h-3" />
-          ADD MODEL
-        </Button>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="space-y-4">
+        <h4 className="text-sm font-medium font-mono flex items-center gap-2">
+          <Cpu className="w-4 h-4 text-primary" />
+          {t('settings.models.title')}
+        </h4>
+        <p className="text-xs text-muted-foreground">{t('settings.models.desc')}</p>
       </div>
 
-      {/* Add Model Form */}
-      {showAddForm && (
-        <div className="p-4 rounded-lg border border-dashed border-primary/30 bg-primary/5 space-y-3 animate-in slide-in-from-top-2 duration-200">
-          <h5 className="text-xs font-mono text-primary flex items-center gap-2">
-            <Plus className="w-3 h-3" /> NEW_MODEL_REGISTRATION
-          </h5>
-          <div className="grid grid-cols-2 gap-3">
-            <Input placeholder="Model name" value={newModel.name} onChange={e => setNewModel(p => ({ ...p, name: e.target.value }))} className="h-8 text-xs font-mono bg-muted/20" />
-            <Input placeholder="Provider (e.g. OpenAI)" value={newModel.provider} onChange={e => setNewModel(p => ({ ...p, provider: e.target.value }))} className="h-8 text-xs font-mono bg-muted/20" />
-            <Input placeholder="API Endpoint URL" value={newModel.endpoint} onChange={e => setNewModel(p => ({ ...p, endpoint: e.target.value }))} className="h-8 text-xs font-mono bg-muted/20" />
-            <Input placeholder="API Key (optional)" type="password" value={newModel.apiKey} onChange={e => setNewModel(p => ({ ...p, apiKey: e.target.value }))} className="h-8 text-xs font-mono bg-muted/20" />
+      <div className="grid gap-4">
+        {providerConfigs.map(config => (
+          <ModelCard
+            key={config.id}
+            name={config.name}
+            provider={config.provider}
+            status={config.enabled ? 'active' : 'standby'}
+            apiKey={config.apiKey}
+            endpoint={config.endpoint}
+            onToggle={() => handleToggleProvider(config.id)}
+            isCustom={config.provider === 'custom'}
+            onSave={data => handleUpdateConfig(config.id, data)}
+            onDelete={() => {
+              const newConfigs = providerConfigs.filter(cfg => cfg.id !== config.id);
+              setProviderConfigs(newConfigs);
+              saveProviderConfigs(newConfigs);
+            }}
+          />
+        ))}
+
+        <Button
+          onClick={handleAddCustomProvider}
+          variant="outline"
+          className="w-full border-dashed border-primary/30 hover:bg-primary/5 hover:border-primary/50 gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          {t('settings.models.add_custom')}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function ModelCard({
+  name,
+  provider,
+  status,
+  apiKey,
+  endpoint,
+  onToggle,
+  isCustom,
+  onSave,
+  onDelete,
+}: ModelCardProps) {
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [editData, setEditData] = React.useState({
+    name,
+    apiKey: apiKey || '',
+    endpoint: endpoint || '',
+  });
+
+  const handleSave = () => {
+    onSave?.(editData);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditData({ name, apiKey: apiKey || '', endpoint: endpoint || '' });
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
+    return (
+      <div className="p-4 rounded-lg border border-primary/30 bg-primary/5 space-y-3">
+        <div className="space-y-1">
+          <label className="text-[10px] font-mono text-muted-foreground">
+            {t('settings.models.provider_name')}
+          </label>
+          <Input
+            value={editData.name}
+            onChange={e => setEditData(prev => ({ ...prev, name: e.target.value }))}
+            className="h-8 text-xs font-mono bg-muted/20"
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-mono text-muted-foreground">API Key</label>
+          <Input
+            type="password"
+            value={editData.apiKey}
+            onChange={e => setEditData(prev => ({ ...prev, apiKey: e.target.value }))}
+            className="h-8 text-xs font-mono bg-muted/20"
+          />
+        </div>
+        {provider === 'custom' && (
+          <div className="space-y-1">
+            <label className="text-[10px] font-mono text-muted-foreground">
+              {t('settings.models.endpoint')}
+            </label>
+            <Input
+              value={editData.endpoint}
+              onChange={e => setEditData(prev => ({ ...prev, endpoint: e.target.value }))}
+              className="h-8 text-xs font-mono bg-muted/20"
+            />
           </div>
-          <div className="flex gap-2 justify-end">
-            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setShowAddForm(false)}>Cancel</Button>
-            <Button size="sm" className="h-7 text-xs gap-1" onClick={handleAddModel}><Save className="w-3 h-3" /> Register</Button>
+        )}
+        <div className="flex gap-2">
+          <Button size="sm" onClick={handleSave} className="h-7 text-[10px] font-mono gap-1">
+            <Save className="w-3 h-3" />
+            {t('settings.models.save')}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleCancel}
+            className="h-7 text-[10px] font-mono"
+          >
+            {t('settings.models.cancel')}
+          </Button>
+          {isCustom && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onDelete}
+              className="h-7 text-[10px] font-mono text-red-400 hover:text-red-300 hover:bg-red-500/10 ml-auto"
+            >
+              <Trash2 className="w-3 h-3" />
+              {t('settings.models.delete')}
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 rounded-lg border border-border bg-card/80 hover:border-primary/30 transition-all duration-200">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 min-w-0">
+          <div
+            className={cn(
+              'w-2 h-2 rounded-full shrink-0',
+              status === 'active'
+                ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]'
+                : 'bg-muted-foreground/50',
+            )}
+          />
+          <div className="min-w-0">
+            <div className="text-sm font-medium font-mono truncate">{name}</div>
+            <div className="text-[10px] text-muted-foreground font-mono">{provider}</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Switch checked={status === 'active'} onCheckedChange={onToggle} />
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setIsEditing(true)}
+            className="h-7 w-7 p-0"
+          >
+            <Edit3 className="w-3 h-3" />
+          </Button>
+        </div>
+      </div>
+      {apiKey && (
+        <div className="mt-3 pt-3 border-t border-border/50">
+          <div className="text-[10px] font-mono text-muted-foreground">
+            {t('settings.models.api_key')}:{' '}
+            <span className="font-mono text-foreground">{maskApiKey(apiKey)}</span>
           </div>
         </div>
       )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {models.map(model => (
-          <div key={model.id} className={cn(
-            'p-4 rounded-lg border flex flex-col gap-2 transition-all group relative',
-            model.status === 'active'
-              ? 'bg-primary/5 border-primary shadow-[0_0_15px_rgba(14,165,233,0.1)]'
-              : 'bg-background border-border hover:border-primary/50 hover:bg-muted/5',
-          )}>
-            {editingId === model.id ? (
-              /* Edit Mode */
-              <div className="space-y-2">
-                <Input value={editForm.name} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))} className="h-7 text-xs font-mono bg-muted/20" placeholder="Name" />
-                <Input value={editForm.provider} onChange={e => setEditForm(p => ({ ...p, provider: e.target.value }))} className="h-7 text-xs font-mono bg-muted/20" placeholder="Provider" />
-                <Input value={editForm.endpoint} onChange={e => setEditForm(p => ({ ...p, endpoint: e.target.value }))} className="h-7 text-xs font-mono bg-muted/20" placeholder="Endpoint" />
-                <Input value={editForm.apiKey} onChange={e => setEditForm(p => ({ ...p, apiKey: e.target.value }))} type="password" className="h-7 text-xs font-mono bg-muted/20" placeholder="API Key" />
-                <div className="flex gap-1.5 justify-end pt-1">
-                  <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px]" onClick={() => setEditingId(null)}>
-                    <X className="w-3 h-3" />
-                  </Button>
-                  <Button size="sm" className="h-6 px-2 text-[10px] gap-1" onClick={() => handleSaveEdit(model.id)}>
-                    <Save className="w-3 h-3" /> SAVE
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              /* View Mode */
-              <>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-bold text-sm font-mono group-hover:text-primary transition-colors">{model.name}</h4>
-                    <span className="text-xs text-muted-foreground">{model.provider}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => handleToggleStatus(model.id)} className={cn(
-                      'w-2 h-2 rounded-full transition-shadow duration-500 cursor-pointer',
-                      model.status === 'active' ? 'bg-green-500 shadow-[0_0_5px_#22c55e] animate-pulse' : 'bg-muted-foreground hover:bg-amber-500',
-                    )} title={`Click to ${model.status === 'active' ? 'deactivate' : 'activate'}`} />
-                  </div>
-                </div>
-                {model.endpoint && (
-                  <div className="text-[9px] font-mono text-zinc-500 truncate">{model.endpoint}</div>
-                )}
-                <div className="mt-1 text-[10px] font-mono flex items-center gap-2 justify-between">
-                  <div className="flex gap-2">
-                    <span className="bg-muted px-1.5 py-0.5 rounded text-foreground border border-transparent group-hover:border-border">{model.status.toUpperCase()}</span>
-                    <span className="text-muted-foreground">{model.latency}</span>
-                    {model.apiKey && <CheckCircle2 className="w-3 h-3 text-green-500" />}
-                    {model.isCustom && <span className="px-1 py-0.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded">CUSTOM</span>}
-                  </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => handleStartEdit(model)} className="p-1 hover:bg-white/10 rounded transition-colors"><Edit3 className="w-3 h-3 text-zinc-400" /></button>
-                    {model.isCustom && (
-                      <button onClick={() => handleDelete(model.id)} className="p-1 hover:bg-red-500/10 rounded transition-colors"><Trash2 className="w-3 h-3 text-red-400" /></button>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div className="pt-6 border-t border-border space-y-4">
-        <h4 className="text-sm font-medium font-mono">{t('settings.inference')}</h4>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs font-mono">
-              <span>{t('settings.temp')}</span>
-              <span>0.7</span>
-            </div>
-            <Slider defaultValue={[0.7]} max={1} step={0.1} />
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs font-mono">
-              <span>{t('settings.tokens')}</span>
-              <span>4096</span>
-            </div>
-            <Slider defaultValue={[4096]} max={8192} step={128} />
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
 
 function GitOpsSettings({ t }: TranslationProps) {
-  return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-      <div className="p-4 rounded-lg border border-dashed border-border bg-muted/5 hover:bg-muted/10 transition-colors">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-background flex items-center justify-center border border-border group-hover:border-primary transition-colors">
-            <GitBranch className="w-6 h-6 text-foreground" />
-          </div>
-          <div>
-            <h4 className="font-bold text-sm font-mono">GitHub Connection</h4>
-            <p className="text-xs text-muted-foreground">Connected as @dev_operator</p>
-          </div>
-          <Button variant="outline" size="sm" className="ml-auto text-xs font-mono hover:bg-primary hover:text-primary-foreground transition-all">Re-Connect</Button>
-        </div>
-      </div>
+  const [repos, setRepos] = React.useState<RepoItemProps[]>([
+    { name: 'YYC3-AI-Family', branch: 'main', status: 'Active' },
+    { name: 'YYC3-Docs', branch: 'docs', status: 'Active' },
+  ]);
 
+  return (
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="space-y-4">
-        <h4 className="text-sm font-medium font-mono">Repositories</h4>
-        <div className="grid gap-2">
-          <RepoItem name="yyc3-core-infrastructure" branch="main" status="Synced" />
-          <RepoItem name="yyc3-frontend-v2" branch="develop" status="1 commit ahead" />
-          <RepoItem name="yyc3-agent-swarm" branch="feature/new-planner" status="Syncing..." />
-        </div>
+        <h4 className="text-sm font-medium font-mono flex items-center gap-2">
+          <GitBranch className="w-4 h-4 text-primary" />
+          {t('settings.gitops.title')}
+        </h4>
+        <p className="text-xs text-muted-foreground">{t('settings.gitops.desc')}</p>
       </div>
 
-      <div className="flex gap-2 pt-4">
-        <Button className="flex-1 font-mono text-xs gap-2 hover:scale-[1.02] transition-transform">
-          <GitBranch className="w-3 h-3" />
-             PULL REQUEST
-        </Button>
-        <Button variant="outline" className="flex-1 font-mono text-xs gap-2 hover:scale-[1.02] transition-transform">
-             SYNC ALL
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function RepoItem({ name, branch, status }: RepoItemProps) {
-  return (
-    <div className="flex items-center justify-between p-3 rounded bg-muted/10 border border-border/50 font-mono text-xs hover:bg-muted/30 hover:border-primary/30 transition-all cursor-pointer group">
-      <div className="flex items-center gap-2">
-        <GitBranch className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
-        <span className="text-foreground">{name}</span>
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="text-primary bg-primary/10 px-1.5 rounded">{branch}</span>
-        <span className="text-muted-foreground">{status}</span>
-      </div>
-    </div>
-  );
-}
-
-const PLUGINS_STORAGE_KEY = 'yyc3-plugins-config';
-
-interface PluginConfig {
-  id: string;
-  name: string;
-  desc: string;
-  version: string;
-  author: string;
-  category: 'self-developed' | 'community' | 'official';
-  enabled: boolean;
-  icon: string; // emoji or text
-  color: string;
-}
-
-const DEFAULT_PLUGINS: PluginConfig[] = [
-  { id: 'yyc3-neural-link', name: 'YYC3 Neural Link', desc: '多模型意图解析与自动路由引擎', version: '2.1.0', author: 'YYC3 Team', category: 'self-developed', enabled: true, icon: '🧠', color: 'text-amber-500' },
-  { id: 'yyc3-dag-engine', name: 'DAG Workflow Engine', desc: '可视化工作流编排与DAG执行器', version: '1.4.0', author: 'YYC3 Team', category: 'self-developed', enabled: true, icon: '⚡', color: 'text-blue-500' },
-  { id: 'yyc3-mcp-bridge', name: 'MCP Bridge', desc: 'Model Context Protocol 服务器桥接', version: '3.0.0', author: 'YYC3 Team', category: 'self-developed', enabled: true, icon: '🔗', color: 'text-cyan-500' },
-  { id: 'yyc3-cluster-monitor', name: 'Cluster Monitor', desc: '四节点集群实时监控与告警', version: '1.2.0', author: 'YYC3 Team', category: 'self-developed', enabled: true, icon: '📡', color: 'text-green-500' },
-  { id: 'yyc3-code-review', name: 'Code Review Agent', desc: 'AI驱动代码审查与最佳实践建议', version: '0.9.0', author: 'YYC3 Team', category: 'self-developed', enabled: false, icon: '🔍', color: 'text-purple-500' },
-  { id: 'docker-compose-gen', name: 'Docker Compose Generator', desc: '根据架构描述自动生成 docker-compose.yml', version: '1.0.0', author: 'community', category: 'community', enabled: true, icon: '🐳', color: 'text-sky-500' },
-  { id: 'figma-sync', name: 'Figma Design Sync', desc: 'Figma设计稿与代码组件双向同步', version: '2.0.0', author: 'official', category: 'official', enabled: true, icon: '🎨', color: 'text-pink-500' },
-  { id: 'nas-file-browser', name: 'NAS File Browser', desc: 'YanYuCloud NAS 远程文件浏览器', version: '1.1.0', author: 'YYC3 Team', category: 'self-developed', enabled: true, icon: '💾', color: 'text-emerald-500' },
-];
-
-function loadPlugins(): PluginConfig[] {
-  try {
-    const raw = localStorage.getItem(PLUGINS_STORAGE_KEY);
-
-    if (raw) return JSON.parse(raw);
-  } catch { /* ignore */ }
-
-  return DEFAULT_PLUGINS;
-}
-
-function savePlugins(plugins: PluginConfig[]) {
-  try {
-    localStorage.setItem(PLUGINS_STORAGE_KEY, JSON.stringify(plugins));
-  } catch { /* ignore */ }
-}
-
-function ExtensionsSettings({ t }: TranslationProps) {
-  const [plugins, setPlugins] = React.useState<PluginConfig[]>(() => loadPlugins());
-  const [filterCategory, setFilterCategory] = React.useState<string>('all');
-  const [showAddPlugin, setShowAddPlugin] = React.useState(false);
-  const [newPlugin, setNewPlugin] = React.useState({ name: '', desc: '', version: '0.1.0', author: '' });
-
-  React.useEffect(() => {
-    savePlugins(plugins);
-  }, [plugins]);
-
-  const handleTogglePlugin = (id: string) => {
-    setPlugins(prev => prev.map(p => p.id === id ? { ...p, enabled: !p.enabled } : p));
-  };
-
-  const handleDeletePlugin = (id: string) => {
-    setPlugins(prev => prev.filter(p => p.id !== id));
-  };
-
-  const handleAddPlugin = () => {
-    if (!newPlugin.name.trim()) return;
-    setPlugins(prev => [...prev, {
-      id: `custom-${Date.now()}`,
-      name: newPlugin.name,
-      desc: newPlugin.desc || 'Custom self-developed plugin',
-      version: newPlugin.version,
-      author: newPlugin.author || 'YYC3 Team',
-      category: 'self-developed',
-      enabled: false,
-      icon: '🔧',
-      color: 'text-orange-500',
-    }]);
-    setNewPlugin({ name: '', desc: '', version: '0.1.0', author: '' });
-    setShowAddPlugin(false);
-  };
-
-  const filtered = plugins.filter(p => filterCategory === 'all' || p.category === filterCategory);
-  const enabledCount = plugins.filter(p => p.enabled).length;
-  const selfDevCount = plugins.filter(p => p.category === 'self-developed').length;
-
-  return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Header Stats */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="p-3 rounded-lg border border-border bg-muted/10 text-center">
-          <div className="text-lg font-mono text-primary">{plugins.length}</div>
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Plugins</div>
-        </div>
-        <div className="p-3 rounded-lg border border-border bg-muted/10 text-center">
-          <div className="text-lg font-mono text-green-500">{enabledCount}</div>
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Enabled</div>
-        </div>
-        <div className="p-3 rounded-lg border border-border bg-muted/10 text-center">
-          <div className="text-lg font-mono text-amber-500">{selfDevCount}</div>
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Self-Developed</div>
-        </div>
-      </div>
-
-      {/* Toolbar */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex gap-1">
-          {['all', 'self-developed', 'community', 'official'].map(cat => (
-            <button
-              key={cat}
-              onClick={() => setFilterCategory(cat)}
-              className={cn(
-                'px-2.5 py-1 rounded text-xs font-mono transition-colors',
-                filterCategory === cat
-                  ? 'bg-primary/15 text-primary border border-primary/30'
-                  : 'text-muted-foreground hover:text-foreground border border-transparent hover:border-border',
-              )}
-            >
-              {cat === 'all' ? 'ALL' : cat === 'self-developed' ? '自研' : cat === 'community' ? 'Community' : 'Official'}
-            </button>
-          ))}
-        </div>
-        <Button size="sm" variant="outline" className="h-7 text-xs font-mono gap-1.5" onClick={() => setShowAddPlugin(!showAddPlugin)}>
-          <Plus className="w-3 h-3" />
-          NEW PLUGIN
-        </Button>
-      </div>
-
-      {/* Add Plugin Form */}
-      {showAddPlugin && (
-        <div className="p-4 rounded-lg border border-dashed border-primary/30 bg-primary/5 space-y-3 animate-in slide-in-from-top-2 duration-200">
-          <h5 className="text-xs font-mono text-primary flex items-center gap-2">
-            <Code2 className="w-3 h-3" /> CREATE_SELF_DEVELOPED_PLUGIN
-          </h5>
-          <div className="grid grid-cols-2 gap-3">
-            <Input placeholder="Plugin name" value={newPlugin.name} onChange={e => setNewPlugin(p => ({ ...p, name: e.target.value }))} className="h-8 text-xs font-mono bg-muted/20" />
-            <Input placeholder="Author" value={newPlugin.author} onChange={e => setNewPlugin(p => ({ ...p, author: e.target.value }))} className="h-8 text-xs font-mono bg-muted/20" />
-            <Input placeholder="Description" value={newPlugin.desc} onChange={e => setNewPlugin(p => ({ ...p, desc: e.target.value }))} className="h-8 text-xs font-mono bg-muted/20 col-span-2" />
-          </div>
-          <div className="flex gap-2 justify-end">
-            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setShowAddPlugin(false)}>Cancel</Button>
-            <Button size="sm" className="h-7 text-xs gap-1" onClick={handleAddPlugin}><Puzzle className="w-3 h-3" /> Create</Button>
-          </div>
-        </div>
-      )}
-
-      {/* Plugin Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {filtered.map(plugin => (
-          <div
-            key={plugin.id}
-            className={cn(
-              'p-4 rounded-lg border transition-all group',
-              plugin.enabled
-                ? 'bg-muted/5 border-border hover:border-primary/30'
-                : 'bg-muted/5 border-border/50 opacity-60 hover:opacity-80',
-            )}
-          >
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg bg-muted/20 border border-border flex items-center justify-center text-lg shrink-0">
-                {plugin.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-mono truncate">{plugin.name}</h4>
-                  <span className={cn(
-                    'text-[9px] font-mono px-1.5 py-0.5 rounded border shrink-0',
-                    plugin.category === 'self-developed' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                      : plugin.category === 'official' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                      : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
-                  )}>
-                    {plugin.category === 'self-developed' ? '自研' : plugin.category}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{plugin.desc}</p>
-                <div className="flex items-center gap-2 mt-2 text-[10px] font-mono text-muted-foreground">
-                  <span>v{plugin.version}</span>
-                  <span>·</span>
-                  <span>{plugin.author}</span>
+      <div className="grid gap-4">
+        {repos.map((repo, idx) => (
+          <div key={idx} className="p-4 rounded-lg border border-border bg-card/80">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <GitBranch className="w-4 h-4 text-primary" />
+                <div>
+                  <div className="text-sm font-medium font-mono">{repo.name}</div>
+                  <div className="text-[10px] text-muted-foreground font-mono">{repo.branch}</div>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-2 shrink-0">
-                <Switch checked={plugin.enabled} onCheckedChange={() => handleTogglePlugin(plugin.id)} />
-                {plugin.category === 'self-developed' && (
-                  <button onClick={() => handleDeletePlugin(plugin.id)} className="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-500/10 rounded transition-all">
-                    <Trash2 className="w-3 h-3 text-red-400" />
-                  </button>
-                )}
+              <div className="flex items-center gap-2">
+                <div
+                  className={cn(
+                    'px-2 py-1 rounded text-[10px] font-mono',
+                    repo.status === 'Active'
+                      ? 'bg-green-500/10 text-green-500 border border-green-500/20'
+                      : 'bg-muted text-muted-foreground',
+                  )}
+                >
+                  {repo.status}
+                </div>
               </div>
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function ExtensionsSettings({ t }: TranslationProps) {
+  return (
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="space-y-4">
+        <h4 className="text-sm font-medium font-mono flex items-center gap-2">
+          <Puzzle className="w-4 h-4 text-primary" />
+          {t('settings.extensions.title')}
+        </h4>
+        <p className="text-xs text-muted-foreground">{t('settings.extensions.desc')}</p>
+      </div>
+
+      <div className="grid gap-4">
+        <div className="p-4 rounded-lg border border-border bg-card/80">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Code2 className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-medium font-mono">MCP Protocol</div>
+              <div className="text-[10px] text-muted-foreground font-mono">v1.0.0</div>
+            </div>
+            <Switch defaultChecked />
+          </div>
+          <p className="text-xs text-muted-foreground">{t('settings.extensions.mcp_desc')}</p>
+        </div>
+
+        <div className="p-4 rounded-lg border border-border bg-card/80">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-medium font-mono">AI Assistant</div>
+              <div className="text-[10px] text-muted-foreground font-mono">v2.1.0</div>
+            </div>
+            <Switch defaultChecked />
+          </div>
+          <p className="text-xs text-muted-foreground">{t('settings.extensions.ai_desc')}</p>
+        </div>
       </div>
     </div>
   );
@@ -970,1171 +976,306 @@ function ExtensionsSettings({ t }: TranslationProps) {
 
 function SecuritySettings({ t }: TranslationProps) {
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-green-500/10 border-green-500/20">
-        <div className="flex items-center gap-4">
-          <Shield className="w-8 h-8 text-green-500" />
-          <div>
-            <h4 className="font-bold text-sm text-green-500">SYSTEM SECURE</h4>
-            <p className="text-xs text-muted-foreground">All security systems operational. No threats detected.</p>
-          </div>
-        </div>
-        <Button size="sm" className="bg-green-500/20 text-green-500 hover:bg-green-500/30 border-green-500/50">RUN AUDIT</Button>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="space-y-4">
+        <h4 className="text-sm font-medium font-mono flex items-center gap-2">
+          <Shield className="w-4 h-4 text-primary" />
+          {t('settings.security.title')}
+        </h4>
+        <p className="text-xs text-muted-foreground">{t('settings.security.desc')}</p>
       </div>
 
       <div className="grid gap-4">
-        <div className="flex items-center justify-between p-3 rounded bg-muted/5 border border-border">
-          <div className="flex items-center gap-3">
-            <Lock className="w-4 h-4 text-primary" />
-            <div className="space-y-0.5">
-              <div className="text-sm font-medium font-mono">Data Encryption (AES-256)</div>
-              <div className="text-xs text-muted-foreground">At-rest data protection active</div>
+        <div className="p-4 rounded-lg border border-border bg-card/80">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Lock className="w-4 h-4 text-primary" />
+              <div>
+                <div className="text-sm font-medium font-mono">
+                  {t('settings.security.api_keys')}
+                </div>
+                <div className="text-[10px] text-muted-foreground font-mono">
+                  {t('settings.security.api_keys_desc')}
+                </div>
+              </div>
             </div>
+            <Switch defaultChecked />
           </div>
-          <Switch defaultChecked disabled />
         </div>
 
-        <div className="flex items-center justify-between p-3 rounded bg-muted/5 border border-border">
-          <div className="flex items-center gap-3">
-            <Fingerprint className="w-4 h-4 text-primary" />
-            <div className="space-y-0.5">
-              <div className="text-sm font-medium font-mono">Biometric / MFA Auth</div>
-              <div className="text-xs text-muted-foreground">Require YubiKey or Authenticator</div>
+        <div className="p-4 rounded-lg border border-border bg-card/80">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Fingerprint className="w-4 h-4 text-primary" />
+              <div>
+                <div className="text-sm font-medium font-mono">
+                  {t('settings.security.biometric')}
+                </div>
+                <div className="text-[10px] text-muted-foreground font-mono">
+                  {t('settings.security.biometric_desc')}
+                </div>
+              </div>
             </div>
+            <Switch />
           </div>
-          <Switch defaultChecked />
         </div>
 
-        <div className="flex items-center justify-between p-3 rounded bg-muted/5 border border-border">
-          <div className="flex items-center gap-3">
-            <Eye className="w-4 h-4 text-primary" />
-            <div className="space-y-0.5">
-              <div className="text-sm font-medium font-mono">Input Sanitization</div>
-              <div className="text-xs text-muted-foreground">XSS/SQLi filter middleware</div>
+        <div className="p-4 rounded-lg border border-border bg-card/80">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Eye className="w-4 h-4 text-primary" />
+              <div>
+                <div className="text-sm font-medium font-mono">
+                  {t('settings.security.privacy')}
+                </div>
+                <div className="text-[10px] text-muted-foreground font-mono">
+                  {t('settings.security.privacy_desc')}
+                </div>
+              </div>
             </div>
+            <Switch defaultChecked />
           </div>
-          <Switch defaultChecked disabled />
-        </div>
-
-        <div className="flex items-center justify-between p-3 rounded bg-muted/5 border border-border">
-          <div className="flex items-center gap-3">
-            <FileWarning className="w-4 h-4 text-primary" />
-            <div className="space-y-0.5">
-              <div className="text-sm font-medium font-mono">Access Logs</div>
-              <div className="text-xs text-muted-foreground">Retention: 90 Days</div>
-            </div>
-          </div>
-          <Button variant="outline" size="sm" className="h-7 text-xs">VIEW LOGS</Button>
         </div>
       </div>
     </div>
   );
 }
 
-const ACCENT_PRESETS = [
-  { id: 'sky', label: 'Gem Blue', color: '#0EA5E9' },
-  { id: 'violet', label: 'Violet', color: '#8B5CF6' },
-  { id: 'emerald', label: 'Emerald', color: '#10B981' },
-  { id: 'rose', label: 'Rose', color: '#F43F5E' },
-  { id: 'amber', label: 'Amber', color: '#F59E0B' },
-  { id: 'cyan', label: 'Cyan', color: '#06B6D4' },
-  { id: 'pink', label: 'Pink', color: '#EC4899' },
-  { id: 'lime', label: 'Lime', color: '#84CC16' },
-  { id: 'orange', label: 'Orange', color: '#F97316' },
-  { id: 'indigo', label: 'Indigo', color: '#6366F1' },
-];
-
-const APPEARANCE_STORAGE_KEY = 'yyc3-appearance-config';
-
-interface AppearanceConfig {
-  accentColor: string;
-  panelOpacity: number;
-  bgBlur: boolean;
-  scanline: boolean;
-  glowEffect: boolean;
-  customColor: string;
-  shadowColor: string;
-  borderColor: string;
-  glowColor: string;
-  bgColor: string;
-  bgImageDataUrl: string;
-  bgImageName: string;
-  shadowIntensity: number;
-  overlayOpacity: number;
-  fontFamily: string;
-  monoFontFamily: string;
-  fontSize: number;
-  bgBrightness: number;
-  bgBlurPx: number;
-}
-
-const DEFAULT_APPEARANCE: AppearanceConfig = {
-  accentColor: '#0EA5E9',
-  panelOpacity: 80,
-  bgBlur: true,
-  scanline: true,
-  glowEffect: true,
-  customColor: '#0EA5E9',
-  shadowColor: '#0EA5E930',
-  borderColor: '#2d3748',
-  glowColor: '#0EA5E9',
-  bgColor: '#050505',
-  bgImageDataUrl: '',
-  bgImageName: '',
-  shadowIntensity: 50,
-  overlayOpacity: 80,
-  fontFamily: 'system-ui',
-  monoFontFamily: 'JetBrains Mono',
-  fontSize: 14,
-  bgBrightness: 70,
-  bgBlurPx: 0,
-};
-
-function loadAppearance(): AppearanceConfig {
-  try {
-    const raw = localStorage.getItem(APPEARANCE_STORAGE_KEY);
-
-    if (raw) return { ...DEFAULT_APPEARANCE, ...JSON.parse(raw) };
-  } catch { /* ignore */ }
-
-  return DEFAULT_APPEARANCE;
-}
-
-const BG_IMAGE_STORAGE_KEY = 'yyc3-bg-image';
-
-function saveAppearance(config: AppearanceConfig) {
-  try {
-    // Store bg image separately (can be large)
-    if (config.bgImageDataUrl && config.bgImageDataUrl !== '__stored__') {
-      localStorage.setItem(BG_IMAGE_STORAGE_KEY, config.bgImageDataUrl);
-    } else if (!config.bgImageDataUrl) {
-      localStorage.removeItem(BG_IMAGE_STORAGE_KEY);
-    }
-    const toSave = { ...config, bgImageDataUrl: config.bgImageDataUrl ? '__stored__' : '' };
-
-    localStorage.setItem(APPEARANCE_STORAGE_KEY, JSON.stringify(toSave));
-  } catch { /* ignore - may exceed quota for large images */ }
-}
-
-function loadAppearanceFull(): AppearanceConfig {
-  const base = loadAppearance();
-
-  if (base.bgImageDataUrl === '__stored__') {
-    try {
-      base.bgImageDataUrl = localStorage.getItem(BG_IMAGE_STORAGE_KEY) || '';
-    } catch { base.bgImageDataUrl = ''; }
-  }
-
-  return base;
-}
-
-// Curated font list (common + popular design/coding fonts)
-const POPULAR_FONTS = [
-  'system-ui', 'Inter', 'Roboto', 'Noto Sans SC', 'Noto Sans', 'PingFang SC',
-  'SF Pro Display', 'Helvetica Neue', 'Arial', 'Microsoft YaHei',
-  'Source Han Sans', 'Lato', 'Open Sans', 'Poppins', 'Montserrat',
-  'DM Sans', 'IBM Plex Sans', 'Nunito', 'Rubik', 'Manrope',
-  'Geist', 'Plus Jakarta Sans', 'Outfit',
-  'LXGW WenKai', 'HarmonyOS Sans', 'Alibaba PuHuiTi',
-  'Coco', 'Didot', 'Grouch BT', 'Marydale', 'Planet Kosmos',
-];
-
-const POPULAR_MONO_FONTS = [
-  'JetBrains Mono', 'Fira Code', 'Hack Nerd Font', 'Hack Nerd Font Mono',
-  'Hack Nerd Font Propo', 'Source Code Pro', 'Cascadia Code', 'Consolas',
-  'SF Mono', 'IBM Plex Mono', 'Ubuntu Mono', 'Inconsolata',
-  'Roboto Mono', 'JetBrains Mono NL', 'MonoLisa', 'Operator Mono',
-  'Monaspace Neon', 'Monaspace Argon', 'Geist Mono',
-  'H2D2-Alevita', 'HabanoST', 'LHF Claretian',
-];
-
 function AppearanceSettings({ t }: TranslationProps) {
-  const [config, setConfig] = React.useState<AppearanceConfig>(() => loadAppearanceFull());
-  const bgFileRef = React.useRef<HTMLInputElement>(null);
-  const [brandingSnapshot, setBrandingSnapshot] = React.useState<BrandingConfig>(() => loadBranding());
-
-  React.useEffect(() => {
-    const handler = () => setBrandingSnapshot(loadBranding());
-
-    window.addEventListener('yyc3-branding-update', handler);
-
-    return () => window.removeEventListener('yyc3-branding-update', handler);
-  }, []);
-  const [localFonts, setLocalFonts] = React.useState<string[]>([]);
-  const [fontSearch, setFontSearch] = React.useState('');
-  const [monoFontSearch, setMonoFontSearch] = React.useState('');
-  const [showFontDropdown, setShowFontDropdown] = React.useState(false);
-  const [showMonoDropdown, setShowMonoDropdown] = React.useState(false);
-  const fontDropdownRef = React.useRef<HTMLDivElement>(null);
-  const monoDropdownRef = React.useRef<HTMLDivElement>(null);
-
-  // Detect local fonts using queryLocalFonts API
-  const detectLocalFonts = React.useCallback(async () => {
-    try {
-      if ('queryLocalFonts' in window) {
-        const fonts: FontData[] = await window.queryLocalFonts();
-        const familySet = new Set<string>();
-
-        for (const font of fonts) {
-          familySet.add(font.family);
-        }
-        const sorted = Array.from(familySet).sort((a, b) => a.localeCompare(b));
-
-        setLocalFonts(sorted);
-      }
-    } catch {
-      // Permission denied or unsupported — use fallback
-      setLocalFonts([]);
-    }
-  }, []);
-
-  // Close font dropdowns on outside click
-  React.useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (fontDropdownRef.current && !fontDropdownRef.current.contains(e.target as Node)) setShowFontDropdown(false);
-      if (monoDropdownRef.current && !monoDropdownRef.current.contains(e.target as Node)) setShowMonoDropdown(false);
-    };
-
-    document.addEventListener('mousedown', handler);
-
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  // Persist + apply CSS variables to :root
-  React.useEffect(() => {
-    saveAppearance(config);
-    const root = document.documentElement;
-
-    root.style.setProperty('--primary', config.accentColor);
-    root.style.setProperty('--ring', config.accentColor);
-    root.style.setProperty('--accent-foreground', config.accentColor);
-    root.style.setProperty('--border', config.borderColor);
-    root.style.setProperty('--input', config.borderColor);
-    root.style.setProperty('--background', config.bgColor);
-    root.style.setProperty('--yyc3-overlay-opacity', String(config.overlayOpacity / 100));
-    root.style.setProperty('--yyc3-shadow-intensity', String(config.shadowIntensity / 100));
-
-    // Font
-    root.style.setProperty('--yyc3-font-family', `"${config.fontFamily}", system-ui, sans-serif`);
-    root.style.setProperty('--yyc3-mono-font', `"${config.monoFontFamily}", "JetBrains Mono", monospace`);
-    root.style.setProperty('--font-sans', `"${config.fontFamily}", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`);
-    root.style.setProperty('--font-mono', `"${config.monoFontFamily}", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`);
-    root.style.setProperty('--yyc3-font-size', `${config.fontSize}px`);
-    document.body.style.fontFamily = `"${config.fontFamily}", system-ui, -apple-system, sans-serif`;
-    document.body.style.fontSize = `${config.fontSize}px`;
-
-    // Notify YYC3Background component (same-tab custom event)
-    window.dispatchEvent(new Event('yyc3-bg-update'));
-
-    // Scanline
-    const scanlineEl = document.querySelector('.scanline') as HTMLElement | null;
-
-    if (scanlineEl) scanlineEl.style.display = config.scanline ? '' : 'none';
-
-    // Glow
-    const existingStyle = document.getElementById('yyc3-glow-style');
-
-    if (existingStyle) existingStyle.remove();
-    const style = document.createElement('style');
-
-    style.id = 'yyc3-glow-style';
-    style.textContent = `.glow-text { text-shadow: ${config.glowEffect ? `0 0 10px ${config.glowColor}80, 0 0 20px ${config.glowColor}50` : 'none'}; }`;
-    document.head.appendChild(style);
-  }, [config]);
-
-  const setAccent = (color: string) => setConfig(prev => ({
-    ...prev,
-    accentColor: color,
-    glowColor: color,
-    shadowColor: color + '30',
-  }));
-
-  // Background image upload
-  const handleBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-
-    if (!file) return;
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-
-    reader.onload = ev => {
-      const dataUrl = ev.target?.result as string;
-
-      setConfig(prev => ({ ...prev, bgImageDataUrl: dataUrl, bgImageName: file.name }));
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
-  };
-
-  // Build font list (merged local + popular)
-  const allFonts = React.useMemo(() => {
-    const set = new Set([...POPULAR_FONTS, ...localFonts]);
-
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [localFonts]);
-
-  const allMonoFonts = React.useMemo(() => {
-    const monoFromLocal = localFonts.filter(f =>
-      /mono|code|consol|courier|hack|fira|jetbrain|terminal|fixed|nerd/i.test(f),
-    );
-    const set = new Set([...POPULAR_MONO_FONTS, ...monoFromLocal]);
-
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [localFonts]);
-
-  const filteredFonts = allFonts.filter(f => f.toLowerCase().includes(fontSearch.toLowerCase()));
-  const filteredMonoFonts = allMonoFonts.filter(f => f.toLowerCase().includes(monoFontSearch.toLowerCase()));
-
-  const shadowBlur = Math.round(config.shadowIntensity * 0.4);
-  const shadowSpread = Math.round(config.shadowIntensity * 0.15);
+  const [theme, setTheme] = React.useState<'light' | 'dark' | 'cyberpunk'>('cyberpunk');
+  const [fontSize, setFontSize] = React.useState(14);
+  const [showTransitions, setShowTransitions] = React.useState(true);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-
-      {/* ============ SECTION: Background ============ */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <h4 className="text-sm font-medium font-mono flex items-center gap-2">
-          <ImageIcon className="w-4 h-4" style={{ color: config.accentColor }} />
-          {t('settings.background')}
+          <Palette className="w-4 h-4 text-primary" />
+          {t('settings.appearance.title')}
         </h4>
-
-        {/* Background Color */}
-        <div className="flex items-center gap-4 p-4 rounded-lg border border-border bg-muted/10">
-          <input
-            type="color"
-            value={config.bgColor}
-            onChange={e => setConfig(prev => ({ ...prev, bgColor: e.target.value }))}
-            className="w-10 h-10 rounded-lg cursor-pointer border border-border bg-transparent shrink-0"
-          />
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-mono text-foreground">{t('settings.bg_color')}</div>
-            <div className="text-[10px] text-muted-foreground mt-0.5">--background CSS variable</div>
-          </div>
-          <div className="flex gap-1.5">
-            {['#050505', '#0a0a0f', '#0f172a', '#1a1a2e', '#0d1117', '#000000'].map(c => (
-              <button key={c} onClick={() => setConfig(prev => ({ ...prev, bgColor: c }))}
-                className={cn('w-6 h-6 rounded border transition-all hover:scale-110', config.bgColor === c ? 'border-white/40 ring-1 ring-white/20' : 'border-border/30')}
-                style={{ backgroundColor: c }} title={c} />
-            ))}
-          </div>
-        </div>
-
-        {/* Background Image Upload */}
-        <div className="p-4 rounded-lg border border-dashed border-border bg-muted/5 hover:bg-muted/10 transition-colors">
-          <input ref={bgFileRef} type="file" accept="image/*" className="hidden" onChange={handleBgUpload} />
-          <div className="flex items-center gap-4">
-            {config.bgImageDataUrl && config.bgImageDataUrl !== '__stored__' ? (
-              <div className="w-20 h-14 rounded-lg overflow-hidden border border-border shrink-0">
-                <img src={config.bgImageDataUrl} alt="bg" className="w-full h-full object-cover" />
-              </div>
-            ) : (
-              <div className="w-20 h-14 rounded-lg border border-border/50 bg-muted/10 flex items-center justify-center shrink-0">
-                <ImageIcon className="w-5 h-5 text-muted-foreground" />
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-mono text-foreground">{t('settings.bg_image')}</div>
-              {config.bgImageName ? (
-                <div className="text-[10px] text-muted-foreground mt-0.5 truncate">{config.bgImageName}</div>
-              ) : (
-                <div className="text-[10px] text-muted-foreground mt-0.5">JPG / PNG / WebP</div>
-              )}
-            </div>
-            <div className="flex gap-2 shrink-0">
-              <Button size="sm" variant="outline" className="h-7 text-[10px] font-mono gap-1" onClick={() => bgFileRef.current?.click()}>
-                <Upload className="w-3 h-3" />
-                {t('settings.bg_image_upload')}
-              </Button>
-              {config.bgImageDataUrl && (
-                <Button size="sm" variant="ghost" className="h-7 text-[10px] font-mono text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                  onClick={() => setConfig(prev => ({ ...prev, bgImageDataUrl: '', bgImageName: '' }))}>
-                  {t('settings.bg_image_clear')}
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Brightness + Blur sliders (only when image is set) */}
-        {config.bgImageDataUrl && (
-          <div className="space-y-3 p-4 rounded-lg border border-border/50 bg-muted/5">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono text-muted-foreground">{t('settings.bg_brightness')}</span>
-                <span className="text-xs font-mono px-2 py-0.5 rounded" style={{ color: config.accentColor, backgroundColor: config.accentColor + '15' }}>{config.bgBrightness}%</span>
-              </div>
-              <Slider value={[config.bgBrightness]} onValueChange={([val]) => setConfig(prev => ({ ...prev, bgBrightness: val }))} min={10} max={100} step={5} />
-              <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
-                <span>10% (Dark)</span>
-                <span>100% (Original)</span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono text-muted-foreground">{t('settings.bg_blur_amount')}</span>
-                <span className="text-xs font-mono px-2 py-0.5 rounded" style={{ color: config.accentColor, backgroundColor: config.accentColor + '15' }}>{config.bgBlurPx}px</span>
-              </div>
-              <Slider value={[config.bgBlurPx]} onValueChange={([val]) => setConfig(prev => ({ ...prev, bgBlurPx: val }))} min={0} max={30} step={1} />
-              <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
-                <span>0px (Sharp)</span>
-                <span>30px (Heavy blur)</span>
-              </div>
-            </div>
-          </div>
-        )}
+        <p className="text-xs text-muted-foreground">{t('settings.appearance.desc')}</p>
       </div>
 
-      {/* ============ SECTION: Accent Color ============ */}
-      <div className="space-y-3">
-        <h4 className="text-sm font-medium font-mono flex items-center gap-2">
-          <Palette className="w-4 h-4" style={{ color: config.accentColor }} />
-          {t('settings.accent_color')}
-        </h4>
-        <div className="grid grid-cols-5 gap-3">
-          {ACCENT_PRESETS.map(preset => (
-            <button key={preset.id} onClick={() => setAccent(preset.color)}
-              className={cn('group relative flex flex-col items-center gap-2 p-3 rounded-lg border transition-all hover:scale-105',
-                config.accentColor === preset.color ? 'border-white/30 bg-white/5 shadow-lg' : 'border-border/30 hover:border-white/20')}>
-              <div className="w-8 h-8 rounded-full border-2 transition-shadow"
-                style={{ backgroundColor: preset.color, borderColor: config.accentColor === preset.color ? '#fff' : 'transparent', boxShadow: config.accentColor === preset.color ? `0 0 12px ${preset.color}80` : 'none' }} />
-              <span className="text-[9px] font-mono text-muted-foreground group-hover:text-foreground transition-colors">{preset.label}</span>
-              {config.accentColor === preset.color && <CheckCircle2 className="absolute -top-1 -right-1 w-4 h-4 text-white" />}
+      <div className="space-y-6">
+        <div className="space-y-3">
+          <label className="text-sm font-medium font-mono">{t('settings.appearance.theme')}</label>
+          <div className="grid grid-cols-3 gap-3">
+            <button
+              onClick={() => setTheme('light')}
+              className={cn(
+                'p-3 rounded-lg border transition-all duration-200',
+                theme === 'light'
+                  ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(14,165,233,0.2)]'
+                  : 'border-border bg-muted/30 text-muted-foreground hover:bg-muted/60',
+              )}
+            >
+              <Monitor className="w-5 h-5 mx-auto mb-2" />
+              <div className="text-xs font-medium font-mono text-center">
+                {t('settings.appearance.light')}
+              </div>
             </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-3 pt-2">
-          <span className="text-xs font-mono text-muted-foreground">Custom:</span>
-          <input type="color" value={config.customColor}
-            onChange={e => { setConfig(prev => ({ ...prev, customColor: e.target.value })); setAccent(e.target.value); }}
-            className="w-8 h-8 rounded-lg cursor-pointer border border-border bg-transparent" />
-          <code className="text-[10px] font-mono text-zinc-500 bg-zinc-800/50 px-2 py-0.5 rounded">{config.accentColor}</code>
-        </div>
-      </div>
-
-      {/* ============ SECTION: Border + Shadow ============ */}
-      <div className="space-y-3">
-        <h4 className="text-sm font-medium font-mono flex items-center gap-2">
-          <Layers className="w-4 h-4" style={{ color: config.accentColor }} />
-          Border / Shadow
-        </h4>
-
-        {/* Border Color */}
-        <div className="flex items-center gap-4 p-3 rounded-lg border bg-muted/10" style={{ borderColor: config.borderColor }}>
-          <input type="color" value={config.borderColor.slice(0, 7)}
-            onChange={e => setConfig(prev => ({ ...prev, borderColor: e.target.value }))}
-            className="w-8 h-8 rounded-lg cursor-pointer border border-border bg-transparent shrink-0" />
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-mono text-foreground">Border Color</div>
-          </div>
-          <div className="flex gap-1.5 shrink-0">
-            {[
-              { label: 'D', color: '#2d3748' }, { label: 'S', color: '#1a202c' },
-              { label: 'B', color: '#4a5568' }, { label: 'A', color: config.accentColor },
-            ].map(p => (
-              <button key={p.label} onClick={() => setConfig(prev => ({ ...prev, borderColor: p.color }))}
-                className={cn('w-6 h-6 rounded border text-[8px] font-mono flex items-center justify-center transition-all hover:scale-110',
-                  config.borderColor === p.color ? 'border-white/40' : 'border-border/30')}
-                style={{ backgroundColor: p.color }} title={p.label}>
-                <span className="text-white/60">{p.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Shadow Color + Intensity */}
-        <div className="flex items-center gap-4 p-3 rounded-lg border border-border bg-muted/10">
-          <input type="color" value={config.shadowColor.slice(0, 7)}
-            onChange={e => setConfig(prev => ({ ...prev, shadowColor: e.target.value + '30' }))}
-            className="w-8 h-8 rounded-lg cursor-pointer border border-border bg-transparent shrink-0" />
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-mono text-foreground">Shadow Color</div>
-          </div>
-          <code className="text-[10px] font-mono text-zinc-500 bg-zinc-800/50 px-2 py-0.5 rounded shrink-0">{config.shadowColor}</code>
-        </div>
-
-        {/* Shadow Intensity Slider */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-muted-foreground">{t('settings.shadow_intensity')}</span>
-            <span className="text-xs font-mono px-2 py-0.5 rounded" style={{ color: config.accentColor, backgroundColor: config.accentColor + '15' }}>{config.shadowIntensity}%</span>
-          </div>
-          <Slider value={[config.shadowIntensity]} onValueChange={([val]) => setConfig(prev => ({ ...prev, shadowIntensity: val }))} min={0} max={100} step={5} />
-          <div className="flex gap-3">
-            <div className="flex-1 h-14 rounded-lg border border-border/30 bg-muted/10 flex items-center justify-center text-[10px] font-mono text-muted-foreground"
-              style={{ boxShadow: `0 ${Math.round(shadowBlur * 0.3)}px ${shadowBlur}px ${shadowSpread}px ${config.shadowColor}` }}>
-              Shadow
-            </div>
-            <div className="flex-1 h-14 rounded-lg border border-border/30 bg-muted/10 flex items-center justify-center text-[10px] font-mono text-muted-foreground"
-              style={{ boxShadow: `0 0 ${shadowBlur}px ${config.shadowColor}, inset 0 0 ${Math.round(shadowBlur * 0.6)}px ${config.shadowColor}` }}>
-              Inset
-            </div>
-          </div>
-        </div>
-
-        {/* Glow Color */}
-        <div className="flex items-center gap-4 p-3 rounded-lg border border-border bg-muted/10">
-          <input type="color" value={config.glowColor}
-            onChange={e => setConfig(prev => ({ ...prev, glowColor: e.target.value }))}
-            className="w-8 h-8 rounded-lg cursor-pointer border border-border bg-transparent shrink-0" />
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-mono text-foreground">Glow / Neon Color</div>
-          </div>
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-mono shrink-0"
-            style={{ color: config.glowColor, textShadow: `0 0 8px ${config.glowColor}80, 0 0 16px ${config.glowColor}40` }}>
-            Y3
-          </div>
-        </div>
-      </div>
-
-      {/* ============ SECTION: Opacity Controls ============ */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium font-mono flex items-center gap-2">
-          <Eye className="w-4 h-4" style={{ color: config.accentColor }} />
-          Opacity
-        </h4>
-
-        {/* Panel Opacity */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-muted-foreground">{t('settings.opacity')}</span>
-            <span className="text-xs font-mono px-2 py-0.5 rounded" style={{ color: config.accentColor, backgroundColor: config.accentColor + '15' }}>{config.panelOpacity}%</span>
-          </div>
-          <Slider value={[config.panelOpacity]} onValueChange={([val]) => setConfig(prev => ({ ...prev, panelOpacity: val }))} min={20} max={100} step={5} />
-        </div>
-
-        {/* Overlay / L2+ Page Opacity */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-xs font-mono text-muted-foreground">{t('settings.overlay_opacity')}</span>
-              <div className="text-[10px] text-muted-foreground/60 mt-0.5">{t('settings.overlay_opacity_desc')}</div>
-            </div>
-            <span className="text-xs font-mono px-2 py-0.5 rounded shrink-0" style={{ color: config.accentColor, backgroundColor: config.accentColor + '15' }}>{config.overlayOpacity}%</span>
-          </div>
-          <Slider value={[config.overlayOpacity]} onValueChange={([val]) => setConfig(prev => ({ ...prev, overlayOpacity: val }))} min={30} max={100} step={5} />
-          {/* Preview: mini overlay stack */}
-          <div className="relative h-20 rounded-lg border border-border/30 bg-muted/5 overflow-hidden">
-            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-mono text-muted-foreground/30">BASE LAYER</div>
-            <div className="absolute inset-x-4 inset-y-2 rounded-md border border-border/40 flex items-center justify-center text-[10px] font-mono"
-              style={{ backgroundColor: `rgba(17,17,17,${config.overlayOpacity / 100})`, backdropFilter: config.bgBlur ? 'blur(8px)' : 'none' }}>
-              <span style={{ color: config.accentColor }}>L2 Overlay ({config.overlayOpacity}%)</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ============ SECTION: Font Selection ============ */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h4 className="text-sm font-medium font-mono flex items-center gap-2">
-            <Type className="w-4 h-4" style={{ color: config.accentColor }} />
-            {t('settings.font_family')}
-          </h4>
-          <Button size="sm" variant="outline" className="h-7 text-[10px] font-mono gap-1.5" onClick={detectLocalFonts}>
-            <Search className="w-3 h-3" />
-            {t('settings.detect_fonts')}
-          </Button>
-        </div>
-        {localFonts.length > 0 && (
-          <div className="text-[10px] font-mono px-2 py-1 rounded bg-green-500/10 text-green-400 border border-green-500/20">
-            {t('settings.font_count').replace('{count}', String(localFonts.length))}
-          </div>
-        )}
-
-        {/* Main Font Selector */}
-        <div className="space-y-2">
-          <label className="text-xs font-mono text-muted-foreground block">{t('settings.font_family_desc')}</label>
-          <div className="relative" ref={fontDropdownRef}>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                <Input
-                  value={showFontDropdown ? fontSearch : config.fontFamily}
-                  onFocus={() => { setShowFontDropdown(true); setFontSearch(''); }}
-                  onChange={e => setFontSearch(e.target.value)}
-                  placeholder="Search fonts..."
-                  className="pl-8 h-9 text-xs font-mono bg-muted/20"
-                  style={{ fontFamily: `"${config.fontFamily}", system-ui` }}
-                />
+            <button
+              onClick={() => setTheme('dark')}
+              className={cn(
+                'p-3 rounded-lg border transition-all duration-200',
+                theme === 'dark'
+                  ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(14,165,233,0.2)]'
+                  : 'border-border bg-muted/30 text-muted-foreground hover:bg-muted/60',
+              )}
+            >
+              <Monitor className="w-5 h-5 mx-auto mb-2" />
+              <div className="text-xs font-medium font-mono text-center">
+                {t('settings.appearance.dark')}
               </div>
-            </div>
-            {showFontDropdown && (
-              <div className="absolute z-50 top-full mt-1 left-0 right-0 max-h-[280px] overflow-y-auto bg-background border border-border rounded-lg shadow-xl">
-                <div className="p-1">
-                  {filteredFonts.slice(0, 100).map(f => (
-                    <button key={f}
-                      onClick={() => { setConfig(prev => ({ ...prev, fontFamily: f })); setShowFontDropdown(false); }}
-                      className={cn(
-                        'w-full text-left px-3 py-2 text-xs rounded-md transition-colors flex items-center justify-between group',
-                        config.fontFamily === f ? 'bg-primary/10 text-primary' : 'hover:bg-muted/30 text-foreground',
-                      )}>
-                      <span style={{ fontFamily: `"${f}", system-ui` }}>{f}</span>
-                      <span className="text-[9px] text-muted-foreground opacity-0 group-hover:opacity-100" style={{ fontFamily: `"${f}", system-ui` }}>AaBbCc 你好</span>
-                    </button>
-                  ))}
-                  {filteredFonts.length === 0 && (
-                    <div className="px-3 py-4 text-xs text-muted-foreground text-center font-mono">No fonts found</div>
-                  )}
-                  {filteredFonts.length > 100 && (
-                    <div className="px-3 py-2 text-[10px] text-muted-foreground text-center font-mono border-t border-border/30">
-                      Showing 100 of {filteredFonts.length} — refine search
-                    </div>
-                  )}
-                </div>
+            </button>
+            <button
+              onClick={() => setTheme('cyberpunk')}
+              className={cn(
+                'p-3 rounded-lg border transition-all duration-200',
+                theme === 'cyberpunk'
+                  ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(14,165,233,0.2)]'
+                  : 'border-border bg-muted/30 text-muted-foreground hover:bg-muted/60',
+              )}
+            >
+              <Sparkles className="w-5 h-5 mx-auto mb-2" />
+              <div className="text-xs font-medium font-mono text-center">
+                {t('settings.appearance.cyberpunk')}
               </div>
-            )}
-          </div>
-          {/* Font preview */}
-          <div className="p-3 rounded-lg border border-border/30 bg-muted/5" style={{ fontFamily: `"${config.fontFamily}", system-ui` }}>
-            <div className="text-sm text-foreground">The quick brown fox jumps over the lazy dog</div>
-            <div className="text-sm text-foreground mt-1">敏捷的棕色狐狸跳过了懒惰的狗 — 0123456789</div>
+            </button>
           </div>
         </div>
 
-        {/* Mono Font Selector */}
-        <div className="space-y-2">
-          <label className="text-xs font-mono text-muted-foreground block">{t('settings.mono_font')} — {t('settings.mono_font_desc')}</label>
-          <div className="relative" ref={monoDropdownRef}>
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-              <Input
-                value={showMonoDropdown ? monoFontSearch : config.monoFontFamily}
-                onFocus={() => { setShowMonoDropdown(true); setMonoFontSearch(''); }}
-                onChange={e => setMonoFontSearch(e.target.value)}
-                placeholder="Search mono fonts..."
-                className="pl-8 h-9 text-xs bg-muted/20"
-                style={{ fontFamily: `"${config.monoFontFamily}", monospace` }}
-              />
-            </div>
-            {showMonoDropdown && (
-              <div className="absolute z-50 top-full mt-1 left-0 right-0 max-h-[240px] overflow-y-auto bg-background border border-border rounded-lg shadow-xl">
-                <div className="p-1">
-                  {filteredMonoFonts.slice(0, 60).map(f => (
-                    <button key={f}
-                      onClick={() => { setConfig(prev => ({ ...prev, monoFontFamily: f })); setShowMonoDropdown(false); }}
-                      className={cn(
-                        'w-full text-left px-3 py-2 text-xs rounded-md transition-colors flex items-center justify-between group',
-                        config.monoFontFamily === f ? 'bg-primary/10 text-primary' : 'hover:bg-muted/30 text-foreground',
-                      )}>
-                      <span style={{ fontFamily: `"${f}", monospace` }}>{f}</span>
-                      <span className="text-[9px] text-muted-foreground opacity-0 group-hover:opacity-100" style={{ fontFamily: `"${f}", monospace` }}>const x = 42;</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="p-3 rounded-lg border border-border/30 bg-muted/5" style={{ fontFamily: `"${config.monoFontFamily}", monospace` }}>
-            <div className="text-xs text-foreground">{'const app = createServer({ port: 3000 });'}</div>
-            <div className="text-xs text-muted-foreground mt-1">{'// 0Oo 1lI |!¡ {}[] () <> ,.;: "'}</div>
-          </div>
+        <div className="space-y-3">
+          <label className="text-sm font-medium font-mono flex items-center justify-between">
+            {t('settings.appearance.font_size')}
+            <span className="text-xs text-muted-foreground font-mono">{fontSize}px</span>
+          </label>
+          <Slider
+            value={[fontSize]}
+            onValueChange={([value]) => setFontSize(value)}
+            min={12}
+            max={18}
+            step={1}
+            className="w-full"
+          />
         </div>
 
-        {/* Font Size */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-xs font-mono text-muted-foreground">{t('settings.font_size')}</span>
-              <span className="text-[10px] text-muted-foreground/60 ml-2">{t('settings.font_size_desc')}</span>
+        <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card/80">
+          <div>
+            <div className="text-sm font-medium font-mono">
+              {t('settings.appearance.transitions')}
             </div>
-            <span className="text-xs font-mono px-2 py-0.5 rounded" style={{ color: config.accentColor, backgroundColor: config.accentColor + '15' }}>{config.fontSize}px</span>
-          </div>
-          <Slider value={[config.fontSize]} onValueChange={([val]) => setConfig(prev => ({ ...prev, fontSize: val }))} min={10} max={20} step={1} />
-          <div className="flex justify-between text-[10px] font-mono text-muted-foreground">
-            <span>10px</span>
-            <span>14px (default)</span>
-            <span>20px</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ============ SECTION: Visual Effect Toggles ============ */}
-      <div className="space-y-3">
-        <h4 className="text-sm font-medium font-mono flex items-center gap-2">
-          <Sparkles className="w-4 h-4" style={{ color: config.accentColor }} />
-          Visual Effects
-        </h4>
-        <div className="grid gap-2">
-          {[
-            { key: 'bgBlur' as const, label: t('settings.bg_blur'), desc: 'Backdrop blur on panels and overlays' },
-            { key: 'scanline' as const, label: t('settings.scanline'), desc: 'CRT-style animated scanline overlay' },
-            { key: 'glowEffect' as const, label: t('settings.glow'), desc: 'Neon glow effects on primary elements' },
-          ].map(item => (
-            <div key={item.key} className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/10 hover:bg-muted/20 transition-colors">
-              <div className="space-y-0.5">
-                <label className="text-xs font-medium font-mono block">{item.label}</label>
-                <span className="text-[10px] text-muted-foreground">{item.desc}</span>
-              </div>
-              <Switch checked={config[item.key]} onCheckedChange={val => setConfig(prev => ({ ...prev, [item.key]: val }))} />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ============ SECTION: Theme Preview ============ */}
-      <div className="space-y-3">
-        <h4 className="text-sm font-medium font-mono flex items-center gap-2">
-          <Monitor className="w-4 h-4" style={{ color: config.accentColor }} />
-          {t('settings.theme_preview')}
-        </h4>
-        <div className="p-5 rounded-xl border relative overflow-hidden" style={{
-          backgroundColor: `rgba(0,0,0,${config.panelOpacity / 100})`,
-          borderColor: config.borderColor,
-          boxShadow: `0 ${Math.round(shadowBlur * 0.3)}px ${shadowBlur}px ${shadowSpread}px ${config.shadowColor}`,
-          fontFamily: `"${config.fontFamily}", system-ui`,
-          fontSize: `${config.fontSize}px`,
-        }}>
-          {config.scanline && (
-            <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)' }} />
-          )}
-          <div className="relative z-10 space-y-3">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-md" style={{ backgroundColor: `${config.accentColor}15`, borderLeft: `2px solid ${config.accentColor}` }}>
-              <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: config.accentColor, boxShadow: config.glowEffect ? `0 0 6px ${config.glowColor}80` : 'none' }} />
-              <span className="text-xs" style={{ color: config.accentColor, fontFamily: `"${config.monoFontFamily}", monospace`, textShadow: config.glowEffect ? `0 0 8px ${config.glowColor}50` : 'none' }}>terminal.exe</span>
-              <div className="ml-auto w-1.5 h-6 rounded-full" style={{ backgroundColor: config.accentColor }} />
-            </div>
-            <div className="flex items-center gap-3 px-3">
-              <div className="w-7 h-7 rounded-lg border flex items-center justify-center text-[10px] overflow-hidden"
-                style={{ fontFamily: `"${config.monoFontFamily}", monospace`, borderColor: `${config.accentColor}50`, backgroundColor: `${config.accentColor}10`, color: config.accentColor, boxShadow: config.glowEffect ? `0 0 10px ${config.glowColor}30` : 'none' }}>
-                {brandingSnapshot.logoDataUrl ? (
-                  <img src={brandingSnapshot.logoDataUrl} alt="logo" className="w-full h-full object-cover" />
-                ) : (
-                  brandingSnapshot.logoText || 'Y3'
-                )}
-              </div>
-              <div className="space-y-0.5">
-                <div className="text-xs" style={{ color: config.accentColor, fontFamily: `"${config.monoFontFamily}", monospace` }}>{brandingSnapshot.appName || 'YYC3_DEVOPS'}</div>
-                <div className="text-[9px] text-zinc-500">{brandingSnapshot.tagline || 'v3.0.1-beta'}</div>
-              </div>
-            </div>
-            {/* L2 overlay preview inside */}
-            <div className="rounded border px-3 py-2" style={{ borderColor: config.borderColor, backgroundColor: `rgba(17,17,17,${config.overlayOpacity / 100})`, backdropFilter: config.bgBlur ? 'blur(8px)' : 'none' }}>
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: '#22c55e' }} />
-                <span className="text-[10px] text-zinc-400" style={{ fontFamily: `"${config.monoFontFamily}", monospace` }}>SYSTEM READY</span>
-                <span className="ml-auto text-[9px]" style={{ color: config.accentColor, fontFamily: `"${config.monoFontFamily}", monospace` }}>42ms</span>
-              </div>
-            </div>
-            <div className="flex gap-2 px-3">
-              <div className="px-3 py-1.5 rounded text-[10px] border cursor-pointer" style={{ fontFamily: `"${config.monoFontFamily}", monospace`, borderColor: `${config.accentColor}40`, color: config.accentColor, backgroundColor: `${config.accentColor}10` }}>EXECUTE</div>
-              <div className="px-3 py-1.5 rounded text-[10px] border text-zinc-500" style={{ fontFamily: `"${config.monoFontFamily}", monospace`, borderColor: config.borderColor }}>CANCEL</div>
+            <div className="text-[10px] text-muted-foreground font-mono">
+              {t('settings.appearance.transitions_desc')}
             </div>
           </div>
+          <Switch checked={showTransitions} onCheckedChange={setShowTransitions} />
         </div>
-      </div>
-
-      {/* ============ Reset ============ */}
-      <div className="flex justify-end pt-2">
-        <Button variant="outline" size="sm"
-          className="h-8 text-xs font-mono gap-1.5 text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
-          onClick={() => {
-            setConfig(DEFAULT_APPEARANCE);
-            localStorage.removeItem(BG_IMAGE_STORAGE_KEY);
-            const root = document.documentElement;
-
-            root.style.setProperty('--primary', DEFAULT_APPEARANCE.accentColor);
-            root.style.setProperty('--ring', DEFAULT_APPEARANCE.accentColor);
-            root.style.setProperty('--accent-foreground', DEFAULT_APPEARANCE.accentColor);
-            root.style.setProperty('--border', DEFAULT_APPEARANCE.borderColor);
-            root.style.setProperty('--input', DEFAULT_APPEARANCE.borderColor);
-            root.style.setProperty('--background', DEFAULT_APPEARANCE.bgColor);
-            document.body.style.fontFamily = '';
-            document.body.style.fontSize = '';
-          }}>
-          RESET TO DEFAULT
-        </Button>
       </div>
     </div>
   );
 }
 
-const AGENT_STATUS_STORAGE_KEY = 'yyc3-agent-status';
-
-function loadAgentStatus(): Record<string, boolean> {
-  try {
-    const raw = localStorage.getItem(AGENT_STATUS_STORAGE_KEY);
-
-    if (raw) return JSON.parse(raw);
-  } catch { /* ignore */ }
-
-  return Object.fromEntries(AGENT_REGISTRY.map(a => [a.id, true]));
-}
-
-function saveAgentStatus(status: Record<string, boolean>) {
-  try { localStorage.setItem(AGENT_STATUS_STORAGE_KEY, JSON.stringify(status)); } catch { /* ignore */ }
-}
-
 function AgentsSettings({ t }: TranslationProps) {
-  const [agentStatus, setAgentStatus] = React.useState<Record<string, boolean>>(() => loadAgentStatus());
-  const [customConfig, setCustomConfig] = React.useState<AgentCustomConfig>(() => loadAgentCustomConfig());
-  const [editingId, setEditingId] = React.useState<string | null>(null);
-  const [editForm, setEditForm] = React.useState<AgentOverride & { name: string; nameEn: string; role: string; desc: string; descEn: string }>({
-    name: '', nameEn: '', role: '', desc: '', descEn: '', color: '', bgColor: '', borderColor: '',
-  });
-  const [showAddForm, setShowAddForm] = React.useState(false);
-  const [newAgent, setNewAgent] = React.useState({
-    name: '', nameEn: '', role: '', desc: '', descEn: '', colorIdx: 0,
-  });
+  const [customConfig, setCustomConfig] = React.useState<AgentCustomConfig>(() =>
+    loadAgentCustomConfig(),
+  );
+  const mergedAgents = getMergedAgents(AGENT_REGISTRY, customConfig);
 
-  React.useEffect(() => { saveAgentStatus(agentStatus); }, [agentStatus]);
-  React.useEffect(() => { saveAgentCustomConfig(customConfig); }, [customConfig]);
-
-  const mergedAgents = getMergedAgents(customConfig);
-  const enabledCount = Object.values(agentStatus).filter(Boolean).length;
-
-  const toggleAgent = (id: string) => {
-    setAgentStatus(prev => ({ ...prev, [id]: !prev[id] }));
+  const handleToggleAgent = (agentId: string) => {
+    const newDisabled = customConfig.disabled.includes(agentId)
+      ? customConfig.disabled.filter(id => id !== agentId)
+      : [...customConfig.disabled, agentId];
+    setCustomConfig(prev => ({ ...prev, disabled: newDisabled }));
+    saveAgentCustomConfig({ ...customConfig, disabled: newDisabled });
   };
 
-  const startEdit = (agent: (typeof mergedAgents)[0]) => {
-    setEditingId(agent.id);
-    setEditForm({
-      name: agent.name,
-      nameEn: agent.nameEn,
-      role: agent.role,
-      desc: agent.desc,
-      descEn: agent.descEn,
-      color: agent.color,
-      bgColor: agent.bgColor,
-      borderColor: agent.borderColor,
-    });
-  };
-
-  const saveEdit = (agentId: string, isCustom: boolean) => {
-    if (isCustom) {
-      // Update custom agent directly
-      setCustomConfig(prev => ({
-        ...prev,
-        customAgents: prev.customAgents.map(ca =>
-          ca.id === agentId ? { ...ca, ...editForm } : ca,
-        ),
-      }));
+  const handleUpdateOverride = (agentId: string, updates: Partial<AgentOverride>) => {
+    const overrides = { ...customConfig.overrides };
+    if (overrides[agentId]) {
+      overrides[agentId] = { ...overrides[agentId], ...updates };
     } else {
-      // Save as override for built-in agent
-      const builtIn = AGENT_REGISTRY.find(a => a.id === agentId);
-
-      if (!builtIn) return;
-      const override: AgentOverride = {};
-
-      if (editForm.name !== builtIn.name) override.name = editForm.name;
-      if (editForm.nameEn !== builtIn.nameEn) override.nameEn = editForm.nameEn;
-      if (editForm.role !== builtIn.role) override.role = editForm.role;
-      if (editForm.desc !== builtIn.desc) override.desc = editForm.desc;
-      if (editForm.descEn !== builtIn.descEn) override.descEn = editForm.descEn;
-      if (editForm.color !== builtIn.color) override.color = editForm.color;
-      if (editForm.bgColor !== builtIn.bgColor) override.bgColor = editForm.bgColor;
-      if (editForm.borderColor !== builtIn.borderColor) override.borderColor = editForm.borderColor;
-      setCustomConfig(prev => ({
-        ...prev,
-        overrides: { ...prev.overrides, [agentId]: Object.keys(override).length ? override : prev.overrides[agentId] },
-      }));
+      overrides[agentId] = updates as AgentOverride;
     }
-    setEditingId(null);
+    setCustomConfig(prev => ({ ...prev, overrides }));
+    saveAgentCustomConfig({ ...customConfig, overrides });
   };
 
-  const resetBuiltinAgent = (agentId: string) => {
-    setCustomConfig(prev => {
-      const newOverrides = { ...prev.overrides };
-
-      delete newOverrides[agentId];
-
-      return { ...prev, overrides: newOverrides };
-    });
-    setEditingId(null);
-  };
-
-  const deleteCustomAgent = (agentId: string) => {
+  const handleAddCustomAgent = () => {
+    const id = `custom-${Date.now()}`;
+    const newAgent: CustomAgent = {
+      id,
+      name: `Custom Agent ${customConfig.customAgents.length + 1}`,
+      description: 'Custom agent configuration',
+      role: 'assistant',
+      color: AGENT_COLOR_PRESETS[customConfig.customAgents.length % AGENT_COLOR_PRESETS.length],
+      systemPrompt: 'You are a helpful AI assistant.',
+    };
     setCustomConfig(prev => ({
       ...prev,
-      customAgents: prev.customAgents.filter(ca => ca.id !== agentId),
+      customAgents: [...prev.customAgents, newAgent],
     }));
-    const newStatus = { ...agentStatus };
-
-    delete newStatus[agentId];
-    setAgentStatus(newStatus);
-  };
-
-  const addCustomAgent = () => {
-    if (!newAgent.name.trim()) return;
-    const preset = AGENT_COLOR_PRESETS[newAgent.colorIdx % AGENT_COLOR_PRESETS.length];
-    const id = `custom-agent-${Date.now()}`;
-    const ca: CustomAgent = {
-      id,
-      name: newAgent.name,
-      nameEn: newAgent.nameEn || newAgent.name,
-      role: newAgent.role || 'Agent',
-      desc: newAgent.desc || '',
-      descEn: newAgent.descEn || '',
-      icon: 'Bot',
-      color: preset.color,
-      bgColor: preset.bg,
-      borderColor: preset.border,
-      enabled: true,
-    };
-
-    setCustomConfig(prev => ({ ...prev, customAgents: [...prev.customAgents, ca] }));
-    setAgentStatus(prev => ({ ...prev, [id]: true }));
-    setNewAgent({ name: '', nameEn: '', role: '', desc: '', descEn: '', colorIdx: 0 });
-    setShowAddForm(false);
+    saveAgentCustomConfig({
+      ...customConfig,
+      customAgents: [...customConfig.customAgents, newAgent],
+    });
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Header Stats */}
-      <div className="grid grid-cols-4 gap-3">
-        <div className="p-3 rounded-lg border border-border bg-muted/10 text-center">
-          <div className="text-lg font-mono text-primary">{mergedAgents.length}</div>
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Total</div>
-        </div>
-        <div className="p-3 rounded-lg border border-border bg-muted/10 text-center">
-          <div className="text-lg font-mono text-green-500">{enabledCount}</div>
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Enabled</div>
-        </div>
-        <div className="p-3 rounded-lg border border-border bg-muted/10 text-center">
-          <div className="text-lg font-mono text-cyan-500">{AGENT_REGISTRY.length}</div>
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('settings.agent_builtin_badge')}</div>
-        </div>
-        <div className="p-3 rounded-lg border border-border bg-muted/10 text-center">
-          <div className="text-lg font-mono text-purple-500">{customConfig.customAgents.length}</div>
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('settings.agent_custom_badge')}</div>
-        </div>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="space-y-4">
+        <h4 className="text-sm font-medium font-mono flex items-center gap-2">
+          <Bot className="w-4 h-4 text-primary" />
+          {t('settings.agents.title')}
+        </h4>
+        <p className="text-xs text-muted-foreground">{t('settings.agents.desc')}</p>
       </div>
 
-      {/* Toolbar */}
-      <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium font-mono">{t('settings.tab.agents')}</h4>
-        <Button size="sm" variant="outline" className="h-7 text-xs font-mono gap-1.5" onClick={() => setShowAddForm(!showAddForm)}>
-          <Plus className="w-3 h-3" />
-          {t('settings.agent_add')}
-        </Button>
-      </div>
-
-      {/* Add Agent Form */}
-      {showAddForm && (
-        <div className="p-4 rounded-lg border border-dashed border-purple-500/30 bg-purple-500/5 space-y-3 animate-in slide-in-from-top-2 duration-200">
-          <h5 className="text-xs font-mono text-purple-400 flex items-center gap-2">
-            <Bot className="w-3 h-3" /> NEW_AGENT_DEFINITION
-          </h5>
-          <div className="grid grid-cols-2 gap-3">
-            <Input placeholder={t('settings.agent_name')} value={newAgent.name}
-              onChange={e => setNewAgent(p => ({ ...p, name: e.target.value }))} className="h-8 text-xs font-mono bg-muted/20" />
-            <Input placeholder={t('settings.agent_name_en')} value={newAgent.nameEn}
-              onChange={e => setNewAgent(p => ({ ...p, nameEn: e.target.value }))} className="h-8 text-xs font-mono bg-muted/20" />
-            <Input placeholder={t('settings.agent_role')} value={newAgent.role}
-              onChange={e => setNewAgent(p => ({ ...p, role: e.target.value }))} className="h-8 text-xs font-mono bg-muted/20" />
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono text-muted-foreground shrink-0">{t('settings.agent_color')}:</span>
-              <div className="flex gap-1 flex-wrap">
-                {AGENT_COLOR_PRESETS.slice(0, 6).map((preset, idx) => (
-                  <button key={preset.label} onClick={() => setNewAgent(p => ({ ...p, colorIdx: idx }))}
-                    className={cn('w-5 h-5 rounded-full border-2 transition-all hover:scale-110',
-                      newAgent.colorIdx === idx ? 'border-white/60 scale-110' : 'border-transparent',
-                    )}
-                    style={{ backgroundColor: preset.color.includes('amber') ? '#f59e0b' : preset.color.includes('blue') ? '#3b82f6' : preset.color.includes('purple') ? '#a855f7' : preset.color.includes('pink') ? '#ec4899' : preset.color.includes('cyan') ? '#06b6d4' : preset.color.includes('red') ? '#ef4444' : '#8b8b8b' }}
-                    title={preset.label}
-                  />
-                ))}
-              </div>
-            </div>
-            <Input placeholder={t('settings.agent_desc')} value={newAgent.desc}
-              onChange={e => setNewAgent(p => ({ ...p, desc: e.target.value }))} className="h-8 text-xs font-mono bg-muted/20 col-span-2" />
-            <Input placeholder={t('settings.agent_desc_en')} value={newAgent.descEn}
-              onChange={e => setNewAgent(p => ({ ...p, descEn: e.target.value }))} className="h-8 text-xs font-mono bg-muted/20 col-span-2" />
-          </div>
-          <div className="flex gap-2 justify-end">
-            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setShowAddForm(false)}>{t('settings.agent_cancel')}</Button>
-            <Button size="sm" className="h-7 text-xs gap-1" onClick={addCustomAgent}>
-              <Plus className="w-3 h-3" /> {t('settings.agent_add')}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Agent Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid gap-4">
         {mergedAgents.map(agent => {
-          const isEnabled = agentStatus[agent.id] ?? true;
-          const isEditing = editingId === agent.id;
-          const isCustom = !!agent.isCustom;
-          const hasOverride = !isCustom && customConfig.overrides[agent.id] && Object.keys(customConfig.overrides[agent.id]).length > 0;
-
+          const isDisabled = customConfig.disabled.includes(agent.id);
+          const override = customConfig.overrides[agent.id];
           return (
             <div
               key={agent.id}
               className={cn(
-                'p-4 rounded-lg border transition-all group relative overflow-hidden',
-                isEditing
-                  ? 'bg-primary/5 border-primary/40 shadow-lg'
-                  : isEnabled
-                    ? 'bg-muted/5 border-border hover:border-primary/30'
-                    : 'bg-muted/5 border-border/50 opacity-60',
+                'p-4 rounded-lg border transition-all duration-200',
+                isDisabled
+                  ? 'border-border bg-muted/20 opacity-50'
+                  : 'border-border bg-card/80 hover:border-primary/30',
               )}
             >
-              {isEditing ? (
-                /* ─── Edit Mode ─── */
-                <div className="space-y-3 animate-in fade-in duration-200">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono text-primary uppercase tracking-wider">{t('settings.agent_edit')}</span>
-                    <div className="flex items-center gap-1">
-                      {isCustom && (
-                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">{t('settings.agent_custom_badge')}</span>
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-white font-bold text-lg"
+                    style={{ backgroundColor: override?.color || agent.color }}
+                  >
+                    {agent.name.charAt(0)}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm font-medium font-mono truncate">
+                        {override?.name || agent.name}
+                      </div>
+                      {isDisabled && (
+                        <div className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-muted text-muted-foreground">
+                          Disabled
+                        </div>
                       )}
-                      {hasOverride && (
-                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">MODIFIED</span>
-                      )}
                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-muted-foreground">{t('settings.agent_name')}</label>
-                      <Input value={editForm.name} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))}
-                        className="h-7 text-xs font-mono bg-muted/20" />
+                    <div className="text-[10px] text-muted-foreground font-mono truncate">
+                      {override?.description || agent.description}
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-muted-foreground">{t('settings.agent_name_en')}</label>
-                      <Input value={editForm.nameEn} onChange={e => setEditForm(p => ({ ...p, nameEn: e.target.value }))}
-                        className="h-7 text-xs font-mono bg-muted/20" />
-                    </div>
-                    <div className="space-y-1 col-span-2">
-                      <label className="text-[10px] font-mono text-muted-foreground">{t('settings.agent_role')}</label>
-                      <Input value={editForm.role} onChange={e => setEditForm(p => ({ ...p, role: e.target.value }))}
-                        className="h-7 text-xs font-mono bg-muted/20" />
-                    </div>
-                    <div className="space-y-1 col-span-2">
-                      <label className="text-[10px] font-mono text-muted-foreground">{t('settings.agent_desc')}</label>
-                      <Input value={editForm.desc} onChange={e => setEditForm(p => ({ ...p, desc: e.target.value }))}
-                        className="h-7 text-xs font-mono bg-muted/20" />
-                    </div>
-                    <div className="space-y-1 col-span-2">
-                      <label className="text-[10px] font-mono text-muted-foreground">{t('settings.agent_desc_en')}</label>
-                      <Input value={editForm.descEn} onChange={e => setEditForm(p => ({ ...p, descEn: e.target.value }))}
-                        className="h-7 text-xs font-mono bg-muted/20" />
-                    </div>
-                  </div>
-                  {/* Color Picker */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-mono text-muted-foreground">{t('settings.agent_color')}</label>
-                    <div className="flex gap-1.5 flex-wrap">
-                      {AGENT_COLOR_PRESETS.map(preset => (
-                        <button key={preset.label}
-                          onClick={() => setEditForm(p => ({ ...p, color: preset.color, bgColor: preset.bg, borderColor: preset.border }))}
-                          className={cn(
-                            'px-2 py-0.5 rounded text-[9px] font-mono border transition-all hover:scale-105',
-                            editForm.color === preset.color
-                              ? `${preset.bg} ${preset.border} ${preset.color}`
-                              : 'border-border/30 text-muted-foreground hover:border-border',
-                          )}
-                        >
-                          {preset.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 pt-1">
-                    {!isCustom && (
-                      <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px] text-amber-400 hover:bg-amber-500/10"
-                        onClick={() => resetBuiltinAgent(agent.id)}>
-                        <RotateCcw className="w-3 h-3 mr-1" />
-                        {t('settings.agent_reset')}
-                      </Button>
-                    )}
-                    <div className="flex-1" />
-                    <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px]" onClick={() => setEditingId(null)}>
-                      <X className="w-3 h-3" />
-                    </Button>
-                    <Button size="sm" className="h-6 px-2 text-[10px] gap-1" onClick={() => saveEdit(agent.id, isCustom)}>
-                      <Save className="w-3 h-3" /> {t('settings.agent_save')}
-                    </Button>
                   </div>
                 </div>
-              ) : (
-                /* ─── View Mode ─── */
-                <>
-                  <div className="flex items-start gap-3">
-                    <div className={cn('w-10 h-10 rounded-lg border flex items-center justify-center text-lg shrink-0', agent.bgColor, agent.borderColor)}>
-                      <Bot className={cn('w-5 h-5', agent.color)} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className={cn('text-sm font-mono', 'text-foreground')}>{agent.name}</h4>
-                        <span className="text-[9px] font-mono text-muted-foreground">{agent.nameEn}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                        <span className={cn('text-[9px] font-mono px-1.5 py-0.5 rounded border', agent.bgColor, agent.borderColor, agent.color)}>
-                          {agent.role}
-                        </span>
-                        <span className={cn('text-[9px] font-mono', isEnabled ? 'text-green-400' : 'text-zinc-500')}>
-                          {isEnabled ? 'ACTIVE' : 'STANDBY'}
-                        </span>
-                        {isCustom && (
-                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">{t('settings.agent_custom_badge')}</span>
+                <Switch checked={!isDisabled} onCheckedChange={() => handleToggleAgent(agent.id)} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono text-muted-foreground">
+                    {t('settings.agents.display_name')}
+                  </label>
+                  <Input
+                    value={override?.name || agent.name}
+                    onChange={e => handleUpdateOverride(agent.id, { name: e.target.value })}
+                    disabled={isDisabled}
+                    className="h-8 text-xs font-mono bg-muted/20"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono text-muted-foreground">
+                    {t('settings.agents.color')}
+                  </label>
+                  <div className="flex gap-2">
+                    {AGENT_COLOR_PRESETS.map(color => (
+                      <button
+                        key={color}
+                        onClick={() => handleUpdateOverride(agent.id, { color })}
+                        disabled={isDisabled}
+                        className={cn(
+                          'w-6 h-6 rounded-full border-2 transition-all duration-200',
+                          (override?.color || agent.color) === color
+                            ? 'border-white scale-110 shadow-[0_0_8px_rgba(255,255,255,0.5)]'
+                            : 'border-transparent hover:scale-110',
                         )}
-                        {hasOverride && (
-                          <span className="text-[9px] font-mono px-1 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">MODIFIED</span>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1.5 line-clamp-1">{agent.desc}</p>
-                      <p className="text-[10px] text-zinc-500 mt-0.5">{agent.descEn}</p>
-                    </div>
-                    <div className="shrink-0 flex flex-col items-end gap-2">
-                      <Switch checked={isEnabled} onCheckedChange={() => toggleAgent(agent.id)} />
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => startEdit(agent)} className="p-1 hover:bg-white/10 rounded transition-colors" title={t('settings.agent_edit')}>
-                          <Edit3 className="w-3 h-3 text-zinc-400" />
-                        </button>
-                        {isCustom && (
-                          <button onClick={() => deleteCustomAgent(agent.id)} className="p-1 hover:bg-red-500/10 rounded transition-colors" title={t('settings.agent_delete')}>
-                            <Trash2 className="w-3 h-3 text-red-400" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
                   </div>
-                </>
-              )}
+                </div>
+              </div>
             </div>
           );
         })}
-      </div>
 
-      {/* Quick Actions */}
-      <div className="flex gap-2 pt-2">
         <Button
+          onClick={handleAddCustomAgent}
           variant="outline"
-          size="sm"
-          className="flex-1 h-8 text-xs font-mono gap-1.5"
-          onClick={() => {
-            const all: Record<string, boolean> = {};
-
-            mergedAgents.forEach(a => { all[a.id] = true; });
-            setAgentStatus(all);
-          }}
+          className="w-full border-dashed border-primary/30 hover:bg-primary/5 hover:border-primary/50 gap-2"
         >
-          <CheckCircle2 className="w-3 h-3" />
-          ENABLE ALL
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1 h-8 text-xs font-mono gap-1.5 text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
-          onClick={() => {
-            const all: Record<string, boolean> = {};
-
-            mergedAgents.forEach(a => { all[a.id] = false; });
-            setAgentStatus(all);
-          }}
-        >
-          STANDBY ALL
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs font-mono gap-1.5 text-red-400 border-red-500/30 hover:bg-red-500/10"
-          onClick={() => setCustomConfig({ overrides: {}, customAgents: [] })}
-        >
-          <RotateCcw className="w-3 h-3" />
-          {t('settings.agent_reset')}
+          <Plus className="w-4 h-4" />
+          {t('settings.agents.add_custom')}
         </Button>
       </div>
     </div>
