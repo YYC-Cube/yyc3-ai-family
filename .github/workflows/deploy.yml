@@ -35,12 +35,12 @@ jobs:
             echo "❌ docs/README.md not found"
             exit 1
           fi
-          if [ ! -f "docs/DEPLOYMENT_GUIDE.md" ]; then
-            echo "❌ docs/DEPLOYMENT_GUIDE.md not found"
+          if [ ! -f "docs/YYC3-AF-部署指南/DEPLOYMENT_GUIDE.md" ]; then
+            echo "❌ docs/YYC3-AF-部署指南/DEPLOYMENT_GUIDE.md not found"
             exit 1
           fi
-          if [ ! -f "docs/LOCAL_SETUP_GUIDE.md" ]; then
-            echo "❌ docs/LOCAL_SETUP_GUIDE.md not found"
+          if [ ! -f "docs/YYC3-AF-部署指南/LOCAL_SETUP_GUIDE.md" ]; then
+            echo "❌ docs/YYC3-AF-部署指南/LOCAL_SETUP_GUIDE.md not found"
             exit 1
           fi
           echo "✅ Docs structure check passed"
@@ -62,7 +62,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -70,7 +70,7 @@ jobs:
           version: 9
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Run lint
         id: lint
@@ -107,6 +107,7 @@ jobs:
           fi
 
       - name: Generate Build Report
+        if: always()
         run: |
           echo "# YYC³ Build Report" > reports/errors.md
           echo "" >> reports/errors.md
@@ -114,17 +115,20 @@ jobs:
           echo "" >> reports/errors.md
           echo "| Step | Status |" >> reports/errors.md
           echo "|------|--------|" >> reports/errors.md
-          echo "| Lint | ✅ Passed |" >> reports/errors.md
-          echo "| Type Check | ✅ Passed |" >> reports/errors.md
-          echo "| Tests | ✅ Passed |" >> reports/errors.md
+          echo "| Lint | ${{ steps.lint.outputs.lint_status == 'passed' && '✅ Passed' || '❌ Failed' }} |" >> reports/errors.md
+          echo "| Type Check | ${{ steps.typecheck.outputs.typecheck_status == 'passed' && '✅ Passed' || '❌ Failed' }} |" >> reports/errors.md
+          echo "| Tests | ${{ steps.test.outputs.test_status == 'passed' && '✅ Passed' || '❌ Failed' }} |" >> reports/errors.md
           echo "" >> reports/errors.md
           echo "### Build Details" >> reports/errors.md
           echo "- **Build Time**: $(date)" >> reports/errors.md
           echo "- **Node Version**: $(node --version)" >> reports/errors.md
           echo "- **pnpm Version**: $(pnpm --version)" >> reports/errors.md
           echo "- **Runner**: ${{ runner.os }}" >> reports/errors.md
+          echo "- **Commit**: ${{ github.sha }}" >> reports/errors.md
+          echo "- **Branch**: ${{ github.ref_name }}" >> reports/errors.md
 
       - name: Generate CSV error stats
+        if: always()
         run: |
           echo "Step,Status,Duration" > reports/errors.csv
           echo "Lint,Completed,~30s" >> reports/errors.csv
@@ -133,6 +137,7 @@ jobs:
           echo "Build,Completed,~45s" >> reports/errors.csv
 
       - name: Generate Markdown trend chart
+        if: always()
         run: |
           echo "## Error Trend" >> reports/errors.md
           echo "\`\`\`mermaid" >> reports/errors.md
@@ -144,18 +149,45 @@ jobs:
           echo "\`\`\`" >> reports/errors.md
 
       - name: Generate Fix Suggestions
+        if: always()
         run: |
           echo "## Suggested Fixes" >> reports/errors.md
+          echo "" >> reports/errors.md
           echo "- **Lint Errors**: Run \`pnpm run lint\` to check code style issues." >> reports/errors.md
           echo "- **Type Errors**: Run \`pnpm run type-check\` to verify TypeScript types." >> reports/errors.md
           echo "- **Test Failures**: Run \`pnpm test\` to execute test suite." >> reports/errors.md
           echo "- **Build Errors**: Verify environment variables and dependencies, then re-run \`pnpm build\`." >> reports/errors.md
+          echo "" >> reports/errors.md
+          echo "### Error Logs" >> reports/errors.md
+          if [ -f reports/lint-output.txt ]; then
+            echo "<details><summary>Lint Output</summary>" >> reports/errors.md
+            echo "\`\`\`" >> reports/errors.md
+            cat reports/lint-output.txt >> reports/errors.md
+            echo "\`\`\`" >> reports/errors.md
+            echo "</details>" >> reports/errors.md
+          fi
+          if [ -f reports/typecheck-output.txt ]; then
+            echo "<details><summary>Type Check Output</summary>" >> reports/errors.md
+            echo "\`\`\`" >> reports/errors.md
+            cat reports/typecheck-output.txt >> reports/errors.md
+            echo "\`\`\`" >> reports/errors.md
+            echo "</details>" >> reports/errors.md
+          fi
+          if [ -f reports/test-output.txt ]; then
+            echo "<details><summary>Test Output</summary>" >> reports/errors.md
+            echo "\`\`\`" >> reports/errors.md
+            cat reports/test-output.txt >> reports/errors.md
+            echo "\`\`\`" >> reports/errors.md
+            echo "</details>" >> reports/errors.md
+          fi
 
       - name: Upload reports
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: reports
           path: reports/
+          retention-days: 30
 
       - name: Build project
         run: pnpm build
@@ -166,7 +198,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: './dist'
+          path: "./dist"
 
   deploy:
     needs: build-and-test
@@ -183,13 +215,18 @@ jobs:
     needs: build-and-test
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+      contents: read
     steps:
       - name: Download reports
         uses: actions/download-artifact@v4
         with:
           name: reports
+          path: reports/
 
-      - name: Comment Errors + Fix Suggestions on PR
+      - name: Comment Build Report on PR
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           path: reports/errors.md
+          header: "YYC³ Build Report"
