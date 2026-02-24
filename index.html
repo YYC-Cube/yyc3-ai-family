@@ -1,27 +1,69 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Family AI π³ - Cyberpunk DevOps Intelligence Platform" />
+    <meta
+      name="description"
+      content="YYC³ AI-Family - 人机协同·智爱同行。赛博朋克美学DevOps智能平台，七大AI智能体协同工作，九层架构，8+LLM提供商支持。"
+    />
     <meta name="theme-color" content="#0EA5E9" />
-    
-    <!-- Open Graph / Facebook -->
+
+    <!-- Basic Meta Tags -->
+    <meta
+      name="keywords"
+      content="YYC3,AI,DevOps,赛博朋克,智能平台,聊天机器人,多智能体,LLM,TypeScript,React"
+    />
+    <meta name="author" content="YYC³ Team" />
+    <meta name="application-name" content="YYC³ AI-Family" />
+
+    <!-- Open Graph / Facebook / LinkedIn -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="YYC³ AI-Family" />
     <meta property="og:url" content="https://github.com/YYC-Cube/yyc3-ai-family" />
     <meta property="og:title" content="YYC³ AI-Family - 聊天机器人 · 赛博朋克 DevOps 智能平台" />
-    <meta property="og:description" content="YYC³ AI-Family 是一个以赛博朋克美学为核心的 DevOps 智能平台，遵循实用为基、效率为积的理念。" />
-    <meta property="og:image" content="https://raw.githubusercontent.com/YYC-Cube/yyc3-ai-family/main/public/Family-π³-003.png" />
-    <meta property="og:image:alt" content="YYC³ AI-Family 层级架构图" />
+    <meta
+      property="og:description"
+      content="YYC³ AI-Family 是一个以赛博朋克美学为核心的 DevOps 智能平台，遵循实用为基、效率为积的理念。七大AI智能体协同工作，九层架构，8+LLM提供商支持。"
+    />
+    <meta
+      property="og:image"
+      content="https://raw.githubusercontent.com/YYC-Cube/yyc3-ai-family/main/public/Family-π³-003.png"
+    />
+    <meta property="og:image:width" content="1800" />
+    <meta property="og:image:height" content="450" />
+    <meta
+      property="og:image:alt"
+      content="YYC³ AI-Family 项目封面图：展示赛博朋克风格的DevOps智能平台界面和九层架构可视化"
+    />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:locale:alternate" content="en_US" />
 
-    <!-- Twitter -->
+    <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@YYC3_AI" />
+    <meta name="twitter:creator" content="@YYC3_AI" />
     <meta name="twitter:url" content="https://github.com/YYC-Cube/yyc3-ai-family" />
     <meta name="twitter:title" content="YYC³ AI-Family - 聊天机器人 · 赛博朋克 DevOps 智能平台" />
-    <meta name="twitter:description" content="YYC³ AI-Family 是一个以赛博朋克美学为核心的 DevOps 智能平台，遵循实用为基、效率为积的理念。" />
-    <meta name="twitter:image" content="https://raw.githubusercontent.com/YYC-Cube/yyc3-ai-family/main/public/Family-π³-003.png" />
-    <meta name="twitter:image:alt" content="YYC³ AI-Family 层级架构图" />
-    <title>Family AI π³</title>
+    <meta
+      name="twitter:description"
+      content="YYC³ AI-Family - 人机协同·智爱同行。七大AI智能体协同工作，九层架构，8+LLM提供商支持。"
+    />
+    <meta
+      name="twitter:image"
+      content="https://raw.githubusercontent.com/YYC-Cube/yyc3-ai-family/main/public/Family-π³-003.png"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="YYC³ AI-Family 项目封面图：展示赛博朋克风格的DevOps智能平台界面和九层架构可视化"
+    />
+    <meta name="twitter:domain" content="github.com" />
+
+    <!-- Additional Social Media -->
+    <meta name="twitter:widgets:csp" content="on" />
+    <meta name="twitter:dnt" content="on" />
+
+    <title>YYC³ AI-Family - 聊天机器人 · 赛博朋克 DevOps 智能平台</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/pwa/icon-192x192.png" />
@@ -37,11 +79,12 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
+          navigator.serviceWorker
+            .register('/sw.js')
+            .then(registration => {
               console.log('Service Worker registered with scope:', registration.scope);
             })
-            .catch((error) => {
+            .catch(error => {
               console.log('Service Worker registration failed:', error);
             });
         });
