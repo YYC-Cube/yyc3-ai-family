@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![YYC3 Family AI](https://github.com/YanYuCloudCube/Family-π³/raw/main/public/Family-π³-003.png)
+![YYC3 Family AI](https://raw.githubusercontent.com/YYC-Cube/yyc3-ai-family/main/public/Family-π³-003.png)
 
 > **YanYuCloudCube**
 
@@ -260,7 +260,7 @@ YYC3 的核心质量体系渗透于整个架构设计：
 
 <div align="center">
 
-![YYC3 层级架构](https://github.com/YanYuCloudCube/Family-π³/raw/main/public/Family-π³-003.png)
+![YYC3 层级架构](https://raw.githubusercontent.com/YYC-Cube/yyc3-ai-family/main/public/Family-π³-003.png)
 
 </div>
 
