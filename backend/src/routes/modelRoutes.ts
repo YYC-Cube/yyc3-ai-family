@@ -5,17 +5,17 @@
  * @version 1.0.0
  */
 
-import { Router, Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 
 import {
-  globalModelRegistry,
-  getModelSummary,
-  AUTHORIZED_MODELS,
   AGENT_ROUTING_STRATEGIES,
+  AUTHORIZED_MODELS,
+  getModelSummary,
+  globalModelRegistry,
   printModelMatrix,
-} from '../../../src/lib/global-model-config';
+} from '../lib/global-model-config';
 
-const router = Router();
+const router: Router = Router();
 
 // 授权信息
 const AUTH_INFO = {
@@ -147,11 +147,11 @@ router.get('/models/:id', async (req: Request, res: Response) => {
 // ============================================================
 router.get('/agents/routing', async (req: Request, res: Response) => {
   try {
-    const strategies = Object.values(AGENT_ROUTING_STRATEGIES);
+    const strategies = Object.values(AGENT_ROUTING_STRATEGIES) as any[];
 
     res.json({
       success: true,
-      data: strategies.map(s => ({
+      data: strategies.map((s: any) => ({
         agentId: s.agentId,
         agentName: s.agentName,
         primaryUseCase: s.primaryUseCase,
@@ -190,12 +190,14 @@ router.get('/agents/:id/routing', async (req: Request, res: Response) => {
       success: true,
       data: {
         strategy,
-        bestModel: bestModel ? {
-          id: bestModel.id,
-          name: bestModel.name,
-          provider: bestModel.provider,
-          tier: bestModel.tier,
-        } : null,
+        bestModel: bestModel
+          ? {
+              id: bestModel.id,
+              name: bestModel.name,
+              provider: bestModel.provider,
+              tier: bestModel.tier,
+            }
+          : null,
       },
     });
   } catch (error) {
@@ -242,16 +244,18 @@ router.post('/inference/route', async (req: Request, res: Response) => {
       data: {
         agentId,
         taskType: taskType || strategy.primaryUseCase,
-        recommended: bestModel ? {
-          id: bestModel.id,
-          name: bestModel.name,
-          provider: bestModel.provider,
-          tier: bestModel.tier,
-          endpoint: bestModel.deployment.local?.available
-            ? `http://localhost:11434`
-            : bestModel.deployment.cloud?.endpoint,
-          ollamaName: bestModel.deployment.local?.ollamaName,
-        } : null,
+        recommended: bestModel
+          ? {
+              id: bestModel.id,
+              name: bestModel.name,
+              provider: bestModel.provider,
+              tier: bestModel.tier,
+              endpoint: bestModel.deployment.local?.available
+                ? `http://localhost:11434`
+                : bestModel.deployment.cloud?.endpoint,
+              ollamaName: bestModel.deployment.local?.ollamaName,
+            }
+          : null,
         fallbackChain: availableModels.map(m => ({
           id: m!.id,
           name: m!.name,

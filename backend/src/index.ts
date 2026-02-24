@@ -22,9 +22,9 @@ config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
+const app: express.Application = express();
 const server = createServer(app);
-const PORT = process.env.PORT || 3001;
+const PORT = parseInt(process.env.PORT || '3001', 10);
 
 // 中间件
 app.use(cors({
@@ -162,7 +162,7 @@ app.post('/api/v1/inference', async (req, res) => {
     const { prompt, agentId = 'navigator', preferLocal = true } = req.body;
 
     // 动态导入模型配置
-    const { globalModelRegistry, AGENT_ROUTING_STRATEGIES } = await import('../../../src/lib/global-model-config.js');
+    const { globalModelRegistry, AGENT_ROUTING_STRATEGIES } = await import('../../src/lib/global-model-config.js');
 
     const strategy = AGENT_ROUTING_STRATEGIES[agentId];
 

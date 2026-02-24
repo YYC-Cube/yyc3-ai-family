@@ -171,14 +171,14 @@ class DatabaseConnection {
     return this.pool;
   }
 
-  async query<T>(sql: string, params?: any[]): Promise<T[]> {
+  async query<T extends pg.QueryResultRow = any>(sql: string, params?: any[]): Promise<T[]> {
     const pool = this.getPool();
     const result = await pool.query<T>(sql, params);
 
     return result.rows;
   }
 
-  async queryOne<T>(sql: string, params?: any[]): Promise<T | null> {
+  async queryOne<T extends pg.QueryResultRow = any>(sql: string, params?: any[]): Promise<T | null> {
     const rows = await this.query<T>(sql, params);
 
     return rows.length > 0 ? rows[0] : null;

@@ -5,19 +5,19 @@
  * @version 1.0.0
  */
 
-import { Router, Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 
 import {
-  db,
-  modelRepository,
   agentRepository,
   conversationRepository,
-  messageRepository,
+  db,
   inferenceLogRepository,
+  messageRepository,
+  modelRepository,
   systemConfigRepository,
-} from './lib/database.js';
+} from '../lib/database.js';
 
-const router = Router();
+const router: Router = Router();
 
 // ============================================================
 // Health Check
@@ -386,7 +386,7 @@ router.post('/conversations/:id/messages', async (req: Request, res: Response) =
     });
 
     const messages = await messageRepository.findByConversationId(conversationId, 1);
-    const message = messages.find(m => m.id === messageId);
+    const message = messages.find((m: any) => m.id === messageId);
 
     res.status(201).json({
       success: true,
@@ -592,9 +592,9 @@ router.get('/stats/overview', async (req: Request, res: Response) => {
     const models = await modelRepository.findAll();
     const agents = await agentRepository.findAll();
 
-    const localModels = models.filter(m => m.local_available);
-    const authorizedModels = models.filter(m => m.is_authorized);
-    const freeModels = models.filter(m => m.is_free);
+    const localModels = models.filter((m: any) => m.local_available);
+    const authorizedModels = models.filter((m: any) => m.is_authorized);
+    const freeModels = models.filter((m: any) => m.is_free);
 
     res.json({
       success: true,
@@ -605,19 +605,22 @@ router.get('/stats/overview', async (req: Request, res: Response) => {
           authorized: authorizedModels.length,
           free: freeModels.length,
           byTier: {
-            local: models.filter(m => m.tier === 'local').length,
-            'cloud-free': models.filter(m => m.tier === 'cloud-free').length,
-            'cloud-paid': models.filter(m => m.tier === 'cloud-paid').length,
+            local: models.filter((m: any) => m.tier === 'local').length,
+            'cloud-free': models.filter((m: any) => m.tier === 'cloud-free').length,
+            'cloud-paid': models.filter((m: any) => m.tier === 'cloud-paid').length,
             authorized: authorizedModels.length,
           },
         },
         agents: {
           total: agents.length,
-          byRole: agents.reduce((acc, a) => {
-            acc[a.role] = (acc[a.role] || 0) + 1;
+          byRole: agents.reduce(
+            (acc: Record<string, number>, a: any) => {
+              acc[a.role] = (acc[a.role] || 0) + 1;
 
-            return acc;
-          }, {} as Record<string, number>),
+              return acc;
+            },
+            {} as Record<string, number>,
+          ),
         },
         authorization: {
           company: process.env.AUTH_COMPANY || '洛阳沫言酒店管理有限公司',
