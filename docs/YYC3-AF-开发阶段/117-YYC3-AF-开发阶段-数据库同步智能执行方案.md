@@ -1,3 +1,14 @@
+---
+@file: 117-YYC3-AF-开发阶段-数据库同步智能执行方案.md
+@description: YYC3-AF开发阶段数据库同步智能执行方案，5阶段智能自动化数据库同步流程
+@author: YYC³
+@version: v1.0.0
+@created: 2026-02-25
+@updated: 2026-02-25
+@status: published
+@tags: [开发阶段],[数据库同步],[智能自动化]
+---
+
 # YYC³ AI-Family - 数据库同步智能执行方案
 
 > **执行级别**: 🔴 **P0 - 智能自动化**
@@ -805,77 +816,94 @@ export class DatabaseMonitor {
         COUNT(*) FILTER (WHERE state = 'active') as active,
         COUNT(*) FILTER (WHERE state = 'idle') as idle
       FROM pg_stat_activity
-      WHERE datname = 'yyc3_aify'
+      WHERE datname = current_database();
     `);
 
-    return result.rows[0];
+    return {
+      active: result.rows[0].active,
+      idle: result.rows[0].idle,
+    };
   }
 
   private async getQueryStats(): Promise<any> {
     const result = await dbPool.executeQuery(`
       SELECT
-        AVG(mean_exec_time) as avg_time,
-        MAX(max_exec_time) as max_time,
-        COUNT(*) as total_queries
+        AVG(calls) as avg_calls,
+        AVG(total_time) as avg_time
       FROM pg_stat_statements
-      WHERE datname = 'yyc3_aify'
-      AND calls > 0
+      LIMIT 100;
     `);
 
-    return result.rows[0];
+    return {
+      avgCalls: result.rows[0].avg_calls,
+      avgTime: result.rows[0].avg_time,
+    };
   }
 
   private async getCacheStats(): Promise<any> {
     const health = await cacheManager.getHealth();
+
     return {
-      hitRate: health.keys > 0 ? 0.85 : 0, // 假设85%命中率
+      status: health.status,
       keys: health.keys,
       memory: health.memory,
     };
   }
 
   private async sendMetrics(): Promise<void> {
-    // 发送到Prometheus/Grafana
-    // 或发送到日志系统
-    console.log('📊 数据库指标:', Object.fromEntries(this.metrics));
-  }
-
-  getMetrics(): Map<string, number> {
-    return this.metrics;
+    // 发送到监控系统（如Prometheus、Grafana等）
+    console.log('📊 发送指标到监控系统...', Object.fromEntries(this.metrics));
   }
 }
 
 export const dbMonitor = new DatabaseMonitor();
 ```
 
-### 5.2 告警机制
+### 5.2 告警规则
 
 ```typescript
 // src/lib/db-alert.ts
 
-interface AlertRule {
+export interface AlertRule {
+  name: string;
   metric: string;
   threshold: number;
-  operator: '>' | '<' | '=' | '>=';
-  action: (value: number) => void;
+  condition: '>' | '<' | '=' | '>=' | '<=';
+  severity: 'info' | 'warning' | 'critical';
 }
 
-export class DatabaseAlertManager {
-  private rules: AlertRule[] = [];
+export const ALERT_RULES: AlertRule[] = [
+  {
+    name: '连接池耗尽',
+    metric: 'pool.active',
+    threshold: 18,
+    condition: '>=',
+    severity: 'critical',
+  },
+  {
+    name: '查询超时',
+    metric: 'query.avg_time',
+    threshold: 1000,
+    condition: '>',
+    severity: 'warning',
+  },
+  {
+    name: '缓存命中率低',
+    metric: 'cache.hit_rate',
+    threshold: 50,
+    condition: '<',
+    severity: 'info',
+  },
+];
 
-  addRule(rule: AlertRule): void {
-    this.rules.push(rule);
-  }
-
-  async checkAlerts(): Promise<void> {
-    const metrics = await dbMonitor.getMetrics();
-
-    for (const rule of this.rules) {
+export class AlertManager {
+  async checkAlerts(metrics: Map<string, number>): Promise<void> {
+    for (const rule of ALERT_RULES) {
       const value = metrics.get(rule.metric);
       if (value === undefined) continue;
 
       let triggered = false;
-      switch (rule.operator) {
+      switch (rule.condition) {
         case '>':
           triggered = value > rule.threshold;
           break;
@@ -885,293 +913,263 @@ export class DatabaseAlertManager {
         case '>=':
           triggered = value >= rule.threshold;
           break;
+        case '<=':
+          triggered = value <= rule.threshold;
+          break;
       }
 
       if (triggered) {
-        console.warn(`⚠️  告警触发: ${rule.metric} = ${value} (阈值: ${rule.threshold})`);
-        rule.action(value);
+        await this.sendAlert(rule, value);
       }
     }
   }
+
+  private async sendAlert(rule: AlertRule, value: number): Promise<void> {
+    const message = `🚨 告警: ${rule.name}\n指标: ${rule.metric}\n当前值: ${value}\n阈值: ${rule.threshold}\n严重性: ${rule.severity}`;
+
+    console.error(message);
+
+    // 发送通知（邮件、钉钉、企业微信等）
+    // await this.sendEmail(message);
+    // await this.sendDingTalk(message);
+  }
 }
 
-export const dbAlertManager = new DatabaseAlertManager();
-
-// 配置告警规则
-dbAlertManager.addRule({
-  metric: 'pool.active',
-  threshold: 18, // 20 * 0.9
-  operator: '>',
-  action: (value) => {
-    // 发送邮件或Slack通知
-    console.error('🚨 数据库连接池即将耗尽！');
-  },
-});
-
-dbAlertManager.addRule({
-  metric: 'query.avg_time',
-  threshold: 1000, // 1秒
-  operator: '>',
-  action: (value) => {
-    console.error('🚨 检测到慢查询！');
-  },
-});
-
-dbAlertManager.addRule({
-  metric: 'cache.hit_rate',
-  threshold: 0.7, // 70%
-  operator: '<',
-  action: (value) => {
-    console.warn('⚠️  缓存命中率过低！');
-  },
-});
+export const alertManager = new AlertManager();
 ```
 
 ---
 
-## 🚀 智能执行总脚本
+## 📊 执行脚本快速参考
 
-### 完整同步脚本
+### 完整执行流程
 
 ```bash
-#!/bin/bash
-# scripts/db-smart-sync.sh
-
-set -e
-
-echo "🚀 YYC³ AI-Family 数据库智能同步"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-# 阶段1: 预检审核
-echo ""
-echo "📋 阶段1: 预检审核"
+# 1. 预检审核
 bash scripts/db-sync-precheck.sh
 
-# 阶段2: 创建备份
-echo ""
-echo "💾 阶段2: 创建数据库备份"
+# 2. 数据库健康检查
+bash scripts/db-health-check.sh
+
+# 3. 执行智能同步
 node -e "
-  const { rollbackManager } = require('./src/lib/db-rollback.ts');
+  const { dbPool } = require('./src/lib/db-pool.ts');
+  const { migrationManager } = require('./src/lib/db-migration.ts');
   (async () => {
-    const backupFile = await rollbackManager.createBackup();
-    console.log('✅ 备份创建完成:', backupFile);
+    await dbPool.initialize();
+    await migrationManager.initialize();
   })();
 "
 
-# 阶段3: 执行迁移
-echo ""
-echo "🔄 阶段3: 执行数据库迁移"
-node -e "
-  const { MigrationManager } = require('./src/lib/db-migration.ts');
-  const manager = new MigrationManager();
-  await manager.initialize();
-  console.log('✅ 迁移执行完成');
-})();
-
-# 阶段4: 验证
-echo ""
-echo "🧪 阶段4: 自动验证"
+# 4. 验证同步结果
 bash scripts/db-sync-verify.sh
 
-# 阶段5: 启动监控
-echo ""
-echo "📊 阶段5: 启动监控"
-node -e "
-  const { dbMonitor } = require('./src/lib/db-monitor.ts');
-  await dbMonitor.startMonitoring();
-  console.log('✅ 监控已启动');
-})();
-
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✅ 数据库同步完成！"
-echo ""
-echo "📋 下一步："
-echo "  1. 查看验证报告"
-echo "  2. 检查监控指标"
-echo "  3. 如有问题，运行: ./scripts/db-rollback.sh <backup-file>"
-echo ""
+# 5. 如需回滚
+bash scripts/db-rollback.sh <backup-file>
 ```
 
----
-
-## 📋 执行记录模板
-
-### 每次同步必须填写
-
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 YYC³ AI-Family 数据库同步记录
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📅 执行日期: 2026-02-25
-👤 执行人: [姓名]
-🔧 同步类型: [migration/rollback/backup/repair]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 阶段1: 预检审核
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-代码质量 (12/12):
-  [✅] 提交前审核通过
-  [✅] TypeScript类型检查通过
-  [✅] SQL查询审查通过
-  [✅] 数据迁移检查通过
-  [✅] 索引优化检查通过
-  [✅] 性能影响评估通过
-  [✅] 依赖安全扫描通过
-
-数据库配置 (5/5):
-  [✅] 连接池配置合理
-  [✅] 环境变量完整
-  [✅] 默认值正确
-  [✅] 超时设置合理
-  [✅] 数据库健康正常
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 阶段2: 智能同步
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-连接池管理 (3/3):
-  [✅] 连接池初始化成功
-  [✅] 健康检查通过
-  [✅] 事件监听正常
-
-数据迁移 (4/4):
-  [✅] 迁移版本管理正常
-  [✅] 升级脚本执行成功
-  [✅] 回滚脚本准备就绪
-  [✅] 校验和验证通过
-
-缓存策略 (3/3):
-  [✅] Redis连接正常
-  [✅] 缓存策略配置正确
-  [✅] 失效策略合理
-
-备份创建 (2/2):
-  [✅] 数据库备份完成
-  [✅] 备份文件: [backup-file-name]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 阶段3: 自动验证
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-数据完整性 (3/3):
-  [✅] 表结构验证通过
-  [✅] 索引验证通过
-  [✅] 外键约束验证通过
-
-自动化测试 (4/4):
-  [✅] 单元测试通过
-  [✅] 集成测试通过
-  [✅] 性能测试通过
-  [✅] 所有测试100%通过
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 阶段4: 监控部署
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-实时监控 (5/5):
-  [✅] 连接池监控正常
-  [✅] 查询性能监控正常
-  [✅] 缓存命中率监控正常
-  [✅] 指标采集正常
-  [✅] 数据发送正常
-
-告警机制 (3/3):
-  [✅] 连接池告警配置
-  [✅] 慢查询告警配置
-  [✅] 缓存告警配置
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📊 同步统计
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-总计检查项: 50
-通过项数: 50
-通过率: 100%
-同步结论: ✅ **成功，可以部署**
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💬 备注
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-[添加任何特殊说明或例外情况]
-
-备份文件位置: [backup-file-path]
-回滚命令: ./scripts/db-rollback.sh [backup-file-name]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
-
----
-
-## 📋 快速参考清单
-
-### 常用命令
+### 监控命令
 
 ```bash
-# 智能同步
-./scripts/db-smart-sync.sh
-
-# 预检审核
-./scripts/db-sync-precheck.sh
-
-# 数据库健康检查
-./scripts/db-health-check.sh
-
-# 自动验证
-./scripts/db-sync-verify.sh
-
-# 回滚到指定备份
-./scripts/db-rollback.sh backup-2026-02-25-10-30-00.sql
-
-# 列出所有备份
+# 启动实时监控
 node -e "
-  const { rollbackManager } = require('./src/lib/db-rollback.ts');
+  const { dbMonitor } = require('./src/lib/db-monitor.ts');
+  const { alertManager } = require('./src/lib/db-alert.ts');
   (async () => {
-    const backups = await rollbackManager.listBackups();
-    backups.forEach((b, i) => console.log(\`\${i + 1}. \${b}\`));
+    await dbMonitor.startMonitoring();
   })();
 "
 
-# 清理旧备份
+# 查看当前指标
 node -e "
-  const { rollbackManager } = require('./src/lib/db-rollback.ts');
+  const { dbMonitor } = require('./src/lib/db-monitor.ts');
   (async () => {
-    await rollbackManager.cleanupOldBackups(30);
+    await dbMonitor.collectMetrics();
   })();
 "
 ```
 
-### 环境变量配置
+---
 
-```env
-# .env.development
+## 📝 最佳实践
 
-# 数据库配置
-DB_HOST=localhost
-DB_PORT=5433
-DB_NAME=yyc3_aify
-DB_USER=yyc3_dev
-DB_PASSWORD=yyc3_dev
+### 数据库设计
 
-# Redis配置
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=
+1. **表设计原则**
+   - 使用合理的命名规范（snake_case）
+   - 添加必要的索引
+   - 使用适当的数据类型
+   - 添加外键约束
 
-# 备份配置
-BACKUP_PATH=/opt/yyc3/backups
-BACKUP_RETENTION_DAYS=30
-BACKUP_COMPRESS=true
-BACKUP_ENCRYPT=true
+2. **查询优化**
+   - 使用参数化查询
+   - 避免SELECT *
+   - 使用EXPLAIN分析查询
+   - 合理使用JOIN
 
-# 监控配置
-PROMETHEUS_ENABLED=true
-PROMETHEUS_PORT=9090
-GRAFANA_ENABLED=true
-GRAFANA_PORT=3001
+3. **事务管理**
+   - 保持事务简短
+   - 明确事务边界
+   - 正确处理错误
+   - 及时释放连接
+
+### 缓存策略
+
+1. **缓存键设计**
+   - 使用有意义的命名
+   - 添加前缀避免冲突
+   - 包含版本信息
+   - 考虑数据层次结构
+
+2. **缓存失效**
+   - 合理设置TTL
+   - 及时清理过期数据
+   - 使用缓存失效模式
+   - 监控缓存命中率
+
+3. **缓存更新**
+   - 使用Cache-Aside模式
+   - 考虑Write-Through模式
+   - 避免缓存穿透
+   - 处理缓存雪崩
+
+---
+
+## 🔧 故障排查
+
+### 常见问题
+
+#### 1. 连接失败
+
+**症状**: 数据库连接超时或拒绝连接
+
+**排查步骤**:
+```bash
+# 检查数据库服务状态
+systemctl status postgresql
+
+# 检查端口是否开放
+netstat -tlnp | grep 5433
+
+# 测试连接
+psql -h localhost -p 5433 -U yyc3_dev -d yyc3_aify
+```
+
+**解决方案**:
+- 检查pg_hba.conf配置
+- 检查防火墙规则
+- 检查连接池配置
+- 增加连接超时时间
+
+#### 2. 查询慢
+
+**症状**: 查询响应时间长
+
+**排查步骤**:
+```sql
+-- 查看慢查询
+SELECT
+  query,
+  calls,
+  total_time,
+  mean_time
+FROM pg_stat_statements
+ORDER BY mean_time DESC
+LIMIT 10;
+
+-- 分析查询计划
+EXPLAIN ANALYZE SELECT * FROM messages WHERE ...;
+```
+
+**解决方案**:
+- 添加适当的索引
+- 优化查询语句
+- 使用分页查询
+- 考虑物化视图
+
+#### 3. 连接池耗尽
+
+**症状**: 新连接无法创建
+
+**排查步骤**:
+```sql
+-- 查看当前连接
+SELECT
+  state,
+  COUNT(*)
+FROM pg_stat_activity
+GROUP BY state;
+
+-- 查看连接池状态
+SELECT * FROM pg_stat_activity WHERE datname = 'yyc3_aify';
+```
+
+**解决方案**:
+- 增加连接池大小
+- 检查连接泄漏
+- 优化查询执行时间
+- 使用连接超时设置
+
+---
+
+## 📈 性能优化建议
+
+### 索引优化
+
+```sql
+-- 创建索引
+CREATE INDEX idx_messages_created_at ON messages(created_at DESC);
+CREATE INDEX idx_messages_conversation_id ON messages(conversation_id);
+CREATE INDEX idx_agents_status ON agents(status);
+
+-- 复合索引
+CREATE INDEX idx_messages_conversation_created ON messages(conversation_id, created_at DESC);
+
+-- 部分索引
+CREATE INDEX idx_active_agents ON agents(id) WHERE status = 'active';
+
+-- 唯一索引
+CREATE UNIQUE INDEX idx_users_email ON users(email);
+```
+
+### 查询优化
+
+```sql
+-- 避免 SELECT *
+SELECT id, content, created_at
+FROM messages
+WHERE conversation_id = $1
+ORDER BY created_at DESC
+LIMIT 50;
+
+-- 使用 LIMIT 分页
+SELECT id, content
+FROM messages
+WHERE conversation_id = $1
+ORDER BY created_at DESC
+LIMIT 50 OFFSET 0;
+
+-- 使用 EXISTS 替代 IN
+SELECT u.id, u.name
+FROM users u
+WHERE EXISTS (
+  SELECT 1
+  FROM conversations c
+  WHERE c.user_id = u.id
+);
+```
+
+### 连接池优化
+
+```typescript
+// 根据负载调整连接池大小
+const POOL_CONFIG = {
+  max: 20,           // 最大连接数（根据并发量调整）
+  min: 5,            // 最小连接数（保持一定活跃连接）
+  idle: 10000,       // 空闲超时（10秒）
+  acquire: 30000,     // 获取超时（30秒）
+  evict: 1000,       // 清理间隔（1秒）
+};
 ```
 
 ---
@@ -1182,7 +1180,7 @@ GRAFANA_PORT=3001
 
 *言启象限 | 语枢未来*
 
-**智能同步 · 自动验证 · 安全可靠*
+**数据库同步 · 智能自动化 · 安全可靠*
 
 ---
 
