@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![YYC3 Family AI](/public/yyc3-logo-royalblue.png)
+![YYC3 Family AI](https://github.com/YanYuCloudCube/Family-π³/raw/main/public/yyc3-logo-royalblue.png)
 
 > **YanYuCloudCube**
 
@@ -260,6 +260,14 @@ YYC3 的核心质量体系渗透于整个架构设计：
 
 <div align="center">
 
+![YYC3 层级架构](https://github.com/YanYuCloudCube/Family-π³/raw/main/public/Family-π³-003.png)
+
+</div>
+
+---
+
+<div align="center">
+
 ```mermaid
 graph TB
     L09[L09 系统设置层<br/>Configuration]
@@ -387,6 +395,7 @@ graph TB
 ### 6.1 终端控制（终端视图）
 
 **ChatArea** - 主交互界面
+
 - AI 对话流式响应（打字机效果）
 - 消息气泡（Markdown 解析 + 代码高亮）
 - 语音输入（Web Speech API、中文连续识别、30 秒超时）
@@ -395,6 +404,7 @@ graph TB
 - Artifacts 侧边栏（代码预览 + 渲染）
 
 **ClaudeWelcome** - 欢迎指南
+
 - 动画卡片进入
 - 快速操作按钮
 
@@ -763,10 +773,10 @@ SOFTWARE.
 
 ## 联系方式
 
-- **项目主页**: https://github.com/YanYuCloudCube/Family-π³
-- **问题反馈**: https://github.com/YanYuCloudCube/Family-π³/issues
-- **功能讨论**: https://github.com/YanYuCloudCube/Family-π³/discussions
-- **Pull Requests**: https://github.com/YanYuCloudCube/Family-π³/pulls
+- **项目主页**: <https://github.com/YanYuCloudCube/Family-π³>
+- **问题反馈**: <https://github.com/YanYuCloudCube/Family-π³/issues>
+- **功能讨论**: <https://github.com/YanYuCloudCube/Family-π³/discussions>
+- **Pull Requests**: <https://github.com/YanYuCloudCube/Family-π³/pulls>
 - **邮箱**: <admin@0379.email>
 
 ---
@@ -802,7 +812,7 @@ SOFTWARE.
 
 <div align="center">
 
-### 如果这个项目对您有帮助，请考虑：
+### 如果这个项目对您有帮助，请考虑
 
 - ⭐ **Star** 本项目
 - 🍴 **Fork** 本项目
@@ -837,6 +847,6 @@ SOFTWARE.
 
 ### 🌐 在线体验
 
-**GitHub Pages 部署**: https://YYC-Cube.github.io/yyc3-ai-family/
+**GitHub Pages 部署**: <https://YYC-Cube.github.io/yyc3-ai-family/>
 
 </div>
