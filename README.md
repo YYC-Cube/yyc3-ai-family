@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![YYC3 Family AI](https://github.com/YanYuCloudCube/Family-π³/raw/main/public/yyc3-logo-royalblue.png)
+![YYC3 Family AI](https://github.com/YanYuCloudCube/Family-π³/raw/main/public/Family-π³-003.png)
 
 > **YanYuCloudCube**
 
