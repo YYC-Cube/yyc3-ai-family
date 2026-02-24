@@ -1009,9 +1009,9 @@ function ModelsSettings({ t }: TranslationProps) {
                         {m.name}
                       </span>
                       <span className="text-[9px] text-muted-foreground font-mono">
-                        {m.contextWindow >= 1000000
-                          ? `${(m.contextWindow / 1000000).toFixed(0)}M`
-                          : `${(m.contextWindow / 1000).toFixed(0)}K`}{' '}
+                        {(m.contextWindow ?? 0) >= 1000000
+                          ? `${((m.contextWindow ?? 0) / 1000000).toFixed(0)}M`
+                          : `${((m.contextWindow ?? 0) / 1000).toFixed(0)}K`}{' '}
                         ctx
                         {m.supportsThinking && ' · Thinking'}
                         {m.supportsTools && ' · Tools'}
@@ -1042,9 +1042,9 @@ function ModelsSettings({ t }: TranslationProps) {
                         {m.name}
                       </span>
                       <span className="text-[9px] text-muted-foreground font-mono">
-                        {m.contextWindow >= 1000000
-                          ? `${(m.contextWindow / 1000000).toFixed(0)}M`
-                          : `${(m.contextWindow / 1000).toFixed(0)}K`}{' '}
+                        {(m.contextWindow ?? 0) >= 1000000
+                          ? `${((m.contextWindow ?? 0) / 1000000).toFixed(0)}M`
+                          : `${((m.contextWindow ?? 0) / 1000).toFixed(0)}K`}{' '}
                         ctx
                         {m.supportsVision && ' · Vision'}
                         {m.supportsTools && ' · Tools'}
@@ -1286,7 +1286,8 @@ function ModelsSettings({ t }: TranslationProps) {
                       model.id.toLowerCase().startsWith('glm')) && (
                       <>
                         {ZHIPU_MODELS.some(
-                          zm => zm.isFree && model.id.toLowerCase().includes(zm.id.toLowerCase()),
+                          (zm: ZhipuModelMeta) =>
+                            zm.isFree && model.id.toLowerCase().includes(zm.id.toLowerCase()),
                         ) && (
                           <span className="px-1 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 rounded flex items-center gap-0.5">
                             <Zap className="w-2.5 h-2.5" />
@@ -1294,7 +1295,7 @@ function ModelsSettings({ t }: TranslationProps) {
                           </span>
                         )}
                         {ZHIPU_MODELS.some(
-                          zm =>
+                          (zm: ZhipuModelMeta) =>
                             zm.isAuthorized && model.id.toLowerCase().includes(zm.id.toLowerCase()),
                         ) && (
                           <span className="px-1 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded flex items-center gap-0.5">
@@ -1746,7 +1747,7 @@ function ExtensionsSettings({ t }: TranslationProps) {
 function SecuritySettings({ t }: TranslationProps) {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-green-500/10 border-green-500/20">
+      <div className="flex items-center justify-between p-4 border border-green-500/20 rounded-lg bg-green-500/10">
         <div className="flex items-center gap-4">
           <Shield className="w-8 h-8 text-green-500" />
           <div>
