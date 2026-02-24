@@ -1,0 +1,27 @@
+.settings-scroll-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.settings-scroll-container::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 4px;
+}
+
+.settings-scroll-container::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.3);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.settings-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+}
+
+.settings-scroll-container::-webkit-scrollbar-thumb:active {
+  background: hsl(var(--primary) / 0.7);
+}
+
+.settings-scroll-container::-webkit-scrollbar-corner {
+  background: hsl(var(--muted) / 0.3);
+}
