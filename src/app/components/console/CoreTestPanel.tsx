@@ -15,13 +15,6 @@ import { cn } from '@/lib/utils';
 // Integrated into Console > Test Framework tab.
 // ============================================================
 
-interface SuiteGroup {
-  name: string;
-  results: TestResult[];
-  passed: number;
-  failed: number;
-  expanded: boolean;
-}
 
 export function CoreTestPanel() {
   const [report, setReport] = React.useState<TestSuiteReport | null>(null);
@@ -288,7 +281,6 @@ function generateMarkdownReport(report: TestSuiteReport): string {
 
   for (const [suite, results] of Object.entries(groups)) {
     const passed = results.filter(r => r.status === 'PASS').length;
-    const failed = results.filter(r => r.status === 'FAIL').length;
 
     md += `### ${suite} (${passed}/${results.length})\n\n`;
     md += `| ID | Test | Status | Time | Error |\n`;

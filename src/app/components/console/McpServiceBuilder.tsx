@@ -52,7 +52,7 @@ export function McpServiceBuilder() {
   const isMobile = useSystemStore(s => s.isMobile);
 
   const [activeTab, setActiveTab] = React.useState<TabId>('registry');
-  const [servers, setServers] = React.useState<MCPServerDefinition[]>(getAllMCPServers);
+  const [servers, _setServers] = React.useState<MCPServerDefinition[]>(getAllMCPServers);
   const [selectedServer, setSelectedServer] = React.useState<string | null>(null);
   const [selectedTool, setSelectedTool] = React.useState<MCPTool | null>(null);
   const [expandedServer, setExpandedServer] = React.useState<string | null>(null);

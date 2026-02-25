@@ -24,9 +24,7 @@
 #   L09 品牌定制层 - SettingsModal
 # ============================================================
 
-set -e
-
-PROJECT_ROOT="/Users/yanyu/YYC3-Mac-Max/Family-π³"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC_DIR="$PROJECT_ROOT/src"
 LIB_DIR="$SRC_DIR/lib"
 COMPONENTS_DIR="$SRC_DIR/app/components"
@@ -63,7 +61,7 @@ test_dir() {
   ((TOTAL++))
   printf "  %-45s" "$name"
   if [ -d "$dir" ]; then
-    local count=$(find "$dir" -name "*.ts" -o -name "*.tsx" 2>/dev/null | wc -l | tr -d ' ')
+    local count=$(find "$dir" \( -name "*.ts" -o -name "*.tsx" \) 2>/dev/null | wc -l | xargs)
     echo "✅ $count 文件"
     ((PASS++))
   else

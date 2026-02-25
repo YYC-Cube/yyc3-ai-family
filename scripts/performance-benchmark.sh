@@ -209,7 +209,7 @@ run_api_benchmarks() {
   
   # 3. 静态资源
   echo -n "   静态资源: "
-  local static_time=$(benchmark_api "http://localhost:3200" 20)
+  local static_time=$(benchmark_api "http://localhost:3133" 20)
   if [ $static_time -gt 0 ]; then
     echo -e "${GREEN}${static_time}ms${NC}"
     api_results="${api_results}\"static_resource\": ${static_time}}"

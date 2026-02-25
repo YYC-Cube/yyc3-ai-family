@@ -768,7 +768,7 @@ const INTEGRATION_TESTS: TestCase[] = [
     testFn: async () => {
       const issues: string[] = [];
       // EventCategory in types.ts AND event-bus.ts
-      const types = await import('@/lib/types');
+      const _types = await import('@/lib/types');
       const eventBus = await import('@/lib/event-bus');
 
       // Both should exist — document as warning
@@ -1006,7 +1006,11 @@ export function TestFrameworkRunner() {
     setExpandedIds(prev => {
       const next = new Set(prev);
 
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
 
       return next;
     });

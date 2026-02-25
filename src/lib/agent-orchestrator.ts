@@ -644,14 +644,12 @@ export async function executeRealCollaboration(
   callbacks: SimulationCallbacks,
 ): Promise<CollaborationTask> {
   // Dynamic import to avoid circular dependencies
-  const { agentStreamChat, trackUsage, loadProviderConfigs } = await import('./llm-bridge');
+  const { agentStreamChat, trackUsage } = await import('./llm-bridge');
   const { AGENT_ROUTES } = await import('./llm-providers');
 
   interface LLMMessage { role: 'system' | 'user' | 'assistant'; content: string }
 
   const updatedTask = { ...task };
-  const configs = loadProviderConfigs();
-  const hasKeys = configs.some(c => c.enabled && c.apiKey);
 
   // Phase 35: Discover relevant MCP tools
   const discoveredTools = discoverToolsForTask(task.intent);
@@ -1025,7 +1023,7 @@ export async function executeRealCollaboration(
 }
 
 /** Fallback output when LLM is unavailable for a specific agent */
-function generateFallbackOutput(agent: { agentId: string; role: AgentRole }, task: CollaborationTask): string {
+function generateFallbackOutput(agent: { agentId: string; role: AgentRole }, _task: CollaborationTask): string {
   const cap = AGENT_CAPABILITIES[agent.agentId];
   const outputs: Record<string, string> = {
     navigator: `[${cap?.nameZh} - Template] 基于全局资源调度分析，建议采用分布式执行策略。关键路径: 意图解析 → 任务分解 → 并行执行 → 结果汇聚。`,
@@ -1187,9 +1185,7 @@ async function executeParallel(task: CollaborationTask, cb: SimulationCallbacks)
   await sleep(1500);
 
   // Complete at staggered times
-  for (let i = 0; i < task.agents.length; i++) {
-    const agent = task.agents[i];
-
+  for (const agent of task.agents) {
     cb.onAgentStatusChange(agent.agentId, 'executing');
     agent.status = 'executing';
     await sleep(400 + Math.random() * 400);

@@ -118,7 +118,6 @@ export function SmokeTestRunner() {
   const [results, setResults] = React.useState<Map<string, TestResult>>(new Map());
   const [isRunning, setIsRunning] = React.useState(false);
   const [filter, setFilter] = React.useState<'all' | 'view' | 'console'>('all');
-  const [startTime, setStartTime] = React.useState<number | null>(null);
   const [totalDuration, setTotalDuration] = React.useState(0);
 
   const filtered = React.useMemo(() => {
@@ -215,8 +214,6 @@ export function SmokeTestRunner() {
     setResults(new Map());
     const runStart = performance.now();
 
-    setStartTime(runStart);
-
     addLog('info', 'SMOKE_TEST', `Starting E2E smoke test suite: ${SMOKE_TESTS.length} targets`);
 
     let passCount = 0;
@@ -280,7 +277,6 @@ export function SmokeTestRunner() {
   const handleReset = () => {
     setResults(new Map());
     setTotalDuration(0);
-    setStartTime(null);
   };
 
   return (

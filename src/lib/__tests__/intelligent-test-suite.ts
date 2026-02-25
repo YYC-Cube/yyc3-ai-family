@@ -70,7 +70,7 @@ async function testConnection(url: string, timeout = 3000): Promise<boolean> {
   }
 }
 
-async function testOllamaModel(endpoint: string, model: string): Promise<TestResult> {
+async function _testOllamaModel(endpoint: string, model: string): Promise<TestResult> {
   const start = Date.now();
 
   try {
@@ -302,7 +302,7 @@ export async function testLLMBridge(): Promise<TestCategory> {
       message: hasProvider ? '至少一个 Provider 可用' : '无可用 Provider',
     });
 
-    const router = getRouter();
+    const _router = getRouter();
 
     results.push({
       name: 'LLM Router 初始化',
@@ -336,8 +336,8 @@ export async function testPersistence(): Promise<TestCategory> {
   const results: TestResult[] = [];
 
   try {
-    const adapter = new LocalStorageAdapter();
-    const engine = getPersistenceEngine();
+    const _adapter = new LocalStorageAdapter();
+    const _engine = getPersistenceEngine();
 
     results.push({
       name: 'LocalStorage Adapter',

@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 // ============================================================
 // YYC3 — PostgreSQL Telemetry Schema Client
 // Phase 43: REST-based client for telemetry.* tables in PG15

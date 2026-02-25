@@ -183,11 +183,12 @@ export function PanelGroup({ direction, className, children, autoSaveId }: Panel
 // ─── Panel ───────────────────────────────────────────────────────────
 
 export const Panel = React.forwardRef<ImperativePanelHandle, PanelProps>(function Panel(
-  { defaultSize = 50, minSize, maxSize, id, order = 0, className, children, collapsible, onCollapse, onExpand, style },
+  { defaultSize = 50, minSize, maxSize, id, order = 0, className, children, collapsible: _collapsible, onCollapse, onExpand, style },
   ref,
 ) {
   const ctx = React.useContext(PanelGroupContext);
-  const panelId = id ?? React.useId();
+  const generatedId = React.useId();
+  const panelId = id ?? generatedId;
 
   React.useEffect(() => {
     ctx?.registerPanel(panelId, defaultSize, order);

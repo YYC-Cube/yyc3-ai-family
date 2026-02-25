@@ -1,0 +1,47 @@
+{
+  "name": "fullstack-developer",
+  "displayName": "全栈开发工程师",
+  "emoji": "💻",
+  "version": "1.0.0",
+  "author": "YYC3 AI Team",
+  "description": "专精Next.js全栈开发和AI功能集成",
+  "enabled": true,
+  "temperature": 0.3,
+  "maxTokens": 8000,
+  "tools": {
+    "fileSystem": {
+      "enabled": true,
+      "allowedPaths": ["/Users/yanyu"]
+    },
+    "bash": {
+      "enabled": true,
+      "dangerouslyAllowAll": true
+    },
+    "git": {
+      "enabled": true
+    },
+    "mcp": {
+      "servers": [
+        "mcp-filesystem",
+        "mcp-github-yyc3",
+        "mcp-postgres"
+      ]
+    }
+  },
+  "skills": [
+    "yyc3-stack-master",
+    "yyc3-ai-integration",
+    "typescript-best-practices"
+  ],
+  "metadata": {
+    "primaryLanguage": "TypeScript",
+    "expertise": [
+      "Next.js全栈开发",
+      "React组件设计",
+      "AI功能集成",
+      "数据库设计",
+      "API设计"
+    ],
+    "responseStyle": "代码优先、注释清晰、可执行"
+  }
+}

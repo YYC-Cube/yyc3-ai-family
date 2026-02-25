@@ -403,7 +403,7 @@ export function OperationManual() {
                       { name: 'Ollama LLM', endpoint: '192.168.3.22:11434', proto: 'HTTP' },
                       { name: 'Docker Engine', endpoint: '192.168.3.45:2375', proto: 'HTTP' },
                       { name: 'SQLite Proxy', endpoint: '192.168.3.45:8484', proto: 'HTTP' },
-                      { name: 'Telemetry WS', endpoint: '192.168.3.22:3001', proto: 'WebSocket' },
+                      { name: 'Telemetry WS', endpoint: '192.168.3.22:3177', proto: 'WebSocket' },
                       { name: 'Runner Service', endpoint: '192.168.3.22:3002', proto: 'HTTP' },
                       { name: 'PG Proxy', endpoint: '192.168.3.22:3003', proto: 'HTTP' },
                     ].map(s => (

@@ -56,7 +56,6 @@ function StageStatusIcon({ status }: { status: StageStatus }) {
 
 // --- Pipeline Run Card ---
 function PipelineRunCard({ run, onCancel }: { run: PipelineRun; onCancel: (id: string) => void }) {
-  const { language } = useTranslation();
   const elapsed = run.completedAt
     ? ((run.completedAt - run.startedAt) / 1000).toFixed(1)
     : ((Date.now() - run.startedAt) / 1000).toFixed(0);
@@ -311,7 +310,6 @@ export function CommandCenter() {
     }
   }, [addLog]);
 
-  // M4 metrics
   const m4 = clusterMetrics?.['m4-max'];
 
   return (

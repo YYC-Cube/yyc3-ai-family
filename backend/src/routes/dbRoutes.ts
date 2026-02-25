@@ -19,6 +19,11 @@ import {
 
 const router: Router = Router();
 
+const getParam = (param: string | string[] | undefined): string => {
+  if (Array.isArray(param)) return param[0] || '';
+  return param || '';
+};
+
 // ============================================================
 // Health Check
 // ============================================================
@@ -92,7 +97,7 @@ router.get('/models/:id', async (req: Request, res: Response) => {
   try {
     await db.connect();
 
-    const model = await modelRepository.findById(req.params.id);
+    const model = await modelRepository.findById(req.params.id as string);
 
     if (!model) {
       return res.status(404).json({
@@ -117,7 +122,7 @@ router.get('/models/:id/stats', async (req: Request, res: Response) => {
   try {
     await db.connect();
 
-    const stats = await inferenceLogRepository.getStatsByModel(req.params.id, 24);
+    const stats = await inferenceLogRepository.getStatsByModel(getParam(req.params.id), 24);
 
     res.json({
       success: true,
@@ -158,7 +163,7 @@ router.get('/agents/:id', async (req: Request, res: Response) => {
   try {
     await db.connect();
 
-    const agent = await agentRepository.findById(req.params.id);
+    const agent = await agentRepository.findById(getParam(req.params.id));
 
     if (!agent) {
       return res.status(404).json({
@@ -255,7 +260,7 @@ router.get('/conversations/:id', async (req: Request, res: Response) => {
   try {
     await db.connect();
 
-    const conversation = await conversationRepository.findById(req.params.id);
+    const conversation = await conversationRepository.findById(getParam(req.params.id));
 
     if (!conversation) {
       return res.status(404).json({
@@ -282,13 +287,13 @@ router.patch('/conversations/:id', async (req: Request, res: Response) => {
 
     const { title, status, contextSummary } = req.body;
 
-    await conversationRepository.update(req.params.id, {
+    await conversationRepository.update(getParam(req.params.id), {
       title,
       status,
       contextSummary,
     });
 
-    const conversation = await conversationRepository.findById(req.params.id);
+    const conversation = await conversationRepository.findById(getParam(req.params.id));
 
     res.json({
       success: true,
@@ -306,7 +311,7 @@ router.delete('/conversations/:id', async (req: Request, res: Response) => {
   try {
     await db.connect();
 
-    await conversationRepository.delete(req.params.id);
+    await conversationRepository.delete(getParam(req.params.id));
 
     res.json({
       success: true,
@@ -331,7 +336,7 @@ router.get('/conversations/:id/messages', async (req: Request, res: Response) =>
     const { limit } = req.query;
 
     const messages = await messageRepository.findByConversationId(
-      req.params.id,
+      getParam(req.params.id),
       parseInt(limit as string) || 100,
     );
 
@@ -352,7 +357,7 @@ router.post('/conversations/:id/messages', async (req: Request, res: Response) =
   try {
     await db.connect();
 
-    const conversationId = req.params.id;
+    const conversationId = getParam(req.params.id);
     const {
       role,
       content,
@@ -533,7 +538,8 @@ router.get('/config/:key', async (req: Request, res: Response) => {
   try {
     await db.connect();
 
-    const value = await systemConfigRepository.get(req.params.key);
+    const key = getParam(req.params.key);
+    const value = await systemConfigRepository.get(key);
 
     if (value === null) {
       return res.status(404).json({
@@ -544,7 +550,7 @@ router.get('/config/:key', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: { key: req.params.key, value },
+      data: { key, value },
     });
   } catch (error) {
     res.status(500).json({
@@ -567,11 +573,12 @@ router.put('/config/:key', async (req: Request, res: Response) => {
       });
     }
 
-    await systemConfigRepository.set(req.params.key, value);
+    const key = getParam(req.params.key);
+    await systemConfigRepository.set(key, value);
 
     res.json({
       success: true,
-      data: { key: req.params.key, value },
+      data: { key, value },
     });
   } catch (error) {
     res.status(500).json({

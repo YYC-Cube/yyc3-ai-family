@@ -388,7 +388,7 @@ export function FamilyPresenceBoard() {
     agentProfiles,
     deviceMembers,
     wsStatus,
-    lastHeartbeat,
+    lastHeartbeat: _lastHeartbeat,
     totalHeartbeats,
     endpoint,
   } = useHeartbeatWebSocket();

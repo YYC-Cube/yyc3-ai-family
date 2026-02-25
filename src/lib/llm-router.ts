@@ -207,7 +207,7 @@ export class LLMRouter {
     cb.lastFailureTime = now;
 
     switch (cb.state) {
-      case 'CLOSED':
+      case 'CLOSED': {
         cb.failureCount += 1;
         // Non-retryable errors (AUTH) should open circuit faster
         const threshold = (errorCode === 'AUTH_FAILED' || errorCode === 'MODEL_NOT_FOUND')
@@ -219,6 +219,7 @@ export class LLMRouter {
           cb.lastStateChange = now;
         }
         break;
+      }
 
       case 'HALF_OPEN':
         // Test failed → back to OPEN with extended cooldown

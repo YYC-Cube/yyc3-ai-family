@@ -24,7 +24,7 @@ const __dirname = path.dirname(__filename);
 
 const app: express.Application = express();
 const server = createServer(app);
-const PORT = parseInt(process.env.PORT || '3001', 10);
+const PORT = parseInt(process.env.PORT || '3177', 10);
 
 // 中间件
 app.use(cors({
@@ -54,7 +54,7 @@ app.get('/api/v1/health', (req, res) => {
     version: '1.0.0',
     uptime: process.uptime(),
     services: {
-      frontend: 'http://localhost:3200',
+      frontend: 'http://localhost:3133',
       backend: `http://localhost:${PORT}`,
       ollama: 'http://localhost:11434',
     },

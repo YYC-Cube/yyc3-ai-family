@@ -1,6 +1,6 @@
 import {
   Server, Database, Key, Sparkles, Briefcase, Monitor, Smartphone,
-  Infinity, Settings, Layers, ChevronDown, ChevronRight, ArrowRight,
+  Infinity as InfinityIcon, Settings, Layers, ChevronDown, ChevronRight, ArrowRight,
   CheckCircle2, Clock, AlertTriangle, Code, Eye,
 } from 'lucide-react';
 import * as React from 'react';
@@ -177,7 +177,7 @@ const NINE_LAYERS: LayerDetail[] = [
     id: 'L08', number: 8,
     label: 'L08 扩展演进层', labelEn: 'L08 Evolution Layer',
     desc: '测试框架、烟雾测试、安全审计、API 文档、Token 分析', descEn: 'Test framework, smoke tests, security audit, API docs, token analytics',
-    icon: Infinity, color: 'text-indigo-400', bgColor: 'bg-indigo-500/10', borderColor: 'border-indigo-500/20',
+    icon: InfinityIcon, color: 'text-indigo-400', bgColor: 'bg-indigo-500/10', borderColor: 'border-indigo-500/20',
     status: 'complete', progress: 82,
     components: [
       { name: 'TestFrameworkRunner', file: 'console/TestFrameworkRunner.tsx', status: 'done' },
@@ -213,16 +213,12 @@ const NINE_LAYERS: LayerDetail[] = [
 ];
 
 // --- Per-layer detail card ---
-function LayerDetailCard({ layer, zh, onNavigate }: { layer: LayerDetail; zh: boolean; onNavigate: (tab: string) => void }) {
+function LayerDetailCard({ layer, zh, onNavigate: _onNavigate }: { layer: LayerDetail; zh: boolean; onNavigate: (tab: string) => void }) {
   const [expanded, setExpanded] = React.useState(false);
 
   const statusIcon = layer.status === 'complete' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> :
     layer.status === 'in-progress' ? <Clock className="w-4 h-4 text-amber-400" /> :
     <AlertTriangle className="w-4 h-4 text-zinc-500" />;
-
-  const statusLabel = layer.status === 'complete' ? (zh ? '已完成' : 'Complete') :
-    layer.status === 'in-progress' ? (zh ? '进行中' : 'In Progress') :
-    (zh ? '规划中' : 'Planned');
 
   return (
     <Card className={cn('border overflow-hidden transition-all', layer.borderColor, 'bg-black/40')}>

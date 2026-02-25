@@ -347,7 +347,6 @@ function buildCommands(): SlashCommand[] {
       action: () => {
         const s = useSystemStore.getState();
         const metrics = s.clusterMetrics;
-        const m4 = metrics?.['m4-max'];
         const memInfo = typeof performance !== 'undefined' && (performance as any).memory
           ? `${Math.round((performance as any).memory.usedJSHeapSize / 1024 / 1024)}MB / ${Math.round((performance as any).memory.jsHeapSizeLimit / 1024 / 1024)}MB`
           : 'N/A (non-Chrome)';
@@ -570,7 +569,7 @@ function buildCommands(): SlashCommand[] {
             '| Ollama LLM | 192.168.3.22:11434 | HTTP |',
             '| Docker Engine | 192.168.3.45:2375 | HTTP |',
             '| SQLite Proxy | 192.168.3.45:8484 | HTTP |',
-            '| Telemetry WS | 192.168.3.22:3001 | WebSocket |',
+            '| Telemetry WS | 192.168.3.22:3177 | WebSocket |',
             '| NAS Web UI | 192.168.3.45:9898 | HTTPS |',
             '',
             '### 数据库 Schema (PG15)',
@@ -685,9 +684,9 @@ function buildCommands(): SlashCommand[] {
             '| 项目 | 值 |',
             '|------|-----|',
             '| 目标主机 | 192.168.3.22 (yyc3-22) |',
-            '| WebSocket | ws://192.168.3.22:3001/telemetry |',
-            '| HTTP API | http://192.168.3.22:3001/health |',
-            '| SSE | http://192.168.3.22:3001/sse/telemetry |',
+            '| WebSocket | ws://192.168.3.22:3177/telemetry |',
+            '| HTTP API | http://192.168.3.22:3177/health |',
+            '| SSE | http://192.168.3.22:3177/sse/telemetry |',
             '',
             '### 功能',
             '- 连接状态测试 (WS + HTTP)',

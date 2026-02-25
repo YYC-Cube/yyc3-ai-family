@@ -106,7 +106,6 @@ export class ComponentErrorBoundary extends React.Component<
       } = this.props;
       const { error, errorInfo, showDetails, retryCount } = this.state;
 
-      const bgAccent = accentColor.replace('text-', 'bg-').replace('/', '/');
       const borderAccent = accentColor.replace('text-', 'border-');
 
       if (compact) {

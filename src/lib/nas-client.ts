@@ -213,7 +213,7 @@ export async function pingDevice(device: DeviceConfig): Promise<{
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
 
-    const res = await fetch(url, {
+    await fetch(url, {
       method: 'HEAD',
       mode: 'no-cors', // Will succeed as opaque response if reachable
       signal: controller.signal,

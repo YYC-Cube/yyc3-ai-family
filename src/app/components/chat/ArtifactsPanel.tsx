@@ -286,7 +286,9 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
 
   const handleCopy = React.useCallback(() => {
     if (artifact?.code) {
-      navigator.clipboard.writeText(artifact.code).catch(() => {});
+      navigator.clipboard.writeText(artifact.code).catch(() => {
+        // Ignore clipboard errors
+      });
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -309,7 +311,7 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Preview</title>
-  <script src="https://cdn.tailwindcss.com"><\/script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: #fafafa; color: #1a1a1a; }
     .preview-container { padding: 2rem; min-height: 100vh; }
@@ -461,7 +463,7 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
             className="h-7 w-7 text-zinc-500 hover:text-[#0EA5E9]"
             onClick={() => {
               if (iframeRef.current) {
-                iframeRef.current.src = iframeRef.current.src; // reload
+                iframeRef.current.contentWindow?.location.reload();
               }
             }}
             title="刷新预览"

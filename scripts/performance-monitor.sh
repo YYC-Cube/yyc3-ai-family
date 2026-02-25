@@ -193,7 +193,7 @@ collect_application_metrics() {
   echo "----------------------------------------"
   
   # API响应时间
-  local api_time=$(get_api_response_time "http://localhost:3001/api/health")
+  local api_time=$(get_api_response_time "http://localhost:3177/api/health")
   
   echo "API响应时间: $api_time"
   echo ""

@@ -49,11 +49,11 @@ export function ModeControlPanel() {
   const zh = language === 'zh';
   const chatMode = useSystemStore(s => s.chatMode);
   const toggleChatMode = useSystemStore(s => s.toggleChatMode);
-  const messages = useSystemStore(s => s.messages);
-  const activeView = useSystemStore(s => s.activeView);
-  const consoleTab = useSystemStore(s => s.consoleTab);
+  const _messages = useSystemStore(s => s.messages);
+  const _activeView = useSystemStore(s => s.activeView);
+  const _consoleTab = useSystemStore(s => s.consoleTab);
   const navigateToConsoleTab = useSystemStore(s => s.navigateToConsoleTab);
-  const setActiveView = useSystemStore(s => s.setActiveView);
+  const _setActiveView = useSystemStore(s => s.setActiveView);
 
   const [transitions, setTransitions] = React.useState<ModeTransition[]>([...modeHistory]);
 

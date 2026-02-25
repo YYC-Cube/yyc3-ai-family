@@ -44,7 +44,7 @@ jobs:
         run: pnpm run type-check
 
       - name: 运行安全审计
-        run: npm audit --production
+        run: pnpm audit --prod
 
   # ========================================
   # 数据库同步测试

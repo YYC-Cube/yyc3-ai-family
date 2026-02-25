@@ -21,10 +21,10 @@
 #   D6 网络连通性
 # ============================================================
 
-set -e
+# set -e
 
-SCRIPT_DIR="/Users/yanyu/YYC3-Mac-Max/Family-π³/scripts"
-REPORT_DIR="/Users/yanyu/YYC3-Mac-Max/Family-π³/test-reports"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPORT_DIR="$(dirname "$SCRIPT_DIR")/test-reports"
 TIMESTAMP=$(date '+%Y%m%d-%H%M%S')
 REPORT_FILE="$REPORT_DIR/comprehensive-report-$TIMESTAMP.md"
 
@@ -73,11 +73,12 @@ echo -e "${CYAN}  D1 九层架构完整性测试${NC}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 D1_OUTPUT=$("$SCRIPT_DIR/test-nine-layers.sh" 2>&1 || true)
-D1_PASS=$(echo "$D1_OUTPUT" | grep "✅ 通过:" | grep -o '[0-9]*' || echo "0")
-D1_WARN=$(echo "$D1_OUTPUT" | grep "⚠️ 警告:" | grep -o '[0-9]*' || echo "0")
-D1_FAIL=$(echo "$D1_OUTPUT" | grep "❌ 失败:" | grep -o '[0-9]*' || echo "0")
+D1_PASS=$(echo "$D1_OUTPUT" | grep -o "通过: [0-9]*" | grep -o "[0-9]*" | tail -1 || echo "0")
+D1_WARN=$(echo "$D1_OUTPUT" | grep -o "警告: [0-9]*" | grep -o "[0-9]*" | tail -1 || echo "0")
+D1_FAIL=$(echo "$D1_OUTPUT" | grep -o "失败: [0-9]*" | grep -o "[0-9]*" | tail -1 || echo "0")
 D1_TOTAL=$((D1_PASS + D1_WARN + D1_FAIL))
-D1_HEALTH=$((D1_PASS * 100 / (D1_TOTAL > 0 ? D1_TOTAL : 1)))
+D1_DENOM=${D1_TOTAL:-1}
+D1_HEALTH=$((D1_PASS * 100 / D1_DENOM))
 
 echo "  测试项: $D1_TOTAL | 通过: $D1_PASS | 警告: $D1_WARN | 失败: $D1_FAIL"
 echo "  健康度: ${D1_HEALTH}%"
@@ -91,11 +92,12 @@ echo -e "${CYAN}  D2 功能模块连接性测试${NC}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 D2_OUTPUT=$("$SCRIPT_DIR/test-modules.sh" 2>&1 || true)
-D2_PASS=$(echo "$D2_OUTPUT" | grep "✅ 通过:" | grep -o '[0-9]*' || echo "0")
-D2_WARN=$(echo "$D2_OUTPUT" | grep "⚠️ 警告:" | grep -o '[0-9]*' || echo "0")
-D2_FAIL=$(echo "$D2_OUTPUT" | grep "❌ 失败:" | grep -o '[0-9]*' || echo "0")
+D2_PASS=$(echo "$D2_OUTPUT" | grep -o "通过: [0-9]*" | grep -o "[0-9]*" | tail -1 || echo "0")
+D2_WARN=$(echo "$D2_OUTPUT" | grep -o "警告: [0-9]*" | grep -o "[0-9]*" | tail -1 || echo "0")
+D2_FAIL=$(echo "$D2_OUTPUT" | grep -o "失败: [0-9]*" | grep -o "[0-9]*" | tail -1 || echo "0")
 D2_TOTAL=$((D2_PASS + D2_WARN + D2_FAIL))
-D2_HEALTH=$((D2_PASS * 100 / (D2_TOTAL > 0 ? D2_TOTAL : 1)))
+D2_DENOM=${D2_TOTAL:-1}
+D2_HEALTH=$((D2_PASS * 100 / D2_DENOM))
 
 echo "  测试项: $D2_TOTAL | 通过: $D2_PASS | 警告: $D2_WARN | 失败: $D2_FAIL"
 echo "  健康度: ${D2_HEALTH}%"
@@ -109,11 +111,12 @@ echo -e "${MAGENTA}  D3 七大智能体就绪度测试${NC}"
 echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 D3_OUTPUT=$("$SCRIPT_DIR/test-agents.sh" 2>&1 || true)
-D3_PASS=$(echo "$D3_OUTPUT" | grep "✅ 通过:" | grep -o '[0-9]*' || echo "0")
-D3_WARN=$(echo "$D3_OUTPUT" | grep "⚠️ 警告:" | grep -o '[0-9]*' || echo "0")
-D3_FAIL=$(echo "$D3_OUTPUT" | grep "❌ 失败:" | grep -o '[0-9]*' || echo "0")
+D3_PASS=$(echo "$D3_OUTPUT" | grep -o "通过: [0-9]*" | grep -o "[0-9]*" | tail -1 || echo "0")
+D3_WARN=$(echo "$D3_OUTPUT" | grep -o "警告: [0-9]*" | grep -o "[0-9]*" | tail -1 || echo "0")
+D3_FAIL=$(echo "$D3_OUTPUT" | grep -o "失败: [0-9]*" | grep -o "[0-9]*" | tail -1 || echo "0")
 D3_TOTAL=$((D3_PASS + D3_WARN + D3_FAIL))
-D3_HEALTH=$((D3_PASS * 100 / (D3_TOTAL > 0 ? D3_TOTAL : 1)))
+D3_DENOM=${D3_TOTAL:-1}
+D3_HEALTH=$((D3_PASS * 100 / D3_DENOM))
 
 echo "  测试项: $D3_TOTAL | 通过: $D3_PASS | 警告: $D3_WARN | 失败: $D3_FAIL"
 echo "  健康度: ${D3_HEALTH}%"
@@ -161,7 +164,11 @@ else
 fi
 
 D4_TOTAL=$((D4_PASS + D4_WARN + D4_FAIL))
-D4_HEALTH=$((D4_PASS * 100 / (D4_TOTAL > 0 ? D4_TOTAL : 1)))
+if [ $D4_TOTAL -gt 0 ]; then
+  D4_HEALTH=$((D4_PASS * 100 / D4_TOTAL))
+else
+  D4_HEALTH=0
+fi
 
 echo "  健康度: ${D4_HEALTH}%"
 
@@ -190,7 +197,11 @@ for endpoint in "localhost:11434" "192.168.3.45:11434" "192.168.3.77:11434"; do
 done
 
 D5_TOTAL=$((D5_PASS + D5_WARN + D5_FAIL))
-D5_HEALTH=$((D5_PASS * 100 / (D5_TOTAL > 0 ? D5_TOTAL : 1)))
+if [ $D5_TOTAL -gt 0 ]; then
+  D5_HEALTH=$((D5_PASS * 100 / D5_TOTAL))
+else
+  D5_HEALTH=0
+fi
 
 echo "  健康度: ${D5_HEALTH}%"
 
@@ -236,7 +247,11 @@ else
 fi
 
 D6_TOTAL=$((D6_PASS + D6_WARN + D6_FAIL))
-D6_HEALTH=$((D6_PASS * 100 / (D6_TOTAL > 0 ? D6_TOTAL : 1)))
+if [ $D6_TOTAL -gt 0 ]; then
+  D6_HEALTH=$((D6_PASS * 100 / D6_TOTAL))
+else
+  D6_HEALTH=0
+fi
 
 echo "  健康度: ${D6_HEALTH}%"
 
@@ -247,7 +262,11 @@ TOTAL_PASS=$((D1_PASS + D2_PASS + D3_PASS + D4_PASS + D5_PASS + D6_PASS))
 TOTAL_WARN=$((D1_WARN + D2_WARN + D3_WARN + D4_WARN + D5_WARN + D6_WARN))
 TOTAL_FAIL=$((D1_FAIL + D2_FAIL + D3_FAIL + D4_FAIL + D5_FAIL + D6_FAIL))
 TOTAL_ALL=$((TOTAL_PASS + TOTAL_WARN + TOTAL_FAIL))
-OVERALL_HEALTH=$((TOTAL_PASS * 100 / (TOTAL_ALL > 0 ? TOTAL_ALL : 1)))
+if [ $TOTAL_ALL -gt 0 ]; then
+  OVERALL_HEALTH=$((TOTAL_PASS * 100 / TOTAL_ALL))
+else
+  OVERALL_HEALTH=0
+fi
 
 # ============================================================
 # 生成报告
@@ -297,14 +316,14 @@ $(echo "$D3_OUTPUT" | tail -20)
 |------|------|------|
 | M4 Max | localhost:11434 | $(curl -s --connect-timeout 2 http://localhost:11434/api/version &>/dev/null && echo "✅ 正常" || echo "❌ 异常") |
 | NAS | 192.168.3.45:11434 | $(curl -s --connect-timeout 2 http://192.168.3.45:11434/api/version &>/dev/null && echo "✅ 正常" || echo "❌ 异常") |
-| iMac M4 | 192.168.3.77:11434 | $(curl -s --connect-timeout 2 http://192.168.3.77:11434/api/version &>/dev/null && echo "✅ 正常" || echo "❌ 异常") |
+| iMac M4 | 192.168.3.22:11434 | $(curl -s --connect-timeout 2 http://192.168.3.22:11434/api/version &>/dev/null && echo "✅ 正常" || echo "❌ 异常") |
 
 ### D6 网络连通性
 
 | 连接 | 端口 | 状态 |
 |------|------|------|
 | NAS SSH | 9557 | $(nc -z -w 2 192.168.3.45 9557 2>/dev/null && echo "✅ 正常" || echo "❌ 异常") |
-| iMac SSH | 22 | $(nc -z -w 2 192.168.3.77 22 2>/dev/null && echo "✅ 正常" || echo "❌ 异常") |
+| iMac SSH | 22 | $(nc -z -w 2 192.168.3.22 22 2>/dev/null && echo "✅ 正常" || echo "❌ 异常") |
 | NAS Docker API | 2375 | $(curl -s --connect-timeout 2 http://192.168.3.45:2375/_ping &>/dev/null && echo "✅ 正常" || echo "⚠️ 未响应") |
 
 ---

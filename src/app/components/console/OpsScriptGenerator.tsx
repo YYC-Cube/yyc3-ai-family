@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 import {
   Terminal, Copy, Check, Rocket, Database, Activity, Cpu, Box, Download,
   Server, Wrench, ChevronDown, ChevronRight, Radio, Key,
@@ -151,8 +152,8 @@ function buildScriptTemplates(): ScriptTemplate[] {
   const devices = loadDeviceConfigs();
   const configs = loadProviderConfigs();
   const enabledProviders = configs.filter(c => c.enabled && c.apiKey);
-  const m4 = devices.find(d => d.id === 'm4-max');
-  const nasIp = m4?.ip || '192.168.3.22';
+  const _m4 = devices.find(d => d.id === 'm4-max');
+  const nasIp = _m4?.ip || '192.168.3.22';
 
   return [
     // === DEPLOY ===
@@ -271,8 +272,8 @@ pg_dump -h \${PG_HOST} -p \${PG_PORT} -U \${PG_USER} -d \${PG_DB} \\
 
 echo "=== [4/4] Verify backup integrity ==="
 for f in \${BACKUP_DIR}/*_\${TIMESTAMP}.dump; do
-  SIZE=$(du -sh "\$f" | cut -f1)
-  echo "  \$(basename \$f): \${SIZE}"
+  SIZE=$(du -sh "$f" | cut -f1)
+  echo "  $(basename $f): \${SIZE}"
 done
 
 echo "=== Cleanup old backups (keep last 7 days) ==="
@@ -354,7 +355,7 @@ echo "=== Maintenance complete ==="`,
           { name: 'SQLite Proxy', url: 'http://192.168.3.45:8484/api/db/query', method: 'GET' },
           { name: 'PG15 (port)', url: `${nasIp}:5433`, method: 'TCP' },
           { name: 'Dev Server', url: `http://${nasIp}:5173/`, method: 'GET' },
-          { name: 'Telemetry WS', url: `${nasIp}:3001`, method: 'TCP' },
+          { name: 'Telemetry WS', url: `${nasIp}:3177`, method: 'TCP' },
         ];
 
         return `#!/bin/bash
@@ -621,14 +622,14 @@ function getMetrics() {
   const cpus = os.cpus();
   const totalMem = os.totalmem();
   const freeMem = os.freemem();
-  
+
   // CPU usage
   const cpuUsage = cpus.map(cpu => {
     const total = Object.values(cpu.times).reduce((a, b) => a + b, 0);
     const idle = cpu.times.idle;
     return ((total - idle) / total) * 100;
   });
-  
+
   // Thermal (macOS)
   let temperature = 45;
   try {
@@ -685,17 +686,17 @@ function getMetrics() {
 
 wss.on('connection', (ws) => {
   console.log(\`[telemetry] Client connected (total: \${wss.clients.size})\`);
-  
+
   // Send initial metrics
   ws.send(JSON.stringify({ type: 'metrics', data: getMetrics() }));
-  
+
   // Stream metrics every 2s
   const interval = setInterval(() => {
     if (ws.readyState === ws.OPEN) {
       ws.send(JSON.stringify({ type: 'metrics', data: getMetrics() }));
     }
   }, 2000);
-  
+
   ws.on('close', () => {
     clearInterval(interval);
     console.log(\`[telemetry] Client disconnected (total: \${wss.clients.size})\`);
@@ -732,9 +733,9 @@ PLIST_EOF
 
 echo "=== [5/5] Start agent ==="
 sudo launchctl load /Library/LaunchDaemons/com.yyc3.telemetry.plist
-echo "Telemetry agent running on ws://${nasIp}:3001/telemetry"
+echo "Telemetry agent running on ws://${nasIp}:3177/telemetry"
 echo ""
-echo "Test: wscat -c ws://${nasIp}:3001/telemetry"`,
+echo "Test: wscat -c ws://${nasIp}:3177/telemetry"`,
     },
     {
       id: 'system-bootstrap',

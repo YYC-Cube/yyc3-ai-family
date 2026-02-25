@@ -236,8 +236,8 @@ export function WorkflowOrchestrator() {
   };
 
   // --- Connection ---
-  const handleOutputPortClick = (e: React.MouseEvent, nodeId: string) => {
-    e.stopPropagation();
+  const handleOutputPortClick = (e: React.MouseEvent | null, nodeId: string) => {
+    e?.stopPropagation();
     if (connectingFrom) {
       // Cancel
       setConnectingFrom(null);
@@ -847,7 +847,7 @@ export function WorkflowOrchestrator() {
               {/* Actions */}
               <div className="pt-2 border-t border-white/5 flex gap-2">
                 <Button size="sm" variant="ghost" className="flex-1 h-7 text-[10px] font-mono text-primary gap-1"
-                  onClick={() => handleOutputPortClick({ stopPropagation: () => {} } as React.MouseEvent, selectedNode!)}>
+                  onClick={() => handleOutputPortClick(null, selectedNode!)}>
                   <ArrowRight className="w-3 h-3" /> Connect
                 </Button>
                 <Button size="sm" variant="ghost" className="flex-1 h-7 text-[10px] font-mono text-red-400 gap-1"

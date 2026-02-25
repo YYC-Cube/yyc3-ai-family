@@ -108,7 +108,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 });
 
 // === Start ===
-const PORT = parseInt(process.env.SERVER_PORT || '3001', 10);
+const PORT = parseInt(process.env.SERVER_PORT || process.env.VITE_BACKEND_PORT || '3177', 10);
 
 server.listen(PORT, () => {
   console.log(`

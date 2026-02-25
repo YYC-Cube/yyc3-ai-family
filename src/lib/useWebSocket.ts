@@ -43,18 +43,18 @@ function getWsEndpoints(): string[] {
   const nas = devices.find(d => d.id === 'yanyucloud');
 
   if (nas) {
-    endpoints.push(`ws://${nas.ip}:3001/ws`);
+    endpoints.push(`ws://${nas.ip}:3177/ws`);
   }
 
   // Priority 2: M4-Max local WS
   const m4 = devices.find(d => d.id === 'm4-max');
 
   if (m4) {
-    endpoints.push(`ws://${m4.ip}:3001/ws`);
+    endpoints.push(`ws://${m4.ip}:3177/ws`);
   }
 
   // Priority 3: localhost fallback
-  endpoints.push('ws://localhost:3001/ws');
+  endpoints.push('ws://localhost:3177/ws');
 
   return endpoints;
 }

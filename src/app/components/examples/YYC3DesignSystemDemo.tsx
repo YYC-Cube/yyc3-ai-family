@@ -1,8 +1,6 @@
 import * as React from 'react';
 
-export interface YYC3DesignSystemDemoProps {}
-
-export const YYC3DesignSystemDemo: React.FC<YYC3DesignSystemDemoProps> = () => {
+export const YYC3DesignSystemDemo: React.FC = () => {
   return (
     <div className="p-6 space-y-8">
       <div className="space-y-4">

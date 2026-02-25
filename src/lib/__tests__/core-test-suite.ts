@@ -88,7 +88,7 @@ function assertEqual<T>(actual: T, expected: T, label: string): void {
   }
 }
 
-function assertNotEqual<T>(actual: T, notExpected: T, label: string): void {
+function _assertNotEqual<T>(actual: T, notExpected: T, label: string): void {
   if (actual === notExpected) {
     throw new TestAssertionError(
       `${label}: expected NOT ${JSON.stringify(notExpected)}, but got same value`,
@@ -96,7 +96,7 @@ function assertNotEqual<T>(actual: T, notExpected: T, label: string): void {
   }
 }
 
-function assertIncludes(haystack: string, needle: string, label: string): void {
+function _assertIncludes(haystack: string, needle: string, label: string): void {
   if (!haystack.includes(needle)) {
     throw new TestAssertionError(
       `${label}: expected "${haystack}" to include "${needle}"`,

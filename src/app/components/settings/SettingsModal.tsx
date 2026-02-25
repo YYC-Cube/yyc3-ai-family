@@ -414,22 +414,6 @@ interface GeneralSettingsProps extends TranslationProps {
   setLanguage: (lang: 'zh' | 'en') => void;
 }
 
-interface ModelCardProps {
-  name: string;
-  provider: string;
-  status: 'active' | 'standby';
-  latency: string;
-  apiKey?: string;
-  endpoint?: string;
-  onEdit?: () => void;
-  onToggle?: () => void;
-  isEditing?: boolean;
-  onSave?: (data: { name: string; provider: string; apiKey: string; endpoint: string }) => void;
-  onCancel?: () => void;
-  onDelete?: () => void;
-  isCustom?: boolean;
-}
-
 interface RepoItemProps {
   name: string;
   branch: string;
@@ -1372,7 +1356,7 @@ function ModelsSettings({ t }: TranslationProps) {
   );
 }
 
-function GitOpsSettings({ t }: TranslationProps) {
+function GitOpsSettings({ t: _t }: TranslationProps) {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
       <div className="p-4 rounded-lg border border-dashed border-border bg-muted/5 hover:bg-muted/10 transition-colors">
@@ -1559,7 +1543,7 @@ function savePlugins(plugins: PluginConfig[]) {
   }
 }
 
-function ExtensionsSettings({ t }: TranslationProps) {
+function ExtensionsSettings({ t: _t }: TranslationProps) {
   const [plugins, setPlugins] = React.useState<PluginConfig[]>(() => loadPlugins());
   const [filterCategory, setFilterCategory] = React.useState<string>('all');
   const [showAddPlugin, setShowAddPlugin] = React.useState(false);
@@ -1766,7 +1750,7 @@ function ExtensionsSettings({ t }: TranslationProps) {
   );
 }
 
-function SecuritySettings({ t }: TranslationProps) {
+function SecuritySettings({ t: _t }: TranslationProps) {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between p-4 border border-green-500/20 rounded-lg bg-green-500/10">

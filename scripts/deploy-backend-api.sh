@@ -16,7 +16,7 @@ set -e
 
 PROJECT_DIR="/Users/yanyu/YYC3-Mac-Max/Family-π³"
 BACKEND_DIR="${PROJECT_DIR}/backend"
-PORT="3001"
+PORT="3177"
 
 echo "🚀 YYC3 AI Family — 本地后端 API 部署脚本"
 echo "================================================"
@@ -249,7 +249,7 @@ create_env_file() {
     echo "🔐 创建 .env 文件..."
     
     cat > "${BACKEND_DIR}/.env" << EOF
-PORT=3001
+PORT=3177
 NODE_ENV=development
 CORS_ORIGIN=*
 LOG_LEVEL=debug

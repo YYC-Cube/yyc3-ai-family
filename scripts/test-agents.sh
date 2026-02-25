@@ -22,7 +22,9 @@
 #   Grandmaster(格物·宗师)   - 知识库构建
 # ============================================================
 
-set -e
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SRC_DIR="$PROJECT_ROOT/src"
+LIB_DIR="$SRC_DIR/lib"
 
 PASS=0
 FAIL=0
@@ -48,27 +50,27 @@ test_agent_model() {
   local model=$2
   local endpoint=$3
   local test_prompt=$4
-  
+
   ((TOTAL++))
   printf "  %-20s" "$agent_name"
-  
+
   # 检查模型是否存在
   local model_check
   model_check=$(curl -s "$endpoint/api/tags" 2>/dev/null | grep -o "\"$model\"" | head -1)
-  
+
   if [ -z "$model_check" ]; then
     echo -e "${YELLOW}⚠️ 模型未部署${NC}"
     ((WARN++))
     return
   fi
-  
+
   # 测试推理
   local response
   response=$(curl -s --connect-timeout 10 --max-time 30 \
     "$endpoint/api/generate" \
     -H "Content-Type: application/json" \
     -d "{\"model\": \"$model\", \"prompt\": \"$test_prompt\", \"stream\": false}" 2>/dev/null)
-  
+
   if echo "$response" | grep -q "response"; then
     local latency=$(echo "$response" | grep -o '"total_duration":[0-9]*' | grep -o '[0-9]*' || echo "0")
     local latency_ms=$((latency / 1000000))
@@ -85,12 +87,12 @@ test_agent_config() {
   local agent_name=$2
   local expected_model=$3
   local expected_endpoint=$4
-  
+
   ((TOTAL++))
   printf "  %-20s" "$agent_name 配置"
-  
+
   # 检查 AGENT_REGISTRY
-  if grep -q "$agent_id" /Users/yanyu/YYC3-Mac-Max/Family-π³/src/lib/types.ts 2>/dev/null; then
+  if grep -q "$agent_id" "$LIB_DIR/types.ts" 2>/dev/null; then
     echo -e "${GREEN}✅ 已注册${NC}"
     ((PASS++))
   else
@@ -112,7 +114,7 @@ print_header "智能体注册表 (Agent Registry)"
 for agent in "navigator" "thinker" "prophet" "bole" "pivot" "sentinel" "grandmaster"; do
   ((TOTAL++))
   printf "  %-20s" "$agent"
-  if grep -q "id: '$agent'" /Users/yanyu/YYC3-Mac-Max/Family-π³/src/lib/types.ts 2>/dev/null; then
+  if grep -q "id: '$agent'" "$LIB_DIR/types.ts" 2>/dev/null; then
     echo -e "${GREEN}✅ 已注册${NC}"
     ((PASS++))
   else
@@ -205,7 +207,7 @@ print_header "智能体协作 (Collaboration)"
 
 ((TOTAL++))
 printf "  %-20s" "Agent Orchestrator"
-if [ -f "/Users/yanyu/YYC3-Mac-Max/Family-π³/src/lib/agent-orchestrator.ts" ]; then
+if [ -f "$LIB_DIR/agent-orchestrator.ts" ]; then
   echo -e "${GREEN}✅ 存在${NC}"
   ((PASS++))
 else
@@ -215,7 +217,7 @@ fi
 
 ((TOTAL++))
 printf "  %-20s" "协作模式定义"
-if grep -q "CollaborationMode" /Users/yanyu/YYC3-Mac-Max/Family-π³/src/lib/agent-orchestrator.ts 2>/dev/null; then
+if grep -q "CollaborationMode" "$LIB_DIR/agent-orchestrator.ts" 2>/dev/null; then
   echo -e "${GREEN}✅ 已定义${NC}"
   ((PASS++))
 else
@@ -227,7 +229,7 @@ fi
 for mode in "pipeline" "parallel" "debate" "ensemble" "delegation"; do
   ((TOTAL++))
   printf "  %-20s" "$mode 模式"
-  if grep -q "'$mode'" /Users/yanyu/YYC3-Mac-Max/Family-π³/src/lib/agent-orchestrator.ts 2>/dev/null; then
+  if grep -q "'$mode'" "$LIB_DIR/agent-orchestrator.ts" 2>/dev/null; then
     echo -e "${GREEN}✅ 支持${NC}"
     ((PASS++))
   else

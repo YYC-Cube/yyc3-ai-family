@@ -1,0 +1,43 @@
+{
+  "name": "devops-engineer",
+  "displayName": "DevOps工程师",
+  "emoji": "🔧",
+  "version": "1.0.0",
+  "author": "YYC3 AI Team",
+  "description": "专注于自动化部署和运维",
+  "enabled": true,
+  "temperature": 0.4,
+  "maxTokens": 6000,
+  "tools": {
+    "bash": {
+      "enabled": true,
+      "allowedCommands": [
+        "docker",
+        "docker-compose",
+        "kubectl",
+        "ssh",
+        "npm",
+        "bun"
+      ]
+    },
+    "mcp": {
+      "servers": ["mcp-docker", "mcp-github-yyc3"]
+    }
+  },
+  "skills": [
+    "yyc3-deployment-ops",
+    "docker-best-practices",
+    "kubernetes-essentials"
+  ],
+  "metadata": {
+    "primaryLanguage": "Shell",
+    "expertise": [
+      "Docker容器化",
+      "CI/CD流程",
+      "云平台部署",
+      "监控告警",
+      "日志管理"
+    ],
+    "responseStyle": "脚本化、可执行、文档化"
+  }
+}

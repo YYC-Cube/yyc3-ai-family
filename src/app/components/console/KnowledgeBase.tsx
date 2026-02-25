@@ -666,7 +666,7 @@ export function KnowledgeBase() {
             eventBus.persist('knowledge_seed', `Knowledge base seeded with ${SEED_KNOWLEDGE.length} entries`, 'info');
           }
         }
-      } catch (err) {
+      } catch (_err) {
         // Fallback to legacy localStorage
         if (!cancelled) {
           const legacy = loadKnowledgeBase();

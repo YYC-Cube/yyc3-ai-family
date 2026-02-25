@@ -517,15 +517,7 @@ export function AgentChatInterface({ agentId, className }: AgentChatInterfacePro
     ]);
   };
 
-  if (!persona) {
-    return (
-      <div className="flex items-center justify-center h-full text-zinc-500 font-mono text-sm">
-        Agent not found: {agentId}
-      </div>
-    );
-  }
-
-  const AgentIcon = persona.icon;
+  const AgentIcon = persona?.icon;
 
   // Resolve current model info for display
   const resolvedProvider = React.useMemo(() => {

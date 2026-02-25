@@ -735,7 +735,7 @@ function WsServiceDeployer() {
 // ============================================================
 
 function ServiceConnectivityMatrix() {
-  const [devices, setDevices] = React.useState<DeviceConfig[]>(loadDeviceConfigs);
+  const [devices, _setDevices] = React.useState<DeviceConfig[]>(loadDeviceConfigs);
   const [results, setResults] = React.useState<ServiceTestResult[]>([]);
   const [scanning, setScanning] = React.useState(false);
   const [lastScan, setLastScan] = React.useState<string | null>(null);

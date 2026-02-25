@@ -1,0 +1,37 @@
+{
+  "name": "product-analyst",
+  "displayName": "产品需求分析师",
+  "emoji": "📊",
+  "version": "1.0.0",
+  "author": "YYC3 AI Team",
+  "description": "专注于将用户的想法转化为清晰、可执行的产品需求文档（PRD）",
+  "enabled": true,
+  "temperature": 0.7,
+  "maxTokens": 4000,
+  "tools": {
+    "browser": {
+      "enabled": true,
+      "permissions": ["read"]
+    },
+    "fileSystem": {
+      "enabled": true,
+      "allowedPaths": ["/Users/yanyu/yyc3-claude/projects"]
+    },
+    "bash": {
+      "enabled": false
+    },
+    "mcp": {
+      "servers": ["mcp-brave-search", "mcp-github-yyc3"]
+    }
+  },
+  "skills": [
+    "yyc3-five-highs",
+    "competitive-analysis",
+    "requirement-analysis"
+  ],
+  "metadata": {
+    "primaryLanguage": "zh-CN",
+    "expertise": ["产品规划", "需求分析", "竞品调研", "PRD撰写"],
+    "responseStyle": "结构化、思维导图、表格化"
+  }
+}

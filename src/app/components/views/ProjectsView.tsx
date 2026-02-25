@@ -532,7 +532,7 @@ export function ProjectsView() {
     }));
   };
 
-  const handleStatusChange = (id: string, status: ProjectItem['status']) => {
+  const _handleStatusChange = (id: string, status: ProjectItem['status']) => {
     setProjects(prev => prev.map(p =>
       p.id === id ? { ...p, status } : p,
     ));

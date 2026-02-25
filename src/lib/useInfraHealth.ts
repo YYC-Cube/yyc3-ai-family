@@ -394,7 +394,7 @@ async function checkPG15(): Promise<Partial<InfraCheck>> {
 }
 
 async function checkTelemetryWS(): Promise<Partial<InfraCheck>> {
-  const url = 'ws://192.168.3.22:3001/telemetry';
+  const url = 'ws://192.168.3.22:3177/telemetry';
   const start = performance.now();
 
   return new Promise<Partial<InfraCheck>>(resolve => {
@@ -513,7 +513,7 @@ function buildInitialChecks(): InfraCheck[] {
     { id: 'svc-sqlite', name: 'SQLite HTTP Proxy', nameZh: 'SQLite HTTP 代理', category: 'service' as const, status: 'unknown' as InfraStatus, endpoint: '192.168.3.45:8484' },
     { id: 'svc-ollama', name: 'Ollama LLM Server', nameZh: 'Ollama 推理服务', category: 'service' as const, status: 'unknown' as InfraStatus, endpoint: '192.168.3.22:11434' },
     { id: 'svc-pg15', name: 'PostgreSQL 15', nameZh: 'PostgreSQL 15', category: 'service' as const, status: 'unknown' as InfraStatus, endpoint: '192.168.3.22:5433' },
-    { id: 'svc-telemetry', name: 'Telemetry Agent (WS)', nameZh: '遥测代理 (WS)', category: 'service' as const, status: 'unknown' as InfraStatus, endpoint: '192.168.3.22:3001' },
+    { id: 'svc-telemetry', name: 'Telemetry Agent (WS)', nameZh: '遥测代理 (WS)', category: 'service' as const, status: 'unknown' as InfraStatus, endpoint: '192.168.3.22:3177' },
     // Runtime
     { id: 'rt-crypto', name: 'Web Crypto API', nameZh: 'Web Crypto 加密 API', category: 'runtime' as const, status: 'unknown' as InfraStatus },
     { id: 'rt-storage', name: 'localStorage', nameZh: '本地存储', category: 'runtime' as const, status: 'unknown' as InfraStatus },

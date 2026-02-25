@@ -85,7 +85,7 @@ function EventItem({ event }: { event: { level: string; source: string; message:
 
 // --- Main Component ---
 export function NeuralLinkOverlay() {
-  const { t, language } = useTranslation();
+  const { t: _t, language } = useTranslation();
   const status = useSystemStore(s => s.status);
   const cpuLoad = useSystemStore(s => s.cpuLoad);
   const latency = useSystemStore(s => s.latency);

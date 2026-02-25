@@ -24,7 +24,7 @@ import { eventBus } from './event-bus';
 // Configuration
 // ============================================================
 
-const REDIS_BASE_URL = 'http://192.168.3.45:6379';
+const _REDIS_BASE_URL = 'http://192.168.3.45:6379';
 const REDIS_TIMEOUT = 5000;
 
 export interface RedisConfig {

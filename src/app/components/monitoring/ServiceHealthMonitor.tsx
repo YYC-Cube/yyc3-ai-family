@@ -42,7 +42,7 @@ interface LogEntryProps {
 }
 
 export function ServiceHealthMonitor() {
-  const { t } = useTranslation();
+  const { t: _t } = useTranslation();
   const isMobile = useSystemStore(s => s.isMobile);
 
   const [metrics, setMetrics] = React.useState<HealthMetrics>({

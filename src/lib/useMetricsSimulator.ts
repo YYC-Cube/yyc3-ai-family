@@ -13,7 +13,7 @@ import { useSystemStore } from './store';
 // - YanYuCloud NAS (存储节点)
 //
 // 后续对接: 替换 simulate() 为真实 WebSocket/SSE 连接
-// ws://localhost:3001/ws/metrics
+// ws://localhost:3177/ws/metrics
 // ============================================================
 
 /** 单个节点的指标快照 */

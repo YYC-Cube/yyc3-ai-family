@@ -121,7 +121,8 @@ router.get('/models/authorized', async (req: Request, res: Response) => {
 // ============================================================
 router.get('/models/:id', async (req: Request, res: Response) => {
   try {
-    const model = globalModelRegistry.getModel(req.params.id);
+    const modelId = req.params.id as string;
+    const model = globalModelRegistry.getModel(modelId);
 
     if (!model) {
       return res.status(404).json({
@@ -174,7 +175,8 @@ router.get('/agents/routing', async (req: Request, res: Response) => {
 // ============================================================
 router.get('/agents/:id/routing', async (req: Request, res: Response) => {
   try {
-    const strategy = AGENT_ROUTING_STRATEGIES[req.params.id];
+    const agentId = req.params.id as string;
+    const strategy = AGENT_ROUTING_STRATEGIES[agentId];
 
     if (!strategy) {
       return res.status(404).json({
@@ -184,7 +186,7 @@ router.get('/agents/:id/routing', async (req: Request, res: Response) => {
     }
 
     // 获取最佳模型
-    const bestModel = globalModelRegistry.getBestModelForAgent(req.params.id, true);
+    const bestModel = globalModelRegistry.getBestModelForAgent(agentId, true);
 
     res.json({
       success: true,

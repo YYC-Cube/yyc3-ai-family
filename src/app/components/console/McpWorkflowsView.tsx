@@ -228,7 +228,7 @@ services:
 
   api:
     build: .
-    ports: ["3001:3001"]
+    ports: ["3177:3177"]
     env_file: .env
     depends_on: [postgres, redis]
     deploy:

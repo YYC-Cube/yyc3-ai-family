@@ -37,7 +37,7 @@ interface CoreCellProps {
   label?: string;
 }
 
-function CoreCell({ index, type, load, label }: CoreCellProps) {
+function CoreCell({ index, type, load, label: _label }: CoreCellProps) {
   const color = load > 90 ? 'bg-red-500' : load > 70 ? 'bg-amber-500' : load > 40 ? 'bg-sky-500' : load > 10 ? 'bg-emerald-500' : 'bg-zinc-700';
   const glowColor = load > 90 ? 'shadow-red-500/30' : load > 70 ? 'shadow-amber-500/20' : load > 40 ? 'shadow-sky-500/10' : 'shadow-transparent';
 
@@ -61,7 +61,7 @@ function CoreCell({ index, type, load, label }: CoreCellProps) {
 }
 
 // --- Ring Gauge ---
-function RingGauge({ value, max, label, unit, color, size = 80 }: { value: number; max: number; label: string; unit: string; color: string; size?: number }) {
+function RingGauge({ value, max, label, unit: _unit, color, size = 80 }: { value: number; max: number; label: string; unit: string; color: string; size?: number }) {
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
   const radius = (size - 8) / 2;
   const circumference = 2 * Math.PI * radius;

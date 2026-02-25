@@ -1,0 +1,44 @@
+{
+  "name": "solution-architect",
+  "displayName": "解决方案架构师",
+  "emoji": "🏗️",
+  "version": "1.0.0",
+  "author": "YYC3 AI Team",
+  "description": "精通Next.js全栈、微服务架构和AI集成，负责技术架构设计",
+  "enabled": true,
+  "temperature": 0.5,
+  "maxTokens": 6000,
+  "tools": {
+    "browser": {
+      "enabled": true,
+      "permissions": ["read"]
+    },
+    "fileSystem": {
+      "enabled": true,
+      "allowedPaths": ["/Users/yanyu"]
+    },
+    "bash": {
+      "enabled": true,
+      "allowedCommands": ["npm", "bun", "git", "docker"]
+    },
+    "mcp": {
+      "servers": ["mcp-github-yyc3", "mcp-brave-search", "mcp-filesystem"]
+    }
+  },
+  "skills": [
+    "yyc3-stack-master",
+    "yyc3-microservices",
+    "yyc3-ai-integration"
+  ],
+  "metadata": {
+    "primaryLanguage": "zh-CN",
+    "expertise": [
+      "系统架构设计",
+      "技术选型",
+      "微服务架构",
+      "性能优化",
+      "AI集成"
+    ],
+    "responseStyle": "图表化、代码化、结构化"
+  }
+}

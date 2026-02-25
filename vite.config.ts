@@ -99,12 +99,12 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      port: parseInt(env.VITE_APP_PORT || '3113', 10),
+      port: parseInt(env.VITE_APP_PORT || '3133', 10),
       host: true,
       strictPort: true,
     },
     preview: {
-      port: parseInt(env.VITE_APP_PORT || '3115', 10),
+      port: parseInt(env.VITE_APP_PORT || '3133', 10),
       host: true,
       strictPort: true,
     },

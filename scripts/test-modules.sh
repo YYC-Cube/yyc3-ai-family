@@ -21,7 +21,9 @@
 #   M06 网络模块 - SSH, WebSocket, HTTP
 # ============================================================
 
-set -e
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SRC_DIR="$PROJECT_ROOT/src"
+LIB_DIR="$SRC_DIR/lib"
 
 PASS=0
 FAIL=0
@@ -45,10 +47,10 @@ test_service() {
   local name=$1
   local command=$2
   local critical=$3
-  
+
   ((TOTAL++))
   printf "  %-40s" "$name"
-  
+
   if eval "$command" &>/dev/null; then
     echo -e "${GREEN}✅ 正常${NC}"
     ((PASS++))
@@ -67,14 +69,14 @@ test_service_with_output() {
   local name=$1
   local command=$2
   local critical=$3
-  
+
   ((TOTAL++))
   printf "  %-40s" "$name"
-  
+
   local output
   output=$(eval "$command" 2>&1)
   local exit_code=$?
-  
+
   if [ $exit_code -eq 0 ]; then
     echo -e "${GREEN}✅ 正常${NC}"
     ((PASS++))
@@ -148,7 +150,7 @@ test_service "Ollama iMac (11434)" "curl -s --connect-timeout 3 http://192.168.3
 # 模型列表检查
 ((TOTAL++))
 printf "  %-40s" "M4 Max 模型数量"
-local_models=$(curl -s http://localhost:11434/api/tags 2>/dev/null | grep -o '"name"' | wc -l | tr -d ' ')
+local_models=$(curl -s http://localhost:11434/api/tags 2>/dev/null | grep -o '"name"' | wc -l | xargs)
 if [ "$local_models" -gt 0 ]; then
   echo -e "${GREEN}✅ $local_models 个模型${NC}"
   ((PASS++))
@@ -159,7 +161,7 @@ fi
 
 ((TOTAL++))
 printf "  %-40s" "iMac 模型数量"
-imac_models=$(curl -s http://192.168.3.77:11434/api/tags 2>/dev/null | grep -o '"name"' | wc -l | tr -d ' ')
+imac_models=$(curl -s http://192.168.3.77:11434/api/tags 2>/dev/null | grep -o '"name"' | wc -l | xargs)
 if [ "$imac_models" -gt 0 ]; then
   echo -e "${GREEN}✅ $imac_models 个模型${NC}"
   ((PASS++))
@@ -189,7 +191,7 @@ print_header "M03 LLM 桥接模块 (LLM Bridge)"
 # Provider 配置检查
 ((TOTAL++))
 printf "  %-40s" "Provider 配置文件"
-if [ -f "/Users/yanyu/YYC3-Mac-Max/Family-π³/src/lib/llm-providers.ts" ]; then
+if [ -f "$LIB_DIR/llm-providers.ts" ]; then
   echo -e "${GREEN}✅ 存在${NC}"
   ((PASS++))
 else
@@ -200,7 +202,7 @@ fi
 # Provider 数量统计
 ((TOTAL++))
 printf "  %-40s" "已配置 Provider 数量"
-provider_count=$(grep -c "id:" /Users/yanyu/YYC3-Mac-Max/Family-π³/src/lib/llm-providers.ts 2>/dev/null || echo "0")
+provider_count=$(grep -c "id:" "$LIB_DIR/llm-providers.ts" 2>/dev/null || echo "0")
 if [ "$provider_count" -ge 7 ]; then
   echo -e "${GREEN}✅ $provider_count 个${NC}"
   ((PASS++))
@@ -212,7 +214,7 @@ fi
 # LLM Router 检查
 ((TOTAL++))
 printf "  %-40s" "LLM Router 模块"
-if [ -f "/Users/yanyu/YYC3-Mac-Max/Family-π³/src/lib/llm-router.ts" ]; then
+if [ -f "$LIB_DIR/llm-router.ts" ]; then
   echo -e "${GREEN}✅ 存在${NC}"
   ((PASS++))
 else
@@ -227,7 +229,7 @@ print_header "M04 MCP 协议模块 (MCP Protocol)"
 
 ((TOTAL++))
 printf "  %-40s" "MCP Protocol 模块"
-if [ -f "/Users/yanyu/YYC3-Mac-Max/Family-π³/src/lib/mcp-protocol.ts" ]; then
+if [ -f "$LIB_DIR/mcp-protocol.ts" ]; then
   echo -e "${GREEN}✅ 存在${NC}"
   ((PASS++))
 else
@@ -238,7 +240,7 @@ fi
 # 工具注册检查
 ((TOTAL++))
 printf "  %-40s" "MCP 工具定义"
-tool_count=$(grep -c "name:" /Users/yanyu/YYC3-Mac-Max/Family-π³/src/lib/mcp-protocol.ts 2>/dev/null || echo "0")
+tool_count=$(grep -c "name:" "$LIB_DIR/mcp-protocol.ts" 2>/dev/null || echo "0")
 if [ "$tool_count" -ge 5 ]; then
   echo -e "${GREEN}✅ $tool_count 个工具${NC}"
   ((PASS++))
@@ -254,7 +256,7 @@ print_header "M05 持久化模块 (Persistence)"
 
 ((TOTAL++))
 printf "  %-40s" "Persistence Engine"
-if [ -f "/Users/yanyu/YYC3-Mac-Max/Family-π³/src/lib/persistence-engine.ts" ]; then
+if [ -f "$LIB_DIR/persistence-engine.ts" ]; then
   echo -e "${GREEN}✅ 存在${NC}"
   ((PASS++))
 else
@@ -264,7 +266,7 @@ fi
 
 ((TOTAL++))
 printf "  %-40s" "Persist Schemas"
-if [ -f "/Users/yanyu/YYC3-Mac-Max/Family-π³/src/lib/persist-schemas.ts" ]; then
+if [ -f "$LIB_DIR/persist-schemas.ts" ]; then
   echo -e "${GREEN}✅ 存在${NC}"
   ((PASS++))
 else

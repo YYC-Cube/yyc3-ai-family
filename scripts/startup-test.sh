@@ -27,7 +27,7 @@ test_service() {
   local name=$1
   local command=$2
   local critical=$3
-  
+
   printf "%-35s" "$name"
   if eval "$command" &>/dev/null; then
     echo "✅ 通过"
@@ -71,9 +71,9 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "🌐 Web 服务测试"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-test_service "Frontend (3200)" "nc -z -w 3 localhost 3200" "warning"
-test_service "API Server (3210)" "nc -z -w 3 localhost 3210" "warning"
-test_service "WebSocket (3001)" "nc -z -w 3 localhost 3001" "warning"
+test_service "Frontend (3133)" "nc -z -w 3 localhost 3133" "warning"
+test_service "API Server (3177)" "nc -z -w 3 localhost 3177" "warning"
+test_service "WebSocket (3177)" "nc -z -w 3 localhost 3177" "warning"
 echo ""
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

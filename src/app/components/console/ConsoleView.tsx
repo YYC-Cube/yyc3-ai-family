@@ -2,10 +2,11 @@ import {
   Terminal, Shield, Brain, Activity,
   Network, Book, ArrowRight,
   Users, Layers2, Server, HardDrive, Key,
-  Sparkles, Briefcase, Monitor, Smartphone, Infinity, Settings,
+  Sparkles, Briefcase, Monitor, Smartphone, Settings,
   LayoutDashboard, Sliders, Database, BarChart3, Box,
   Wrench, Heart, BookOpen, Rocket, TrendingUp, CloudCog,
   Cpu, FileText, FlaskConical, TestTube2, Radio,
+  Infinity as InfinityIcon,
 } from 'lucide-react';
 import * as React from 'react';
 
@@ -164,7 +165,7 @@ const NAV_DATA: {
   ],
   layers: [
     { id: 'L09', label: 'L09 系统设置层', desc: 'Configuration', icon: Settings, color: 'text-zinc-400' },
-    { id: 'L08', label: 'L08 扩展演进层', desc: 'Evolution', icon: Infinity, color: 'text-indigo-400' },
+    { id: 'L08', label: 'L08 扩展演进层', desc: 'Evolution', icon: InfinityIcon, color: 'text-indigo-400' },
     { id: 'L07', label: 'L07 用户交互层', desc: 'Interaction', icon: Smartphone, color: 'text-pink-400' },
     { id: 'L06', label: 'L06 应用表现层', desc: 'Presentation', icon: Monitor, color: 'text-cyan-400' },
     { id: 'L05', label: 'L05 业务逻辑层', desc: 'Business Logic', icon: Briefcase, color: 'text-red-400' },
@@ -220,7 +221,7 @@ export function ConsoleView() {
   }, []);
 
   // Phase 50: Error handler for ComponentErrorBoundary
-  const handleComponentError = React.useCallback((error: Error, errorInfo: React.ErrorInfo) => {
+  const handleComponentError = React.useCallback((error: Error, _errorInfo: React.ErrorInfo) => {
     addLog('error', 'ERROR_BOUNDARY', `Component crashed: ${error.message}`);
   }, [addLog]);
 

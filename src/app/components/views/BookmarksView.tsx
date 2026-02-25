@@ -60,7 +60,7 @@ const DEFAULT_BOOKMARKS: BookmarkItem[] = [
   { id: 'b13', name: 'Ollama API Server', url: 'http://192.168.1.100:11434', description: '本地LLM推理API', category: 'backend', tags: ['Ollama', 'LLM', 'API'], starred: true, status: 'active', createdAt: '2026-02-01' },
   { id: 'b14', name: 'PostgreSQL Admin', url: 'https://192.168.1.100:5050', description: 'pgAdmin数据库管理', category: 'infra', tags: ['PostgreSQL', 'DB'], starred: false, status: 'active', createdAt: '2025-12-01' },
   { id: 'b15', name: 'MinIO Console', url: 'https://192.168.1.100:9001', description: '对象存储管理面板', category: 'infra', tags: ['MinIO', '对象存储'], starred: false, status: 'active', createdAt: '2026-01-15' },
-  { id: 'b16', name: 'YYC3 旧版前端 (Legacy)', url: 'http://localhost:3001', description: '旧版前端（已归档）', category: 'frontend', tags: ['Legacy', '归档'], starred: false, status: 'archived', createdAt: '2025-08-01' },
+  { id: 'b16', name: 'YYC3 旧版前端 (Legacy)', url: 'http://localhost:3177', description: '旧版前端（已归档）', category: 'frontend', tags: ['Legacy', '归档'], starred: false, status: 'archived', createdAt: '2025-08-01' },
 ];
 
 function loadBookmarks(): BookmarkItem[] {
@@ -147,7 +147,7 @@ export function BookmarksView() {
   };
 
   const copyUrl = (id: string, url: string) => {
-    navigator.clipboard.writeText(url).catch(() => {});
+    navigator.clipboard.writeText(url);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };

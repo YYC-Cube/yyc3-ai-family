@@ -8,8 +8,8 @@ import { useSystemStore } from './store';
 // Phase 37: Real WebSocket/SSE → 192.168.3.22 Telemetry Agent
 //
 // Connection strategy (ordered by priority):
-//   1. WebSocket  ws://192.168.3.22:3001/telemetry
-//   2. SSE        http://192.168.3.22:3001/sse/telemetry
+//   1. WebSocket  ws://192.168.3.22:3177/telemetry
+//   2. SSE        http://192.168.3.22:3177/sse/telemetry
 //   3. Fallback   Local simulation (identical to prev. behavior)
 //
 // Data contract (TelemetryFrame):
@@ -58,8 +58,8 @@ export type TelemetrySource = 'websocket' | 'sse' | 'simulation';
 
 // --- Constants ---
 
-const WS_URL = 'ws://192.168.3.22:3001/telemetry';
-const SSE_URL = 'http://192.168.3.22:3001/sse/telemetry';
+const WS_URL = 'ws://192.168.3.22:3177/telemetry';
+const SSE_URL = 'http://192.168.3.22:3177/sse/telemetry';
 const RECONNECT_BASE_MS = 3000;
 const RECONNECT_MAX_MS = 30000;
 const SIMULATION_INTERVAL_MS = 2000;
