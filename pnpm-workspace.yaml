@@ -1,0 +1,8 @@
+# YYC³ AI-Family Monorepo Workspace Configuration
+# https://pnpm.io/workspaces
+
+packages:
+  # SDK packages
+  - 'packages/*'
+  # Backend
+  - 'backend'

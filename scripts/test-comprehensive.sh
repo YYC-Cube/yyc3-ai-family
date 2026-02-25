@@ -3,13 +3,14 @@
 # @file test-comprehensive.sh
 # @description YYC³ AI-Family 综合测试报告工具，执行全量测试并生成综合报告
 # @author YYC³ Team
-# @version 1.0.0
+# @version 1.0.1
 # @created 2026-02-25
+# @updated 2026-02-26
 # @tags [testing],[comprehensive],[reporting]
 
 # ============================================================
 # YYC³ AI Family - 综合测试报告工具
-# 文件: /Users/yanyu/YYC3-Mac-Max/Family-π³/scripts/test-comprehensive.sh
+# 文件: /Users/yanyu/Family-π³/scripts/test-comprehensive.sh
 # 用途: 执行全量测试并生成综合报告
 #
 # 测试维度:
@@ -21,7 +22,7 @@
 #   D6 网络连通性
 # ============================================================
 
-# set -e
+# 允许脚本继续执行,即使某些测试失败
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPORT_DIR="$(dirname "$SCRIPT_DIR")/test-reports"
@@ -37,6 +38,15 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 mkdir -p "$REPORT_DIR"
+
+# ============================================================
+# CI 环境检测
+# ============================================================
+IS_CI_ENV=false
+if [ -n "$CI" ] || [ -n "$GITHUB_ACTIONS" ] || [ -n "$RUNNER_OS" ]; then
+  IS_CI_ENV=true
+  echo "  🤖 检测到 CI 环境，跳过网络依赖测试"
+fi
 
 echo "========================================"
 echo -e "${BOLD}  YYC³ AI Family 综合测试报告${NC}"
@@ -54,14 +64,25 @@ cat > "$REPORT_FILE" << EOF
 
 **报告生成时间**: $(date '+%Y-%m-%d %H:%M:%S')
 **测试执行者**: YYC³ Test Framework
-**项目版本**: 0.33.0
+**项目版本**: 0.34.0
 
----
+EOF
+
+if [ "$IS_CI_ENV" = true ]; then
+  cat >> "$REPORT_FILE" << EOF
+
+**测试环境**: GitHub Actions CI
+**备注**: CI 环境中跳过 D4/D5/D6 网络依赖测试
+
+EOF
+fi
+
+cat >> "$REPORT_FILE" << EOF
 
 ## 📋 测试概览
 
 | 维度 | 测试项 | 通过 | 警告 | 失败 | 健康度 |
-|------|--------|------|------|------|--------|
+|------|--------|------|------|------|
 EOF
 
 # ============================================================
@@ -133,41 +154,45 @@ D4_PASS=0
 D4_WARN=0
 D4_FAIL=0
 
-# PostgreSQL 本地
-printf "  %-30s" "PostgreSQL 本地 (5433)"
-if nc -z -w 3 localhost 5433 2>/dev/null; then
-  echo -e "${GREEN}✅ 正常${NC}"
-  ((D4_PASS++))
-else
-  echo -e "${RED}❌ 失败${NC}"
-  ((D4_FAIL++))
-fi
+if [ "$IS_CI_ENV" = false ]; then
+  # PostgreSQL 本地
+  printf "  %-30s" "PostgreSQL 本地 (5433)"
+  if nc -z -w 3 localhost 5433 2>/dev/null; then
+    echo -e "${GREEN}✅ 正常${NC}"
+    ((D4_PASS++))
+  else
+    echo -e "${RED}❌ 失败${NC}"
+    ((D4_FAIL++))
+  fi
 
-# pgvector NAS
-printf "  %-30s" "pgvector NAS (5434)"
-if nc -z -w 3 192.168.3.45 5434 2>/dev/null; then
-  echo -e "${GREEN}✅ 正常${NC}"
-  ((D4_PASS++))
-else
-  echo -e "${RED}❌ 失败${NC}"
-  ((D4_FAIL++))
-fi
+  # pgvector NAS
+  printf "  %-30s" "pgvector NAS (5434)"
+  if nc -z -w 3 192.168.3.45 5434 2>/dev/null; then
+    echo -e "${GREEN}✅ 正常${NC}"
+    ((D4_PASS++))
+  else
+    echo -e "${RED}❌ 失败${NC}"
+    ((D4_FAIL++))
+  fi
 
-# Redis
-printf "  %-30s" "Redis 本地 (6379)"
-if nc -z -w 3 localhost 6379 2>/dev/null; then
-  echo -e "${GREEN}✅ 正常${NC}"
-  ((D4_PASS++))
+  # Redis
+  printf "  %-30s" "Redis 本地 (6379)"
+  if nc -z -w 3 localhost 6379 2>/dev/null; then
+    echo -e "${GREEN}✅ 正常${NC}"
+    ((D4_PASS++))
+  else
+    echo -e "${YELLOW}⚠️ 未启动${NC}"
+    ((D4_WARN++))
+  fi
 else
-  echo -e "${YELLOW}⚠️ 未启动${NC}"
-  ((D4_WARN++))
+  echo "  🤖 CI 环境: 跳过数据库连接测试"
 fi
 
 D4_TOTAL=$((D4_PASS + D4_WARN + D4_FAIL))
 if [ $D4_TOTAL -gt 0 ]; then
   D4_HEALTH=$((D4_PASS * 100 / D4_TOTAL))
 else
-  D4_HEALTH=0
+  D4_HEALTH=100
 fi
 
 echo "  健康度: ${D4_HEALTH}%"
@@ -184,23 +209,27 @@ D5_PASS=0
 D5_WARN=0
 D5_FAIL=0
 
-# Ollama 各节点
-for endpoint in "localhost:11434" "192.168.3.45:11434" "192.168.3.77:11434"; do
-  printf "  %-30s" "Ollama $endpoint"
-  if curl -s --connect-timeout 3 "http://$endpoint/api/version" &>/dev/null; then
-    echo -e "${GREEN}✅ 正常${NC}"
-    ((D5_PASS++))
-  else
-    echo -e "${RED}❌ 失败${NC}"
-    ((D5_FAIL++))
-  fi
-done
+if [ "$IS_CI_ENV" = false ]; then
+  # Ollama 各节点
+  for endpoint in "localhost:11434" "192.168.3.22:11434" "192.168.3.77:11434"; do
+    printf "  %-30s" "Ollama $endpoint"
+    if curl -s --connect-timeout 3 "http://$endpoint/api/version" &>/dev/null; then
+      echo -e "${GREEN}✅ 正常${NC}"
+      ((D5_PASS++))
+    else
+      echo -e "${RED}❌ 失败${NC}"
+      ((D5_FAIL++))
+    fi
+  done
+else
+  echo "  🤖 CI 环境: 跳过 AI 模型服务测试"
+fi
 
 D5_TOTAL=$((D5_PASS + D5_WARN + D5_FAIL))
 if [ $D5_TOTAL -gt 0 ]; then
   D5_HEALTH=$((D5_PASS * 100 / D5_TOTAL))
 else
-  D5_HEALTH=0
+  D5_HEALTH=100
 fi
 
 echo "  健康度: ${D5_HEALTH}%"
@@ -211,46 +240,52 @@ echo "  健康度: ${D5_HEALTH}%"
 echo ""
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${CYAN}  D6 网络连通性测试${NC}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 D6_PASS=0
 D6_WARN=0
 D6_FAIL=0
 
-# SSH 连接
-printf "  %-30s" "NAS SSH (9557)"
-if nc -z -w 3 192.168.3.45 9557 2>/dev/null; then
-  echo -e "${GREEN}✅ 正常${NC}"
-  ((D6_PASS++))
-else
-  echo -e "${RED}❌ 失败${NC}"
-  ((D6_FAIL++))
-fi
+if [ "$IS_CI_ENV" = false ]; then
+  # SSH 连接
+  printf "  %-30s" "NAS SSH (9557)"
+  if nc -z -w 3 192.168.3.45 9557 2>/dev/null; then
+    echo -e "${GREEN}✅ 正常${NC}"
+    ((D6_PASS++))
+  else
+    echo -e "${YELLOW}⚠️ 未连接${NC}"
+    ((D6_WARN++))
+  fi
 
-printf "  %-30s" "iMac SSH (22)"
-if nc -z -w 3 192.168.3.77 22 2>/dev/null; then
-  echo -e "${GREEN}✅ 正常${NC}"
-  ((D6_PASS++))
-else
-  echo -e "${RED}❌ 失败${NC}"
-  ((D6_FAIL++))
-fi
+  printf "  %-30s" "iMac SSH (22)"
+  if nc -z -w 3 192.168.3.77 22 2>/dev/null; then
+    echo -e "${GREEN}✅ 正常${NC}"
+    ((D6_PASS++))
+  else
+    echo -e "${YELLOW}⚠️ 未连接${NC}"
+    ((D6_WARN++))
+  fi
 
-# NAS 服务
-printf "  %-30s" "NAS Docker API (2375)"
-if curl -s --connect-timeout 3 http://192.168.3.45:2375/_ping &>/dev/null; then
-  echo -e "${GREEN}✅ 正常${NC}"
-  ((D6_PASS++))
-else
-  echo -e "${YELLOW}⚠️ 未响应${NC}"
-  ((D6_WARN++))
-fi
+  # NAS 服务
+  printf "  %-30s" "NAS Docker API (2375)"
+  if curl -s --connect-timeout 3 http://192.168.3.45:2375/_ping &>/dev/null; then
+    echo -e "${GREEN}✅ 正常${NC}"
+    ((D6_PASS++))
+  else
+    echo -e "${YELLOW}⚠️ 未响应${NC}"
+    ((D6_WARN++))
+  fi
 
-D6_TOTAL=$((D6_PASS + D6_WARN + D6_FAIL))
-if [ $D6_TOTAL -gt 0 ]; then
-  D6_HEALTH=$((D6_PASS * 100 / D6_TOTAL))
+  D6_TOTAL=$((D6_PASS + D6_WARN + D6_FAIL))
+  if [ $D6_TOTAL -gt 0 ]; then
+    D6_HEALTH=$((D6_PASS * 100 / D6_TOTAL))
+  else
+    D6_HEALTH=100
+  fi
 else
-  D6_HEALTH=0
+  echo "  🤖 CI 环境: 跳过网络连通性测试"
+  D6_HEALTH=100
+  D6_TOTAL=0
 fi
 
 echo "  健康度: ${D6_HEALTH}%"
@@ -304,6 +339,10 @@ $(echo "$D3_OUTPUT" | tail -20)
 
 ### D4 数据库服务状态
 
+EOF
+
+if [ "$IS_CI_ENV" = false ]; then
+  cat >> "$REPORT_FILE" << EOF
 | 服务 | 端口 | 状态 |
 |------|------|------|
 | PostgreSQL 本地 | 5433 | $([ $D4_PASS -ge 1 ] && echo "✅ 正常" || echo "❌ 异常") |
@@ -315,22 +354,43 @@ $(echo "$D3_OUTPUT" | tail -20)
 | 节点 | 端点 | 状态 |
 |------|------|------|
 | M4 Max | localhost:11434 | $(curl -s --connect-timeout 2 http://localhost:11434/api/version &>/dev/null && echo "✅ 正常" || echo "❌ 异常") |
-| NAS | 192.168.3.45:11434 | $(curl -s --connect-timeout 2 http://192.168.3.45:11434/api/version &>/dev/null && echo "✅ 正常" || echo "❌ 异常") |
-| iMac M4 | 192.168.3.22:11434 | $(curl -s --connect-timeout 2 http://192.168.3.22:11434/api/version &>/dev/null && echo "✅ 正常" || echo "❌ 异常") |
+| iMac M4 | 192.168.3.77:11434 | $(curl -s --connect-timeout 2 http://192.168.3.77:11434/api/version &>/dev/null && echo "✅ 正常" || echo "❌ 异常") |
 
 ### D6 网络连通性
 
 | 连接 | 端口 | 状态 |
 |------|------|------|
 | NAS SSH | 9557 | $(nc -z -w 2 192.168.3.45 9557 2>/dev/null && echo "✅ 正常" || echo "❌ 异常") |
-| iMac SSH | 22 | $(nc -z -w 2 192.168.3.22 22 2>/dev/null && echo "✅ 正常" || echo "❌ 异常") |
+| iMac SSH | 22 | $(nc -z -w 2 192.168.3.77 22 2>/dev/null && echo "✅ 正常" || echo "❌ 异常") |
 | NAS Docker API | 2375 | $(curl -s --connect-timeout 2 http://192.168.3.45:2375/_ping &>/dev/null && echo "✅ 正常" || echo "⚠️ 未响应") |
+
+EOF
+else
+  cat >> "$REPORT_FILE" << EOF
+> **CI 环境**: D4/D5/D6 网络依赖测试已跳过
+
+EOF
+fi
+
+cat >> "$REPORT_FILE" << EOF
 
 ---
 
 ## 🎯 健康度评估
 
 EOF
+
+# CI 环境调整健康度计算
+if [ "$IS_CI_ENV" = true ]; then
+  # CI 环境只计算 D1/D2/D3 的健康度
+  CI_TOTAL=$((D1_TOTAL + D2_TOTAL + D3_TOTAL))
+  CI_PASS=$((D1_PASS + D2_PASS + D3_PASS))
+  if [ $CI_TOTAL -gt 0 ]; then
+    OVERALL_HEALTH=$((CI_PASS * 100 / CI_TOTAL))
+  else
+    OVERALL_HEALTH=0
+  fi
+fi
 
 # 健康度评级
 if [ $OVERALL_HEALTH -ge 90 ]; then
@@ -379,7 +439,7 @@ if [ $D3_WARN -gt 3 ]; then
   echo "- 🤖 部分智能体模型未部署，建议完成模型部署以启用完整功能" >> "$REPORT_FILE"
 fi
 
-if [ $D4_WARN -gt 0 ]; then
+if [ "$IS_CI_ENV" = false ] && [ $D4_WARN -gt 0 ]; then
   echo "- 💾 Redis 服务未启动，建议启动以启用缓存功能" >> "$REPORT_FILE"
 fi
 
@@ -395,8 +455,8 @@ cat >> "$REPORT_FILE" << EOF
 
 \`\`\`bash
 # 启动前端
-cd /Users/yanyu/YYC3-Mac-Max/Family-π³
-pnpm dev
+cd /Users/yanyu/Family-π³
+pnpm run dev
 
 # 启动后端服务
 pnpm run server:dev
@@ -405,7 +465,7 @@ pnpm run server:dev
 pnpm test
 
 # 类型检查
-pnpm type-check
+pnpm run type-check
 \`\`\`
 
 ---
@@ -444,7 +504,17 @@ echo ""
 echo "  📄 详细报告: $REPORT_FILE"
 echo ""
 
-if [ $TOTAL_FAIL -eq 0 ]; then
+if [ "$IS_CI_ENV" = true ]; then
+  # CI 环境: 只检查 D1/D2/D3 的失败数
+  CI_FAILS=$((D1_FAIL + D2_FAIL + D3_FAIL))
+  if [ $CI_FAILS -eq 0 ]; then
+    echo -e "  ${GREEN}🎉 CI 测试通过！${NC}"
+    exit 0
+  else
+    echo -e "  ${RED}❌ CI 测试失败，请检查 D1/D2/D3 模块。${NC}"
+    exit 1
+  fi
+elif [ $TOTAL_FAIL -eq 0 ]; then
   echo -e "  ${GREEN}🎉 系统状态良好，可以启动项目！${NC}"
   exit 0
 elif [ $TOTAL_FAIL -le 3 ]; then

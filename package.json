@@ -32,7 +32,8 @@
     "stop:all": "bash scripts/integrated-deploy.sh stop",
     "status": "bash scripts/integrated-deploy.sh status",
     "health": "bash scripts/integrated-deploy.sh health",
-    "build": "vite build",
+    "build": "pnpm run build:sdk && vite build",
+    "build:sdk": "cd packages/bigmodel-sdk && pnpm run build",
     "build:staging": "vite build --mode staging",
     "build:testing": "vite build --mode testing",
     "preview": "vite preview --port 3135",
@@ -49,6 +50,7 @@
     "ci": "pnpm run lint && pnpm run type-check && pnpm test"
   },
   "dependencies": {
+    "@yyc3/bigmodel-sdk": "workspace:*",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@mui/icons-material": "7.3.5",

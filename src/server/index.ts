@@ -38,7 +38,7 @@ dotenv.config();
 // === PostgreSQL Connection Pool ===
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
+  port: parseInt(process.env.DB_PORT || '5433'),
   database: process.env.DB_NAME || 'yyc3_devops',
   user: process.env.DB_USER || 'yyc3_admin',
   password: process.env.DB_PASSWORD || '',
@@ -117,7 +117,7 @@ server.listen(PORT, () => {
 ║══════════════════════════════════════════════════║
 ║  HTTP:  http://localhost:${PORT}/api/v1            ║
 ║  WS:    ws://localhost:${PORT}/ws                  ║
-║  DB:    PostgreSQL @ ${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '5432'}           ║
+║  DB:    PostgreSQL @ ${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '5433'}           ║
 ╚══════════════════════════════════════════════════╝
   `);
 });
