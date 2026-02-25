@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# @file db-sync-verify.sh
+# @description YYC³ AI-Family 数据库同步验证脚本，验证数据完整性和索引状态
+# @author YYC³ Team
+# @version 1.0.0
+# @created 2026-02-25
+# @tags [database],[verify],[integrity]
+
 echo "🧪 开始数据库同步验证..."
 
 # 1. 运行单元测试
@@ -27,7 +34,20 @@ DB_HOST=${DB_HOST:-localhost}
 DB_PORT=${DB_PORT:-5433}
 DB_NAME=${DB_NAME:-yyc3_aify}
 DB_USER=${DB_USER:-yyc3_dev}
-DB_PASSWORD=${DB_PASSWORD:-yyc3_dev}
+
+if [ -z "$DB_PASSWORD" ]; then
+  echo "❌ Error: DB_PASSWORD environment variable is required"
+  exit 1
+fi
+
+# 验证表名只包含字母和下划线
+TABLES=("users" "agents" "conversations" "messages" "provider_configs" "settings")
+for table in "${TABLES[@]}"; do
+  if [[ ! $table =~ ^[a-z_]+$ ]]; then
+    echo "❌ Invalid table name: $table"
+    exit 1
+  fi
+done
 
 PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "
   SELECT

@@ -1,4 +1,12 @@
 #!/bin/bash
+
+# @file test-modules.sh
+# @description YYC³ AI-Family 功能模块测试脚本，测试各功能模块的运行状态和连接性
+# @author YYC³ Team
+# @version 1.0.0
+# @created 2026-02-25
+# @tags [testing],[modules],[connectivity]
+
 # ============================================================
 # YYC³ AI Family - 功能模块测试脚本
 # 文件: /Users/yanyu/YYC3-Mac-Max/Family-π³/scripts/test-modules.sh

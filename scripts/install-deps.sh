@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+
+# @file install-deps.sh
+# @description YYC³ AI-Family 依赖安装脚本，支持标准安装、本地补丁和CI模式
+# @author YYC³ Team
+# @version 1.0.0
+# @created 2026-02-25
+# @tags [dependencies],[installation],[bootstrap]
+
 # ============================================================
 # YYC3 Hacker Chatbot — Dependency Installation Script
 # Phase 33: Standalone dependency bootstrap

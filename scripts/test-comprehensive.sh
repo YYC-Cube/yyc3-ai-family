@@ -1,4 +1,12 @@
 #!/bin/bash
+
+# @file test-comprehensive.sh
+# @description YYC³ AI-Family 综合测试报告工具，执行全量测试并生成综合报告
+# @author YYC³ Team
+# @version 1.0.0
+# @created 2026-02-25
+# @tags [testing],[comprehensive],[reporting]
+
 # ============================================================
 # YYC³ AI Family - 综合测试报告工具
 # 文件: /Users/yanyu/YYC3-Mac-Max/Family-π³/scripts/test-comprehensive.sh

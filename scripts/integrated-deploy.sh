@@ -1,4 +1,12 @@
 #!/bin/bash
+
+# @file integrated-deploy.sh
+# @description YYC³ AI-Family 一键集成部署脚本，全栈部署+模型配置+授权验证+健康检查
+# @author YYC³ Team
+# @version 1.0.0
+# @created 2026-02-25
+# @tags [deployment],[full-stack],[automation]
+
 # ============================================================
 # YYC³ AI Family — 一键集成部署脚本
 #

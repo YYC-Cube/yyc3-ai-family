@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# @file deploy-nas-services.sh
+# @description YYC³ AI-Family NAS服务一键部署脚本，L01基础设施层真实连接验证
+# @author YYC³ Team
+# @version 1.0.0
+# @created 2026-02-25
+# @tags [deployment],[nas],[infrastructure]
+
 # ============================================================
 # YYC3 AI Family — NAS 服务一键部署脚本
 # Phase 52: L01 基础设施层真实连接验证

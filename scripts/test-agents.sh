@@ -1,4 +1,12 @@
 #!/bin/bash
+
+# @file test-agents.sh
+# @description YYC³ AI-Family 七大智能体集成测试脚本，测试七大智能体的模型连接和推理能力
+# @author YYC³ Team
+# @version 1.0.0
+# @created 2026-02-25
+# @tags [testing],[agents],[ai]
+
 # ============================================================
 # YYC³ AI Family - 七大智能体集成测试
 # 文件: /Users/yanyu/YYC3-Mac-Max/Family-π³/scripts/test-agents.sh

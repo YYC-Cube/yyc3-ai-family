@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# @file deploy-backend-api.sh
+# @description YYC³ AI-Family 本地后端API部署脚本，L01基础设施层真实连接验证
+# @author YYC³ Team
+# @version 1.0.0
+# @created 2026-02-25
+# @tags [deployment],[backend],[api]
+
 # ============================================================
 # YYC3 AI Family — 本地后端 API 部署脚本
 # Phase 52: L01 基础设施层真实连接验证

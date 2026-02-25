@@ -1,4 +1,12 @@
 #!/bin/bash
+
+# @file deploy-authorized-models.sh
+# @description YYC³ AI-Family 持证模型部署封装脚本，支持智谱授权模型部署
+# @author YYC³ Team
+# @version 1.0.0
+# @created 2026-02-25
+# @tags [deployment],[models],[authorization]
+
 # ============================================================
 # YYC³ 持证模型部署封装脚本
 # 
