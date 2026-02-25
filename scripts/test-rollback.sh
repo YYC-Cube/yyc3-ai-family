@@ -212,8 +212,9 @@ echo "----------------------------------------"
 verify_rollback() {
   local db_name=$1
 
-  # 检查用户数量
-  local user_count=$(grep -c "INSERT INTO users" "$TEST_DIR/$db_name/users.sql" || echo 0)
+  # 检查用户数量 - 统计 VALUES 中的记录数，而不是 INSERT 语句行数
+  # 匹配格式: ('username', 'email@domain')
+  local user_count=$(grep -oE "\('[^']+', '[^']+'\)" "$TEST_DIR/$db_name/users.sql" 2>/dev/null | wc -l | tr -d ' ')
 
   if [ "$user_count" -eq 3 ]; then
     echo -e "${GREEN}✅ 回滚验证通过${NC}"
