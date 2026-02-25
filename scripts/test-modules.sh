@@ -115,7 +115,7 @@ test_service "Redis 本地 (6379)" "nc -z -w 3 localhost 6379" "warning"
 ((TOTAL++))
 printf "  %-40s" "PostgreSQL 连接测试"
 if command -v psql &>/dev/null; then
-  if psql -h localhost -p 5433 -U yyc3 -d yyc3_aify -c "SELECT 1" &>/dev/null; then
+  if PGPASSWORD=yyc3_admin_password psql -h localhost -p 5433 -U yyc3_admin -d yyc3_devops -c "SELECT 1" &>/dev/null; then
     echo -e "${GREEN}✅ 连接成功${NC}"
     ((PASS++))
   else
