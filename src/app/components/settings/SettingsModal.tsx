@@ -1,37 +1,3 @@
-import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
-import { ScrollArea } from '@/app/components/ui/scroll-area';
-import { Slider } from '@/app/components/ui/slider';
-import { Switch } from '@/app/components/ui/switch';
-import {
-  AGENT_COLOR_PRESETS,
-  DEFAULT_BRANDING,
-  getMergedAgents,
-  loadAgentCustomConfig,
-  loadBranding,
-  saveAgentCustomConfig,
-  saveBranding,
-  type AgentCustomConfig,
-  type AgentOverride,
-  type BrandingConfig,
-  type CustomAgent,
-} from '@/lib/branding-config';
-import { useTranslation } from '@/lib/i18n';
-import { saveProviderConfigs, type ProviderConfig } from '@/lib/llm-bridge';
-import { PROVIDERS } from '@/lib/llm-providers';
-import { useSystemStore } from '@/lib/store';
-import { AGENT_REGISTRY } from '@/lib/types';
-import { cn } from '@/lib/utils';
-import {
-  ZHIPU_API_ENDPOINT,
-  ZHIPU_AUTHORIZATION,
-  ZHIPU_CODING_ENDPOINT,
-  ZHIPU_MODELS,
-  getZhipuAuthorizedModels,
-  getZhipuFreeModels,
-  getZhipuProviderSummary,
-  type ZhipuModelMeta,
-} from '@/lib/zhipu-provider';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
   ArrowLeft,
@@ -78,6 +44,41 @@ import {
   Zap,
 } from 'lucide-react';
 import * as React from 'react';
+
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { Slider } from '@/app/components/ui/slider';
+import { Switch } from '@/app/components/ui/switch';
+import {
+  AGENT_COLOR_PRESETS,
+  DEFAULT_BRANDING,
+  getMergedAgents,
+  loadAgentCustomConfig,
+  loadBranding,
+  saveAgentCustomConfig,
+  saveBranding,
+  type AgentCustomConfig,
+  type AgentOverride,
+  type BrandingConfig,
+  type CustomAgent,
+} from '@/lib/branding-config';
+import { useTranslation } from '@/lib/i18n';
+import { saveProviderConfigs, type ProviderConfig } from '@/lib/llm-bridge';
+import { PROVIDERS } from '@/lib/llm-providers';
+import { useSystemStore } from '@/lib/store';
+import { AGENT_REGISTRY } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import {
+  ZHIPU_API_ENDPOINT,
+  ZHIPU_AUTHORIZATION,
+  ZHIPU_CODING_ENDPOINT,
+  ZHIPU_MODELS,
+  getZhipuAuthorizedModels,
+  getZhipuFreeModels,
+  getZhipuProviderSummary,
+  type ZhipuModelMeta,
+} from '@/lib/zhipu-provider';
 import './SettingsModal.css';
 
 interface SettingsModalProps {
@@ -94,6 +95,7 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
   const [mobileShowContent, setMobileShowContent] = React.useState(false);
   const [brandingLabel, setBrandingLabel] = React.useState(() => {
     const b = loadBranding();
+
     return `${b.appName || 'YYC3'} Kernel v${b.version || '3.0.1'}`;
   });
 
@@ -106,23 +108,29 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
 
   React.useEffect(() => {
     const sentinel = topSentinelRef.current;
+
     if (!sentinel) return;
     const observer = new IntersectionObserver(
       ([entry]) => setShowScrollTop(!entry.isIntersecting),
       { threshold: 0 },
     );
+
     observer.observe(sentinel);
+
     return () => observer.disconnect();
   }, [activeTab, mobileShowContent]);
 
   React.useEffect(() => {
     const sentinel = bottomSentinelRef.current;
+
     if (!sentinel) return;
     const observer = new IntersectionObserver(
       ([entry]) => setShowScrollBottom(!entry.isIntersecting),
       { threshold: 0 },
     );
+
     observer.observe(sentinel);
+
     return () => observer.disconnect();
   }, [activeTab, mobileShowContent]);
 
@@ -136,8 +144,10 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
 
   const scrollByPage = React.useCallback((direction: 'up' | 'down') => {
     const container = scrollContainerRef.current;
+
     if (!container) return;
     const pageHeight = container.clientHeight * 0.8;
+
     container.scrollBy({
       top: direction === 'down' ? pageHeight : -pageHeight,
       behavior: 'smooth',
@@ -160,9 +170,12 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
   React.useEffect(() => {
     const handler = () => {
       const b = loadBranding();
+
       setBrandingLabel(`${b.appName || 'YYC3'} Kernel v${b.version || '3.0.1'}`);
     };
+
     window.addEventListener('yyc3-branding-update', handler);
+
     return () => window.removeEventListener('yyc3-branding-update', handler);
   }, []);
 
@@ -467,10 +480,13 @@ function GeneralSettings({ language, setLanguage, t, onSwitchTab }: GeneralSetti
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (!file || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
+
     reader.onload = ev => {
       const dataUrl = ev.target?.result as string;
+
       setBranding(prev => ({ ...prev, logoDataUrl: dataUrl, logoFileName: file.name }));
     };
     reader.readAsDataURL(file);
@@ -787,10 +803,12 @@ const DEFAULT_MODELS: ModelConfig[] = [
 function loadModels(): ModelConfig[] {
   try {
     const raw = localStorage.getItem(MODELS_STORAGE_KEY);
+
     if (raw) return JSON.parse(raw);
   } catch {
     /* ignore */
   }
+
   return DEFAULT_MODELS;
 }
 
@@ -825,15 +843,16 @@ function ModelsSettings({ t }: TranslationProps) {
 
     // Map model configs to provider configs for the LLM Bridge
     const providerMap: Record<string, ProviderConfig> = {};
+
     for (const model of models) {
       // Try to match to a known provider
       const providerLower = model.provider.toLowerCase();
       let providerId = '';
 
       if (providerLower.includes('anthropic') || providerLower.includes('claude'))
-        providerId = 'anthropic';
+      {providerId = 'anthropic';}
       else if (providerLower.includes('openai') || providerLower.includes('gpt'))
-        providerId = 'openai';
+      {providerId = 'openai';}
       else if (providerLower.includes('deepseek')) providerId = 'deepseek';
       else if (
         providerLower.includes('zhipu') ||
@@ -841,9 +860,9 @@ function ModelsSettings({ t }: TranslationProps) {
         providerLower.includes('glm') ||
         providerLower.includes('z.ai')
       )
-        providerId = 'zhipu';
+      {providerId = 'zhipu';}
       else if (providerLower.includes('google') || providerLower.includes('gemini'))
-        providerId = 'google';
+      {providerId = 'google';}
       else if (providerLower.includes('groq')) providerId = 'groq';
       else if (providerLower.includes('ollama')) providerId = 'ollama';
       else if (providerLower.includes('lm studio')) providerId = 'lmstudio';
@@ -897,6 +916,7 @@ function ModelsSettings({ t }: TranslationProps) {
   const handleAddModel = () => {
     if (!newModel.name.trim()) return;
     const id = `custom-${Date.now()}`;
+
     setModels(prev => [
       ...prev,
       {
@@ -1522,10 +1542,12 @@ const DEFAULT_PLUGINS: PluginConfig[] = [
 function loadPlugins(): PluginConfig[] {
   try {
     const raw = localStorage.getItem(PLUGINS_STORAGE_KEY);
+
     if (raw) return JSON.parse(raw);
   } catch {
     /* ignore */
   }
+
   return DEFAULT_PLUGINS;
 }
 
@@ -1878,10 +1900,12 @@ const DEFAULT_APPEARANCE: AppearanceConfig = {
 function loadAppearance(): AppearanceConfig {
   try {
     const raw = localStorage.getItem(APPEARANCE_STORAGE_KEY);
+
     if (raw) return { ...DEFAULT_APPEARANCE, ...JSON.parse(raw) };
   } catch {
     /* ignore */
   }
+
   return DEFAULT_APPEARANCE;
 }
 
@@ -1896,6 +1920,7 @@ function saveAppearance(config: AppearanceConfig) {
       localStorage.removeItem(BG_IMAGE_STORAGE_KEY);
     }
     const toSave = { ...config, bgImageDataUrl: config.bgImageDataUrl ? '__stored__' : '' };
+
     localStorage.setItem(APPEARANCE_STORAGE_KEY, JSON.stringify(toSave));
   } catch {
     /* ignore - may exceed quota for large images */
@@ -1904,6 +1929,7 @@ function saveAppearance(config: AppearanceConfig) {
 
 function loadAppearanceFull(): AppearanceConfig {
   const base = loadAppearance();
+
   if (base.bgImageDataUrl === '__stored__') {
     try {
       base.bgImageDataUrl = localStorage.getItem(BG_IMAGE_STORAGE_KEY) || '';
@@ -1911,6 +1937,7 @@ function loadAppearanceFull(): AppearanceConfig {
       base.bgImageDataUrl = '';
     }
   }
+
   return base;
 }
 
@@ -1980,9 +2007,12 @@ function AppearanceSettings({ t }: TranslationProps) {
   const [brandingSnapshot, setBrandingSnapshot] = React.useState<BrandingConfig>(() =>
     loadBranding(),
   );
+
   React.useEffect(() => {
     const handler = () => setBrandingSnapshot(loadBranding());
+
     window.addEventListener('yyc3-branding-update', handler);
+
     return () => window.removeEventListener('yyc3-branding-update', handler);
   }, []);
   const [localFonts, setLocalFonts] = React.useState<string[]>([]);
@@ -1999,10 +2029,12 @@ function AppearanceSettings({ t }: TranslationProps) {
       if ('queryLocalFonts' in window) {
         const fonts: FontData[] = await window.queryLocalFonts();
         const familySet = new Set<string>();
+
         for (const font of fonts) {
           familySet.add(font.family);
         }
         const sorted = Array.from(familySet).sort((a, b) => a.localeCompare(b));
+
         setLocalFonts(sorted);
       }
     } catch {
@@ -2015,11 +2047,13 @@ function AppearanceSettings({ t }: TranslationProps) {
   React.useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (fontDropdownRef.current && !fontDropdownRef.current.contains(e.target as Node))
-        setShowFontDropdown(false);
+      {setShowFontDropdown(false);}
       if (monoDropdownRef.current && !monoDropdownRef.current.contains(e.target as Node))
-        setShowMonoDropdown(false);
+      {setShowMonoDropdown(false);}
     };
+
     document.addEventListener('mousedown', handler);
+
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
@@ -2027,6 +2061,7 @@ function AppearanceSettings({ t }: TranslationProps) {
   React.useEffect(() => {
     saveAppearance(config);
     const root = document.documentElement;
+
     root.style.setProperty('--primary', config.accentColor);
     root.style.setProperty('--ring', config.accentColor);
     root.style.setProperty('--accent-foreground', config.accentColor);
@@ -2059,12 +2094,15 @@ function AppearanceSettings({ t }: TranslationProps) {
 
     // Scanline
     const scanlineEl = document.querySelector('.scanline') as HTMLElement | null;
+
     if (scanlineEl) scanlineEl.style.display = config.scanline ? '' : 'none';
 
     // Glow
     const existingStyle = document.getElementById('yyc3-glow-style');
+
     if (existingStyle) existingStyle.remove();
     const style = document.createElement('style');
+
     style.id = 'yyc3-glow-style';
     style.textContent = `.glow-text { text-shadow: ${config.glowEffect ? `0 0 10px ${config.glowColor}80, 0 0 20px ${config.glowColor}50` : 'none'}; }`;
     document.head.appendChild(style);
@@ -2081,11 +2119,14 @@ function AppearanceSettings({ t }: TranslationProps) {
   // Background image upload
   const handleBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (!file) return;
     if (!file.type.startsWith('image/')) return;
     const reader = new FileReader();
+
     reader.onload = ev => {
       const dataUrl = ev.target?.result as string;
+
       setConfig(prev => ({ ...prev, bgImageDataUrl: dataUrl, bgImageName: file.name }));
     };
     reader.readAsDataURL(file);
@@ -2095,6 +2136,7 @@ function AppearanceSettings({ t }: TranslationProps) {
   // Build font list (merged local + popular)
   const allFonts = React.useMemo(() => {
     const set = new Set([...POPULAR_FONTS, ...localFonts]);
+
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [localFonts]);
 
@@ -2103,6 +2145,7 @@ function AppearanceSettings({ t }: TranslationProps) {
       /mono|code|consol|courier|hack|fira|jetbrain|terminal|fixed|nerd/i.test(f),
     );
     const set = new Set([...POPULAR_MONO_FONTS, ...monoFromLocal]);
+
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [localFonts]);
 
@@ -2907,6 +2950,7 @@ function AppearanceSettings({ t }: TranslationProps) {
             setConfig(DEFAULT_APPEARANCE);
             localStorage.removeItem(BG_IMAGE_STORAGE_KEY);
             const root = document.documentElement;
+
             root.style.setProperty('--primary', DEFAULT_APPEARANCE.accentColor);
             root.style.setProperty('--ring', DEFAULT_APPEARANCE.accentColor);
             root.style.setProperty('--accent-foreground', DEFAULT_APPEARANCE.accentColor);
@@ -2929,10 +2973,12 @@ const AGENT_STATUS_STORAGE_KEY = 'yyc3-agent-status';
 function loadAgentStatus(): Record<string, boolean> {
   try {
     const raw = localStorage.getItem(AGENT_STATUS_STORAGE_KEY);
+
     if (raw) return JSON.parse(raw);
   } catch {
     /* ignore */
   }
+
   return Object.fromEntries(AGENT_REGISTRY.map(a => [a.id, true]));
 }
 
@@ -3014,8 +3060,10 @@ function AgentsSettings({ t }: TranslationProps) {
     } else {
       // Save as override for built-in agent
       const builtIn = AGENT_REGISTRY.find(a => a.id === agentId);
+
       if (!builtIn) return;
       const override: AgentOverride = {};
+
       if (editForm.name !== builtIn.name) override.name = editForm.name;
       if (editForm.nameEn !== builtIn.nameEn) override.nameEn = editForm.nameEn;
       if (editForm.role !== builtIn.role) override.role = editForm.role;
@@ -3038,7 +3086,9 @@ function AgentsSettings({ t }: TranslationProps) {
   const resetBuiltinAgent = (agentId: string) => {
     setCustomConfig(prev => {
       const newOverrides = { ...prev.overrides };
+
       delete newOverrides[agentId];
+
       return { ...prev, overrides: newOverrides };
     });
     setEditingId(null);
@@ -3050,6 +3100,7 @@ function AgentsSettings({ t }: TranslationProps) {
       customAgents: prev.customAgents.filter(ca => ca.id !== agentId),
     }));
     const newStatus = { ...agentStatus };
+
     delete newStatus[agentId];
     setAgentStatus(newStatus);
   };
@@ -3071,6 +3122,7 @@ function AgentsSettings({ t }: TranslationProps) {
       borderColor: preset.border,
       enabled: true,
     };
+
     setCustomConfig(prev => ({ ...prev, customAgents: [...prev.customAgents, ca] }));
     setAgentStatus(prev => ({ ...prev, [id]: true }));
     setNewAgent({ name: '', nameEn: '', role: '', desc: '', descEn: '', colorIdx: 0 });
@@ -3455,6 +3507,7 @@ function AgentsSettings({ t }: TranslationProps) {
           className="flex-1 h-8 text-xs font-mono gap-1.5"
           onClick={() => {
             const all: Record<string, boolean> = {};
+
             mergedAgents.forEach(a => {
               all[a.id] = true;
             });
@@ -3470,6 +3523,7 @@ function AgentsSettings({ t }: TranslationProps) {
           className="flex-1 h-8 text-xs font-mono gap-1.5 text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
           onClick={() => {
             const all: Record<string, boolean> = {};
+
             mergedAgents.forEach(a => {
               all[a.id] = false;
             });

@@ -157,7 +157,8 @@ export function AgentOrchestrator() {
 
     try {
       const executeFn = execMode === 'real-llm' ? executeRealCollaboration : simulateCollaboration;
-      const completed = await executeFn(task, {
+
+      await executeFn(task, {
         onTimelineEvent: event => {
           setLiveTimeline(prev => [...prev, event]);
         },
@@ -170,7 +171,7 @@ export function AgentOrchestrator() {
         onStatusChange: status => {
           setActiveTask(prev => prev ? { ...prev, status } : null);
         },
-        onToolConfirmation: async (toolName, args, agentId) => {
+        onToolConfirmation: async (_toolName, _args, _agentId) => {
           return true;
         },
         onComplete: completedTask => {

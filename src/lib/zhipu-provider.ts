@@ -96,7 +96,7 @@ export function getZhipuProviderSummary(): {
   thinkingCapable: number;
   visionCapable: number;
   toolCapable: number;
-} {
+  } {
   return {
     totalModels: ZHIPU_MODELS.length,
     authorizedModels: getZhipuAuthorizedModels().length,

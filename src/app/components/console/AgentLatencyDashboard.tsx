@@ -167,15 +167,6 @@ function getLatencyColor(ms: number, node: 'M4 Max' | 'iMac M4'): string {
   return 'text-red-500';
 }
 
-function getLatencyBg(ms: number, node: 'M4 Max' | 'iMac M4'): string {
-  const thresholds = LATENCY_THRESHOLDS[node];
-
-  if (ms <= thresholds.optimal) return 'bg-green-500';
-  if (ms <= thresholds.warning) return 'bg-amber-500';
-
-  return 'bg-red-500';
-}
-
 function getStatusIcon(status: 'optimal' | 'warning' | 'critical') {
   switch (status) {
     case 'optimal':
@@ -259,7 +250,7 @@ function AgentLatencyCard({ metric }: { metric: AgentLatencyMetric }) {
 // ============================================================
 
 export function AgentLatencyDashboard() {
-  const [metrics, setMetrics] = React.useState<AgentLatencyMetric[]>(DEFAULT_AGENT_LATENCY);
+  const [metrics] = React.useState<AgentLatencyMetric[]>(DEFAULT_AGENT_LATENCY);
   const [sortBy, setSortBy] = React.useState<'p50' | 'p95' | 'name'>('p95');
 
   const sortedMetrics = React.useMemo(() => {

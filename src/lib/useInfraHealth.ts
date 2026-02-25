@@ -263,6 +263,7 @@ async function probeHTTP(url: string, timeoutMs = 3000): Promise<{ ok: boolean; 
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
     await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
 
     clearTimeout(timeout);

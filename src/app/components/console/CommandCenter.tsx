@@ -57,7 +57,6 @@ function StageStatusIcon({ status }: { status: StageStatus }) {
 // --- Pipeline Run Card ---
 function PipelineRunCard({ run, onCancel }: { run: PipelineRun; onCancel: (id: string) => void }) {
   const { language } = useTranslation();
-  const zh = language === 'zh';
   const elapsed = run.completedAt
     ? ((run.completedAt - run.startedAt) / 1000).toFixed(1)
     : ((Date.now() - run.startedAt) / 1000).toFixed(0);
