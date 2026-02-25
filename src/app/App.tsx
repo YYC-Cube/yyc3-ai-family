@@ -31,7 +31,6 @@ import { cn } from '@/lib/utils';
 
 // Lazy Load Components
 const ConsoleView = React.lazy(() => import('@/app/components/console/ConsoleView').then(module => ({ default: module.ConsoleView })));
-const SecurityAudit = React.lazy(() => import('@/app/components/console/SecurityAudit').then(module => ({ default: module.SecurityAudit })));
 const ServiceHealthMonitor = React.lazy(() => import('@/app/components/monitoring/ServiceHealthMonitor').then(module => ({ default: module.ServiceHealthMonitor })));
 const ProjectsView = React.lazy(() => import('@/app/components/views/ProjectsView').then(module => ({ default: module.ProjectsView })));
 const ArtifactsView = React.lazy(() => import('@/app/components/views/ArtifactsView').then(module => ({ default: module.ArtifactsView })));
@@ -197,7 +196,6 @@ function AppContent() {
   const navigateToAgent = useSystemStore(s => s.navigateToAgent);
   const navigateToConsoleTab = useSystemStore(s => s.navigateToConsoleTab);
   const addLog = useSystemStore(s => s.addLog);
-  const chatMode = useSystemStore(s => s.chatMode);
   const toggleChatMode = useSystemStore(s => s.toggleChatMode);
   const updateLastAiMessage = useSystemStore(s => s.updateLastAiMessage);
   const setProviderConfigs = useSystemStore(s => s.setProviderConfigs);
@@ -461,8 +459,8 @@ function AppContent() {
         : `\n\n**Current API key storage:** ${enabledProviders.length} active provider keys in localStorage (${ls.sizeKB} KB total)`;
 
       return zh
-        ? `## YYC3 安全审计域 (Security Domain)\n\n**实时安全评估：**\n- **风险等级：** ${riskLevel}\n- **加密状态：** 传输中加密 (TLS 1.3)\n- **凭证暴露：** 0 个泄露检测 (Local-only)\n- **Proxy 隧道：** ${proxied.length > 0 ? '已建立 (Active)' : '未建立 (Direct)'}\n\n**前端防护栈：**\n| 威胁模型 | 防护机制 | 状态 |\n|----------|----------|------|\n| 凭证劫持 | Authorization Header (SSE) | ✅ 激活 |\n| 脚本注入 | DOMPurify + React Escaping | ✅ 激活 |\n| 跨域限制 | Vite Dev Proxy (CORS Bypass) | ${proxied.length > 0 ? '✅ 激活' : '⚠️ 关闭'} |\n| 数据驻留 | 0-PII / 100% Local Storage | ✅ 激活 |\n\n**安全建议：**\n1. 请定期清理 localStorage 快照以释放冗余密钥引用。\n2. 在非信任环境下建议通过「Stream Diagnostics」测试连接后立即清除敏感配置。\n\n💡 前往 **Console → Security Audit** 查看全量审计报告。`
-        : `## YYC3 Security Audit Domain\n\n**Real-time Assessment:**\n- **Risk Level:** ${riskLevel}\n- **Encryption:** In-transit (TLS 1.3)\n- **Credential Leak:** 0 detected (Local-only)\n- **Proxy Tunnel:** ${proxied.length > 0 ? 'Active' : 'Direct'}\n\n**Frontend Defense Stack:**\n| Threat Model | Mechanism | Status |\n|--------------|-----------|--------|\n| Credential Hijack | Authorization Header (SSE) | ✅ Active |\n| XSS / Injection | DOMPurify + React Escaping | ✅ Active |\n| CORS Restrictions | Vite Dev Proxy (CORS Bypass) | ${proxied.length > 0 ? '✅ Active' : '⚠️ Disabled'} |\n| Data Residency | 0-PII / 100% Local Storage | ✅ Active |\n\n**Security Recommendations:**\n1. Periodically prune localStorage snapshots to remove redundant key references.\n2. In untrusted environments, clear sensitive configs immediately after testing in "Stream Diagnostics".\n\n💡 Go to **Console → Security Audit** to view the full audit report.`;
+        ? `## YYC3 安全审计域 (Security Domain)\n\n**实时安全评估：**\n- **风险等级：** ${riskLevel}\n- **加密状态：** 传输中加密 (TLS 1.3)\n- **凭证暴露：** 0 个泄露检测 (Local-only)\n- **Proxy 隧道：** ${proxied.length > 0 ? '已建立 (Active)' : '未建立 (Direct)'}\n\n**前端防护栈：**\n| 威胁模型 | 防护机制 | 状态 |\n|----------|----------|------|\n| 凭证劫持 | Authorization Header (SSE) | ✅ 激活 |\n| 脚本注入 | DOMPurify + React Escaping | ✅ 激活 |\n| 跨域限制 | Vite Dev Proxy (CORS Bypass) | ${proxied.length > 0 ? '✅ 激活' : '⚠️ 关闭'} |\n| 数据驻留 | 0-PII / 100% Local Storage | ✅ 激活 |\n\n**安全建议：**\n1. 请定期清理 localStorage 快照以释放冗余密钥引用。\n2. 在非信任环境下建议通过「Stream Diagnostics」测试连接后立即清除敏感配置。\n\n💡 前往 **Console → Security Audit** 查看全量审计报告。${keyStorageNote}`
+        : `## YYC3 Security Audit Domain\n\n**Real-time Assessment:**\n- **Risk Level:** ${riskLevel}\n- **Encryption:** In-transit (TLS 1.3)\n- **Credential Leak:** 0 detected (Local-only)\n- **Proxy Tunnel:** ${proxied.length > 0 ? 'Active' : 'Direct'}\n\n**Frontend Defense Stack:**\n| Threat Model | Mechanism | Status |\n|--------------|-----------|--------|\n| Credential Hijack | Authorization Header (SSE) | ✅ Active |\n| XSS / Injection | DOMPurify + React Escaping | ✅ Active |\n| CORS Restrictions | Vite Dev Proxy (CORS Bypass) | ${proxied.length > 0 ? '✅ Active' : '⚠️ Disabled'} |\n| Data Residency | 0-PII / 100% Local Storage | ✅ Active |\n\n**Security Recommendations:**\n1. Periodically prune localStorage snapshots to remove redundant key references.\n2. In untrusted environments, clear sensitive configs immediately after testing in "Stream Diagnostics".\n\n💡 Go to **Console → Security Audit** to view the full audit report.${keyStorageNote}`;
     }
 
     return null;
