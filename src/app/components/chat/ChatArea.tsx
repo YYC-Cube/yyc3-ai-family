@@ -544,7 +544,7 @@ export function ChatArea({
                 type="file"
                 multiple
                 className="hidden"
-                // @ts-ignore - webkitdirectory is not in standard types
+                // @ts-expect-error - webkitdirectory is not in standard types
                 webkitdirectory=""
                 onChange={e => { if (e.target.files) processFiles(e.target.files); e.target.value = ''; }}
               />

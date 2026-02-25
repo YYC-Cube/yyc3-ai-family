@@ -272,7 +272,9 @@ export function useMetricsSimulator(intervalMs = 2000) {
   }, [initMetrics, tick, intervalMs]);
 
   return {
-    getMetrics: () => metricsRef.current,
+    getMetrics: () => {
+      return metricsRef.current;
+    },
     getHistory: (nodeId: string, metric: string): MetricDataPoint[] => {
       return historyRef.current[nodeId]?.[metric] ?? [];
     },
