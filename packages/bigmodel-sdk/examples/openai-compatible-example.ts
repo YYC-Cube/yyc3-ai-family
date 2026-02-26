@@ -39,12 +39,14 @@ async function streamExample() {
   });
 
   console.log('流式响应：');
-  for await (const chunk of client.chatCompletionStream({
+  const stream = await client.chatCompletionStream({
     model: 'glm-4',
     messages: [
       { role: 'user', content: '请介绍一下你自己' },
     ],
-  })) {
+  });
+
+  for await (const chunk of stream) {
     if (chunk) {
       process.stdout.write(chunk);
     }

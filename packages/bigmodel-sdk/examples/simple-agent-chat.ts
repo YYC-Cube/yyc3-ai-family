@@ -26,7 +26,7 @@ async function simpleAgentChat() {
   console.log('2️⃣ 获取可用助手列表...');
   const assistants = await sdk.assistants.listAssistants();
   console.log(`📋 可用助手数量: ${assistants.length}`);
-  
+
   assistants.forEach((assistant, index) => {
     console.log(`${index + 1}. ${assistant.name} (${assistant.nameEn})`);
     console.log(`   角色: ${assistant.role}`);
@@ -35,21 +35,21 @@ async function simpleAgentChat() {
   console.log('');
 
   console.log('3️⃣ 选择工程师助手进行对话...');
-  const engineerAssistant = assistants.find(a => 
+  const engineerAssistant = assistants.find(a =>
     a.name.includes('工程师') || a.nameEn.toLowerCase().includes('engineer')
   );
 
   if (!engineerAssistant) {
     console.log('⚠️  未找到工程师助手，使用第一个可用助手');
     const firstAssistant = assistants[0];
-    
+
     if (!firstAssistant) {
       console.error('❌ 没有可用的助手');
       process.exit(1);
     }
 
     console.log(`使用助手: ${firstAssistant.name}\n`);
-    
+
     const response = await sdk.client.chat(firstAssistant.id, [
       { role: 'user', content: '你好！请简单介绍一下你自己。' }
     ]);
@@ -64,7 +64,7 @@ async function simpleAgentChat() {
 
   console.log('4️⃣ 发起对话: "请帮我设计一个用户登录系统"');
   const startTime = Date.now();
-  
+
   const response = await sdk.client.chat(engineerAssistant.id, [
     { role: 'user', content: '请帮我设计一个用户登录系统的基本架构，包括前端、后端和数据库设计。请简洁回答。' }
   ]);
@@ -106,15 +106,17 @@ async function streamChatExample() {
   console.log('='.repeat(60));
 
   const startTime = Date.now();
-  
-  for await (const chunk of sdk.client.chatStream(assistant.id, [
+
+  const stream = await sdk.client.chatStream(assistant.id, [
     { role: 'user', content: '请用200字介绍YYC³（言云立方）项目的核心理念和特点。' }
-  ])) {
+  ]);
+
+  for await (const chunk of stream) {
     process.stdout.write(chunk);
   }
 
   const elapsed = Date.now() - startTime;
-  
+
   console.log('\n' + '='.repeat(60));
   console.log(`\n⏱️  总耗时: ${elapsed}ms`);
   console.log('✅ 流式对话完成\n');

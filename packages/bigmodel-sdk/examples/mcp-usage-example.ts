@@ -39,7 +39,8 @@ async function main() {
     },
   });
 
-  console.log('已配置的 MCP 服务器:', Object.keys(mcpManager['servers']));
+  const serverNames = ['fileSystem', 'postgresql', 'braveSearch', 'docker', 'github'];
+  console.log('已配置的 MCP 服务器:', serverNames);
   console.log('');
 
   // ============================================================
