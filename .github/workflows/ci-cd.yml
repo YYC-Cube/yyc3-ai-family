@@ -256,4 +256,5 @@ jobs:
             --type deploy \
             --subject "YYC³ 部署完成" \
             --message "已成功部署到生产环境" \
-            --email admin@0379.email
+            --email admin@0379.email || echo "邮件通知跳过（未配置SMTP）"
+        continue-on-error: true
