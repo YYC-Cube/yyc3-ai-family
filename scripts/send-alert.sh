@@ -152,7 +152,7 @@ generate_email_html() {
   local icon=$(get_alert_icon "$type")
   local color=$(get_alert_color "$type")
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  
+
   cat << EOF
 <!DOCTYPE html>
 <html>
@@ -248,12 +248,12 @@ send_email() {
   local to=$1
   local subject=$2
   local html=$3
-  
+
   echo -e "${BLUE}📧 发送邮件通知...${NC}"
   echo "   收件人: $to"
   echo "   主题: $subject"
   echo ""
-  
+
   # 检查是否安装了sendmail或mail命令
   if command -v sendmail &> /dev/null; then
     echo -e "${GREEN}✅ 使用sendmail发送${NC}"
@@ -274,11 +274,11 @@ send_email() {
     # 使用curl发送邮件（需要SMTP配置）
     if [ -n "$SMTP_PASSWORD" ]; then
       echo -e "${GREEN}✅ 使用SMTP发送${NC}"
-      
+
       # 生成临时文件
       local temp_file=$(mktemp)
       echo "$html" > "$temp_file"
-      
+
       # 使用curl发送
       curl --url "smtp://$SMTP_SERVER:$SMTP_PORT" \
         --ssl-reqd \
@@ -287,7 +287,7 @@ send_email() {
         --upload-file "$temp_file" \
         --user "$SMTP_USER:$SMTP_PASSWORD" \
         --insecure 2>/dev/null
-      
+
       rm -f "$temp_file"
     else
       echo -e "${YELLOW}⚠️  未配置SMTP，邮件发送失败${NC}"
@@ -297,17 +297,12 @@ send_email() {
       echo "----------------------------------------"
       echo "$html"
       echo "----------------------------------------"
-      return 1
+      return 0
     fi
   fi
-  
-  if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ 邮件发送成功${NC}"
-    return 0
-  else
-    echo -e "${RED}❌ 邮件发送失败${NC}"
-    return 1
-  fi
+
+  # 邮件发送不影响主流程
+  return 0
 }
 
 # 函数：记录告警到日志
@@ -317,15 +312,15 @@ log_alert() {
   local message=$3
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
   local log_file=${ALERT_LOG_FILE:-/var/log/yyc3/alerts.log}
-  
+
   # 创建日志目录
   mkdir -p "$(dirname "$log_file")" 2>/dev/null || log_file="/tmp/yyc3-alerts.log"
-  
+
   # 记录到日志
   echo "[$timestamp] [$type] $subject" >> "$log_file"
   echo "$message" >> "$log_file"
   echo "" >> "$log_file"
-  
+
   echo -e "${BLUE}📝 告警已记录到日志${NC}"
   echo "   日志文件: $log_file"
 }
