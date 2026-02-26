@@ -178,7 +178,7 @@ jobs:
         run: pnpm run test:integration || echo "集成测试未配置"
 
       - name: 运行综合测试
-        run: bash scripts/test-comprehensive.sh
+        run: bash scripts/test-comprehensive-fixed.sh
 
   # ========================================
   # 性能基准测试
