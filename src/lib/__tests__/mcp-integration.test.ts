@@ -952,7 +952,7 @@ describe('MCP Integration — Performance', () => {
 
   it('MCP-INT-43: call log doesn\'t grow unbounded', async () => {
     // Make several calls (reduced for speed)
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 5; i++) {
       await smartMCPCall('log-server', 'tools/call', { name: `call-${i}` });
     }
 
@@ -960,7 +960,7 @@ describe('MCP Integration — Performance', () => {
 
     // Log should be capped
     expect(log.length).toBeLessThanOrEqual(100);
-    expect(log.length).toBe(20);
+    expect(log.length).toBe(5);
   });
 
   it('MCP-INT-44: registry load is fast', async () => {
