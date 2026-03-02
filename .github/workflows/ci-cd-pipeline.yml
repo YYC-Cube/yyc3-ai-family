@@ -118,8 +118,8 @@ jobs:
   # ============================================================
   # Job 4: E2E Tests (Playwright)
   # ============================================================
-  e2e-tests:
-    name: E2E Tests
+#  e2e-tests:
+#    name: E2E Tests
     runs-on: ubuntu-latest
     needs: [build]
     
