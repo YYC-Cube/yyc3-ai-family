@@ -477,13 +477,12 @@ describe('MCP Integration — Tool Execution', () => {
 
   it('MCP-INT-18: logMCPCall records call to history', async () => {
     const callResult: MCPCallResult = {
-      serverId: 'test-server',
+      success: true,
       method: 'tools/call',
-      params: { name: 'test_tool', arguments: {} },
-      result: { content: [{ type: 'text', text: 'Success' }] },
-      duration: 100,
+      serverId: 'test-server',
+      latencyMs: 100,
+      response: { jsonrpc: '2.0', id: 'test', result: { content: [{ type: 'text', text: 'Success' }] } },
       timestamp: Date.now(),
-      mode: 'mock',
     };
 
     logMCPCall(callResult);
@@ -495,13 +494,12 @@ describe('MCP Integration — Tool Execution', () => {
 
   it('MCP-INT-19: getMCPCallLog returns call history', () => {
     const callResult: MCPCallResult = {
-      serverId: 'test-server',
+      success: true,
       method: 'tools/call',
-      params: { name: 'test_tool' },
-      result: { content: [{ type: 'text', text: 'Test' }] },
-      duration: 50,
+      serverId: 'test-server',
+      latencyMs: 100,
+      response: { jsonrpc: '2.0', id: 'test', result: { content: [{ type: 'text', text: 'Success' }] } },
       timestamp: Date.now(),
-      mode: 'mock',
     };
 
     logMCPCall(callResult);
