@@ -36,7 +36,9 @@ export class HomePage {
 
   async waitForMessage(content: string) {
     const message = this.page.getByText(content);
+
     await expect(message).toBeVisible();
+
     return message;
   }
 
@@ -148,9 +150,10 @@ export class AgentChatPage {
   }
 
   async selectAgent(agentName: string) {
-    const agentButton = this.page.getByRole('button', { 
-      name: new RegExp(agentName, 'i') 
+    const agentButton = this.page.getByRole('button', {
+      name: new RegExp(agentName, 'i'),
     });
+
     await agentButton.click();
   }
 
@@ -185,6 +188,7 @@ export class ClusterMonitorPage {
 
   async getNodeStatus(nodeName: string) {
     const node = this.page.getByTestId(`node-${nodeName}`);
+
     return node;
   }
 

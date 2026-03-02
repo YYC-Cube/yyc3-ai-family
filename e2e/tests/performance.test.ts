@@ -10,12 +10,12 @@ import { test, expect } from '@playwright/test';
 // ============================================================
 
 interface WebVitalsMetrics {
-  fcp: number;  // First Contentful Paint
-  lcp: number;  // Largest Contentful Paint
-  fid: number;  // First Input Delay
-  cls: number;  // Cumulative Layout Shift
+  fcp: number; // First Contentful Paint
+  lcp: number; // Largest Contentful Paint
+  fid: number; // First Input Delay
+  cls: number; // Cumulative Layout Shift
   ttfb: number; // Time to First Byte
-  tti: number;  // Time to Interactive
+  tti: number; // Time to Interactive
 }
 
 // ============================================================
@@ -28,9 +28,10 @@ test.describe('Page Load Performance', () => {
 
     const metrics = await page.evaluate(() => {
       return new Promise<{ fcp: number }>(resolve => {
-        new PerformanceObserver((list) => {
+        new PerformanceObserver(list => {
           const entries = list.getEntries();
           const lastEntry = entries[entries.length - 1];
+
           resolve({ fcp: lastEntry.startTime });
         }).observe({ entryTypes: ['paint'] });
       });
@@ -46,9 +47,10 @@ test.describe('Page Load Performance', () => {
 
     const metrics = await page.evaluate(() => {
       return new Promise<{ lcp: number }>(resolve => {
-        new PerformanceObserver((list) => {
+        new PerformanceObserver(list => {
           const entries = list.getEntries();
           const lastEntry = entries[entries.length - 1];
+
           resolve({ lcp: lastEntry.startTime });
         }).observe({ entryTypes: ['largest-contentful-paint'] });
       });
@@ -61,15 +63,15 @@ test.describe('Page Load Performance', () => {
 
   test('should meet TTI target (<3.8s)', async ({ page }) => {
     const startTime = Date.now();
-    
+
     await page.goto('/');
-    
+
     // Wait for page to be interactive
     await page.waitForLoadState('networkidle');
     await expect(page.getByTestId('chat-area')).toBeVisible();
-    
+
     const tti = Date.now() - startTime;
-    
+
     // TTI should be under 3.8 seconds
     expect(tti).toBeLessThan(3800);
     console.log(`✅ TTI: ${tti.toFixed(0)}ms`);
@@ -110,11 +112,11 @@ test.describe('Layout Stability (CLS)', () => {
       return new Promise<{ cls: number }>(resolve => {
         let clsValue = 0;
 
-        new PerformanceObserver((list) => {
+        new PerformanceObserver(list => {
           for (const entry of list.getEntries()) {
-            // @ts-ignore - layout-shift entry
+            // @ts-expect-error - layout-shift entry
             if (!entry.hadRecentInput) {
-              // @ts-ignore
+              // @ts-expect-error
               clsValue += entry.value;
             }
           }
@@ -147,6 +149,7 @@ test.describe('Layout Stability (CLS)', () => {
 
     // Layout shift should be minimal (<5%)
     const shift = Math.abs(finalHeight - initialHeight) / initialHeight;
+
     expect(shift).toBeLessThan(0.05);
     console.log(`✅ Layout shift: ${(shift * 100).toFixed(1)}%`);
   });
@@ -167,13 +170,13 @@ test.describe('Animation Performance', () => {
       return new Promise<{ fps: number; droppedFrames: number }>(resolve => {
         let frameCount = 0;
         let droppedFrames = 0;
-        let lastTime = performance.now();
+        const lastTime = performance.now();
         let fps = 60;
 
         function measure() {
           frameCount++;
           const now = performance.now();
-          
+
           if (now - lastTime >= 1000) {
             fps = frameCount;
             // Estimate dropped frames (assuming 60fps target)
@@ -200,9 +203,9 @@ test.describe('Animation Performance', () => {
       return new Promise<{ longTasks: number; maxDuration: number }>(resolve => {
         const tasks: number[] = [];
 
-        new PerformanceObserver((list) => {
+        new PerformanceObserver(list => {
           for (const entry of list.getEntries()) {
-            // @ts-ignore - duration property
+            // @ts-expect-error - duration property
             tasks.push(entry.duration);
           }
         }).observe({ entryTypes: ['longtask'] });
@@ -231,7 +234,7 @@ test.describe('Memory Usage', () => {
     await page.goto('/');
 
     const initialMemory = await page.evaluate(() => {
-      // @ts-ignore - performance.memory is Chrome-specific
+      // @ts-expect-error - performance.memory is Chrome-specific
       return performance.memory?.usedJSHeapSize || 0;
     });
 
@@ -244,12 +247,13 @@ test.describe('Memory Usage', () => {
     }
 
     const finalMemory = await page.evaluate(() => {
-      // @ts-ignore
+      // @ts-expect-error
       return performance.memory?.usedJSHeapSize || 0;
     });
 
     // Memory increase should be less than 20%
     const increase = (finalMemory - initialMemory) / initialMemory;
+
     expect(increase).toBeLessThan(0.2);
     console.log(`✅ Memory increase: ${(increase * 100).toFixed(1)}%`);
   });
@@ -258,9 +262,9 @@ test.describe('Memory Usage', () => {
     await page.goto('/');
 
     const initialListeners = await page.evaluate(() => {
-      // @ts-ignore - getEventListeners is DevTools-specific
-      return typeof getEventListeners === 'function' 
-        ? Object.keys(getEventListeners(window)).length 
+      // @ts-expect-error - getEventListeners is DevTools-specific
+      return typeof getEventListeners === 'function'
+        ? Object.keys(getEventListeners(window)).length
         : 0;
     });
 
@@ -269,7 +273,7 @@ test.describe('Memory Usage', () => {
     await page.keyboard.press('Escape');
 
     const finalListeners = await page.evaluate(() => {
-      // @ts-ignore
+      // @ts-expect-error
       return typeof getEventListeners === 'function'
         ? Object.keys(getEventListeners(window)).length
         : 0;
@@ -277,6 +281,7 @@ test.describe('Memory Usage', () => {
 
     // Listener count should not increase significantly
     const increase = finalListeners - initialListeners;
+
     expect(increase).toBeLessThan(5);
     console.log(`✅ Event listeners increase: ${increase}`);
   });
@@ -293,6 +298,7 @@ test.describe('Bundle Size & Resource Loading', () => {
     page.on('response', response => {
       if (response.request().resourceType() === 'script') {
         const contentLength = response.headers()['content-length'];
+
         if (contentLength) {
           jsRequests.push({
             url: response.url(),
@@ -317,6 +323,7 @@ test.describe('Bundle Size & Resource Loading', () => {
     page.on('response', response => {
       if (response.request().resourceType() === 'stylesheet') {
         const contentLength = response.headers()['content-length'];
+
         if (contentLength) {
           cssRequests.push({
             url: response.url(),
@@ -356,9 +363,9 @@ test.describe('Bundle Size & Resource Loading', () => {
     page.on('response', response => {
       const contentType = response.headers()['content-type'];
       const contentEncoding = response.headers()['content-encoding'];
-      
+
       if (contentType && (
-        contentType.includes('text') || 
+        contentType.includes('text') ||
         contentType.includes('javascript') ||
         contentType.includes('json')
       )) {
@@ -385,15 +392,16 @@ test.describe('Bundle Size & Resource Loading', () => {
 test.describe('Network Performance', () => {
   test('should handle slow 3G network gracefully', async ({ page, context }) => {
     // Simulate slow 3G
-    await context.emulateMedia({ 
+    await context.emulateMedia({
       colorScheme: 'dark',
     });
-    
+
     await page.route('**/*', route => {
       setTimeout(() => route.continue(), 500); // 500ms delay
     });
 
     const startTime = Date.now();
+
     await page.goto('/');
     const loadTime = Date.now() - startTime;
 
@@ -415,6 +423,7 @@ test.describe('Network Performance', () => {
 
     page.on('response', response => {
       const timing = resourceTimings.find(r => r.url === response.url());
+
       if (timing) {
         timing.duration = Date.now() - timing.startTime;
       }
@@ -424,10 +433,10 @@ test.describe('Network Performance', () => {
     await page.waitForLoadState('networkidle');
 
     // Critical resources (HTML, main JS, main CSS) should load first
-    const criticalResources = resourceTimings.filter(r => 
-      r.url.includes('.html') || 
+    const criticalResources = resourceTimings.filter(r =>
+      r.url.includes('.html') ||
       r.url.includes('main.') ||
-      r.url.includes('index.')
+      r.url.includes('index.'),
     );
 
     expect(criticalResources.length).toBeGreaterThan(0);
@@ -446,20 +455,23 @@ test.describe('Interaction Performance', () => {
     const inputResponseTime = await page.evaluate(() => {
       return new Promise<{ responseTime: number }>(resolve => {
         const input = document.querySelector('input,textarea') as HTMLElement;
+
         if (!input) {
           resolve({ responseTime: 0 });
+
           return;
         }
 
         const startTime = performance.now();
-        
+
         input.focus();
         input.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
         input.dispatchEvent(new KeyboardEvent('input', { data: 'a' }));
-        
+
         // Measure time until visual update
         requestAnimationFrame(() => {
           const responseTime = performance.now() - startTime;
+
           resolve({ responseTime });
         });
       });
@@ -478,19 +490,20 @@ test.describe('Interaction Performance', () => {
       return new Promise<{ averageFps: number; jankCount: number }>(resolve => {
         let frameCount = 0;
         let jankCount = 0;
-        let lastTime = performance.now();
-        let frameTimes: number[] = [];
+        const lastTime = performance.now();
+        const frameTimes: number[] = [];
 
         function measure() {
           const now = performance.now();
           const delta = now - lastTime;
+
           frameTimes.push(delta);
-          
+
           // Jank is when frame takes >16.67ms (below 60fps)
           if (delta > 16.67) {
             jankCount++;
           }
-          
+
           frameCount++;
           lastTime = now;
 
@@ -498,6 +511,7 @@ test.describe('Interaction Performance', () => {
             requestAnimationFrame(measure);
           } else {
             const averageFps = 1000 / (frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length);
+
             resolve({ averageFps, jankCount });
           }
         }

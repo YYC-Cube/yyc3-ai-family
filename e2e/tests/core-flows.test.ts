@@ -4,6 +4,7 @@
  */
 
 import { test, expect } from '@playwright/test';
+
 import { HomePage, ConsolePage, SettingsPage, AgentChatPage, ClusterMonitorPage } from './pages';
 
 // ============================================================
@@ -13,6 +14,7 @@ import { HomePage, ConsolePage, SettingsPage, AgentChatPage, ClusterMonitorPage 
 test.describe('Application Boot & Navigation', () => {
   test('should load the application successfully', async ({ page }) => {
     const homePage = new HomePage(page);
+
     await homePage.goto();
 
     // Verify app title
@@ -27,6 +29,7 @@ test.describe('Application Boot & Navigation', () => {
 
   test('should navigate between views', async ({ page }) => {
     const homePage = new HomePage(page);
+
     await homePage.goto();
 
     // Navigate to Console
@@ -49,8 +52,9 @@ test.describe('Application Boot & Navigation', () => {
   test('should handle mobile responsive layout', async ({ page }) => {
     // Test mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
-    
+
     const homePage = new HomePage(page);
+
     await homePage.goto();
 
     // Mobile nav should be visible
@@ -68,6 +72,7 @@ test.describe('Application Boot & Navigation', () => {
 test.describe('Chat & Messaging', () => {
   test('should send a message and receive response', async ({ page }) => {
     const homePage = new HomePage(page);
+
     await homePage.goto();
 
     // Send a test message
@@ -78,14 +83,16 @@ test.describe('Chat & Messaging', () => {
 
     // Wait for AI response (mock or real)
     await page.waitForTimeout(3000);
-    
+
     // Verify response appears
     const aiResponse = page.getByTestId('ai-message').first();
+
     await expect(aiResponse).toBeVisible();
   });
 
   test('should display message history', async ({ page }) => {
     const homePage = new HomePage(page);
+
     await homePage.goto();
 
     // Send multiple messages
@@ -103,14 +110,16 @@ test.describe('Chat & Messaging', () => {
 
   test('should handle empty message submission', async ({ page }) => {
     const homePage = new HomePage(page);
+
     await homePage.goto();
 
     // Try to send empty message
     await homePage.chatInput.fill('');
-    
+
     // Send button should be disabled or nothing happens
     const sendButton = homePage.sendButton;
     const isDisabled = await sendButton.isDisabled();
+
     expect(isDisabled || true).toBeTruthy();
   });
 });
@@ -122,6 +131,7 @@ test.describe('Chat & Messaging', () => {
 test.describe('Agent System', () => {
   test('should display all 7 agents', async ({ page }) => {
     const agentPage = new AgentChatPage(page);
+
     await agentPage.goto();
 
     // Verify all agents are visible
@@ -134,6 +144,7 @@ test.describe('Agent System', () => {
 
   test('should switch between agents', async ({ page }) => {
     const agentPage = new AgentChatPage(page);
+
     await agentPage.goto();
 
     // Select Navigator
@@ -147,6 +158,7 @@ test.describe('Agent System', () => {
 
   test('should maintain agent chat history', async ({ page }) => {
     const agentPage = new AgentChatPage(page);
+
     await agentPage.goto();
 
     // Send message to Navigator
@@ -171,6 +183,7 @@ test.describe('Agent System', () => {
 test.describe('Console & Monitoring', () => {
   test('should display cluster dashboard', async ({ page }) => {
     const consolePage = new ConsolePage(page);
+
     await consolePage.goto();
     await consolePage.switchToDashboard();
 
@@ -182,11 +195,13 @@ test.describe('Console & Monitoring', () => {
 
     // Verify metrics chart is displayed
     const clusterMonitor = new ClusterMonitorPage(page);
+
     await clusterMonitor.waitForMetrics();
   });
 
   test('should display real-time metrics', async ({ page }) => {
     const consolePage = new ConsolePage(page);
+
     await consolePage.goto();
     await consolePage.switchToDashboard();
 
@@ -195,11 +210,13 @@ test.describe('Console & Monitoring', () => {
 
     // Verify metrics are updating
     const cpuMetric = page.getByText(/CPU|cpu/i).first();
+
     await expect(cpuMetric).toBeVisible();
   });
 
   test('should navigate to DevOps workspace', async ({ page }) => {
     const consolePage = new ConsolePage(page);
+
     await consolePage.goto();
     await consolePage.switchToDevOps();
 
@@ -217,16 +234,19 @@ test.describe('Console & Monitoring', () => {
 test.describe('Settings & Configuration', () => {
   test('should open settings modal', async ({ page }) => {
     const homePage = new HomePage(page);
+
     await homePage.goto();
     await homePage.openSettings();
 
     // Verify settings modal is visible
     const settingsModal = page.getByRole('dialog', { name: /设置|Settings/i });
+
     await expect(settingsModal).toBeVisible();
   });
 
   test('should switch between settings tabs', async ({ page }) => {
     const settingsPage = new SettingsPage(page);
+
     await settingsPage.goto();
 
     // Switch to Models tab
@@ -240,10 +260,12 @@ test.describe('Settings & Configuration', () => {
 
   test('should save and close settings', async ({ page }) => {
     const settingsPage = new SettingsPage(page);
+
     await settingsPage.goto();
 
     // Make a change (e.g., toggle a setting)
     const themeToggle = page.getByRole('switch', { name: /主题|Theme/i }).first();
+
     if (await themeToggle.isVisible()) {
       await themeToggle.click();
     }
@@ -269,11 +291,13 @@ test.describe('Keyboard Shortcuts', () => {
 
     // Command palette should open
     const commandPalette = page.getByRole('dialog', { name: /命令|Command/i });
+
     await expect(commandPalette).toBeVisible();
   });
 
   test('should use Enter to send message', async ({ page }) => {
     const homePage = new HomePage(page);
+
     await homePage.goto();
 
     // Type message and press Enter
@@ -286,6 +310,7 @@ test.describe('Keyboard Shortcuts', () => {
 
   test('should use Escape to close modal', async ({ page }) => {
     const homePage = new HomePage(page);
+
     await homePage.goto();
     await homePage.openSettings();
 
@@ -294,6 +319,7 @@ test.describe('Keyboard Shortcuts', () => {
 
     // Modal should close
     const settingsModal = page.getByRole('dialog', { name: /设置|Settings/i });
+
     await expect(settingsModal).not.toBeVisible();
   });
 });
@@ -311,6 +337,7 @@ test.describe('Error Handling & Edge Cases', () => {
 
     // App should still be usable (offline mode)
     const homePage = new HomePage(page);
+
     await expect(homePage.chatInput).toBeVisible();
 
     // Restore online mode
@@ -319,10 +346,12 @@ test.describe('Error Handling & Edge Cases', () => {
 
   test('should handle long message input', async ({ page }) => {
     const homePage = new HomePage(page);
+
     await homePage.goto();
 
     // Type long message
     const longMessage = 'A'.repeat(1000);
+
     await homePage.chatInput.fill(longMessage);
     await homePage.sendButton.click();
 
@@ -332,10 +361,12 @@ test.describe('Error Handling & Edge Cases', () => {
 
   test('should handle special characters in input', async ({ page }) => {
     const homePage = new HomePage(page);
+
     await homePage.goto();
 
     // Type special characters
     const specialChars = '<script>alert("test")</script> 特殊字符测试';
+
     await homePage.chatInput.fill(specialChars);
     await homePage.sendButton.click();
 
@@ -355,10 +386,12 @@ test.describe('Visual & Accessibility', () => {
 
     // Verify h1 exists
     const h1 = page.locator('h1').first();
+
     await expect(h1).toBeVisible();
 
     // Verify heading hierarchy
     const h2 = page.locator('h2').first();
+
     await expect(h2).toBeVisible();
   });
 
@@ -368,12 +401,13 @@ test.describe('Visual & Accessibility', () => {
     // All buttons should have accessible names
     const buttons = page.getByRole('button');
     const count = await buttons.count();
-    
+
     expect(count).toBeGreaterThan(5);
 
     // Check first few buttons have labels
     for (let i = 0; i < Math.min(count, 5); i++) {
       const button = buttons.nth(i);
+
       await expect(button).toBeVisible();
     }
   });
@@ -384,14 +418,16 @@ test.describe('Visual & Accessibility', () => {
     // Tab through elements
     await page.keyboard.press('Tab');
     const firstFocused = page.locator(':focus');
+
     await expect(firstFocused).toBeVisible();
 
     // Continue tabbing
     await page.keyboard.press('Tab');
     await page.keyboard.press('Tab');
-    
+
     // Focus should move
     const newFocused = page.locator(':focus');
+
     await expect(newFocused).toBeVisible();
   });
 
@@ -400,12 +436,12 @@ test.describe('Visual & Accessibility', () => {
 
     // Verify cyberpunk visual elements
     const body = page.locator('body');
-    
+
     // Check for dark background
     const backgroundColor = await body.evaluate(
-      el => window.getComputedStyle(el).backgroundColor
+      el => window.getComputedStyle(el).backgroundColor,
     );
-    
+
     // Dark theme should have dark background
     expect(backgroundColor).toMatch(/rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)/);
   });
@@ -418,14 +454,14 @@ test.describe('Visual & Accessibility', () => {
 test.describe('Performance', () => {
   test('should load within acceptable time', async ({ page }) => {
     const startTime = Date.now();
-    
+
     await page.goto('/');
-    
+
     // Wait for app to be interactive
     await expect(page.getByTestId('chat-area')).toBeVisible();
-    
+
     const loadTime = Date.now() - startTime;
-    
+
     // Should load within 10 seconds
     expect(loadTime).toBeLessThan(10000);
   });
@@ -435,19 +471,20 @@ test.describe('Performance', () => {
 
     // Trigger animations (open settings)
     const homePage = new HomePage(page);
+
     await homePage.openSettings();
 
     // Check for animation performance
     const metrics = await page.evaluate(() => {
       return new Promise<{ fps: number }>(resolve => {
         let frameCount = 0;
-        let lastTime = performance.now();
+        const lastTime = performance.now();
         let fps = 60;
 
         function measure() {
           frameCount++;
           const now = performance.now();
-          
+
           if (now - lastTime >= 1000) {
             fps = frameCount;
             resolve({ fps });
@@ -473,8 +510,9 @@ test.describe('Integration Scenarios', () => {
   test('complete user journey: chat → console → settings', async ({ page }) => {
     // 1. Start at chat
     const homePage = new HomePage(page);
+
     await homePage.goto();
-    
+
     // 2. Send a message
     await homePage.sendMessage('开始对话');
     await page.waitForTimeout(2000);
@@ -493,7 +531,7 @@ test.describe('Integration Scenarios', () => {
 
     // 6. Close settings
     await page.keyboard.press('Escape');
-    
+
     // 7. Return to chat
     await page.getByRole('button', { name: /终端/i }).click();
     await expect(homePage.chatInput).toBeVisible();
@@ -501,6 +539,7 @@ test.describe('Integration Scenarios', () => {
 
   test('agent collaboration workflow', async ({ page }) => {
     const agentPage = new AgentChatPage(page);
+
     await agentPage.goto();
 
     // 1. Select Navigator for planning
