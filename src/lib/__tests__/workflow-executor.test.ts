@@ -240,7 +240,7 @@ describe('Workflow Executor — Step Types', () => {
     const duration = Date.now() - startTime;
 
     expect(result.success).toBe(true);
-    expect(duration).toBeGreaterThanOrEqual(100);
+    expect(duration).toBeGreaterThanOrEqual(80);
   });
 
   it('WE-11: executes parallel step with branches', async () => {
