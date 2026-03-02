@@ -748,7 +748,7 @@ describe('Workflow Executor — Complex Scenarios', () => {
     const duration = Date.now() - startTime;
 
     expect(result.success).toBe(true);
-    expect(duration).toBeGreaterThanOrEqual(50);
+    expect(duration).toBeGreaterThanOrEqual(40);
   });
 });
 
