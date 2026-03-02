@@ -477,7 +477,6 @@ describe('MCP Integration — Tool Execution', () => {
 
   it('MCP-INT-18: logMCPCall records call to history', async () => {
     const callResult: MCPCallResult = {
-      id: 'call-1',
       serverId: 'test-server',
       method: 'tools/call',
       params: { name: 'test_tool', arguments: {} },
@@ -496,7 +495,6 @@ describe('MCP Integration — Tool Execution', () => {
 
   it('MCP-INT-19: getMCPCallLog returns call history', () => {
     const callResult: MCPCallResult = {
-      id: 'call-2',
       serverId: 'test-server',
       method: 'tools/call',
       params: { name: 'test_tool' },
