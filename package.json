@@ -46,6 +46,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:perf": "playwright test e2e/tests/performance.test.ts",
+    "test:e2e:visual": "playwright test e2e/tests/visual-regression.test.ts",
+    "test:ci": "pnpm lint && pnpm type-check && pnpm test && pnpm test:e2e",
     "type-check": "tsc --noEmit",
     "ci": "pnpm run lint && pnpm run type-check && pnpm test"
   },
