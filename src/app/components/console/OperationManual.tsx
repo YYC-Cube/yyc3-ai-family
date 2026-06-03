@@ -1,9 +1,27 @@
 import {
-  BookOpen, Terminal, Brain, Compass, Shield, Network, Database,
-  Cpu, Activity, HardDrive, Radio, FileText,
-  ChevronRight, ChevronDown, Globe, BarChart3,
-  Box, Wrench, Monitor, ArrowRight, Command, Keyboard,
+  Activity,
   AlertTriangle,
+  ArrowRight,
+  BarChart3,
+  BookOpen,
+  Box,
+  Brain,
+  ChevronDown,
+  ChevronRight,
+  Command,
+  Compass,
+  Cpu,
+  Database,
+  FileText,
+  Globe,
+  HardDrive,
+  Keyboard,
+  Monitor,
+  Network,
+  Radio,
+  Shield,
+  Terminal,
+  Wrench,
 } from 'lucide-react';
 import * as React from 'react';
 
@@ -217,7 +235,7 @@ export function OperationManual() {
             <div className="space-y-3">
               {[
                 { id: 'dashboard', icon: Monitor, label: zh ? '总控台' : 'Dashboard', desc: zh ? '集群拓扑、实时指标、日志流、Command Center、基础设施健康检查' : 'Cluster topology, real-time metrics, logs, Command Center, infra health', color: 'text-sky-400' },
-                { id: 'ai', icon: Brain, label: zh ? '智愈中心' : 'AI Core', desc: zh ? '7 大 Agent 矩阵，选择任意 Agent 开始专项对话（各 Agent 拥有独立 System Prompt 和推荐模型）' : '7 Agent matrix with specialized conversations per agent', color: 'text-amber-400' },
+                { id: 'ai', icon: Brain, label: zh ? '言启中心' : 'AI Core', desc: zh ? '8 大 Agent 矩阵，选择任意 Agent 开始专项对话（各 Agent 拥有独立 System Prompt 和推荐模型）' : '8 Agent matrix with specialized conversations per agent', color: 'text-amber-400' },
                 { id: 'devops', icon: Terminal, label: 'DevOps', desc: zh ? 'DAG 工作流编辑器、CI/CD 流水线、模板库（15+ 预置）、实时执行状态追踪' : 'DAG workflow editor, CI/CD pipelines, 15+ templates, real-time execution tracking', color: 'text-emerald-400' },
                 { id: 'hardware_monitor', icon: Cpu, label: zh ? '硬件遥测' : 'HW Telemetry', desc: zh ? 'M4 Max 56 核 CPU/GPU 遥测看板、温度监控、进程列表、性能历史图表' : 'M4 Max 56-core CPU/GPU telemetry, thermal monitoring, process list', color: 'text-orange-400' },
                 { id: 'mcp', icon: Wrench, label: 'MCP', desc: zh ? 'Model Context Protocol 工具管理、Server 配置、Playground 测试、MCP 工作流可视化' : 'MCP tool management, server config, playground testing, workflow visualization', color: 'text-pink-400' },
@@ -333,13 +351,14 @@ export function OperationManual() {
           {activeSection === 'agents' && (
             <div className="space-y-3">
               {[
-                { id: 'navigator', name: zh ? '领航员 Navigator' : 'Navigator', desc: zh ? '全域资源调度与路径规划。擅长项目导航、任务分解、工作流编排。' : 'Global resource scheduling and path planning.', color: 'text-amber-400', model: 'GPT-4o / DeepSeek-V3' },
-                { id: 'thinker', name: zh ? '思想家 Thinker' : 'Thinker', desc: zh ? '深度逻辑推理与决策分析。擅长架构设计、技术选型、方案评估。' : 'Deep logic reasoning and decision analysis.', color: 'text-blue-400', model: 'Claude 3.5 Sonnet' },
-                { id: 'prophet', name: zh ? '先知 Prophet' : 'Prophet', desc: zh ? '趋势预测与风险前置。擅长风险评估、性能预测、容量规划。' : 'Trend prediction and risk forecasting.', color: 'text-purple-400', model: 'Gemini 2.0 Flash' },
-                { id: 'bole', name: zh ? '伯乐 Bole' : 'Bole', desc: zh ? '模型评估与优选匹配。擅长 Code Review、质量把关、最佳实践推荐。' : 'Model evaluation and code quality.', color: 'text-pink-400', model: 'GPT-4o / Claude' },
-                { id: 'pivot', name: zh ? '天枢 Pivot' : 'Pivot', desc: zh ? '核心状态管理与上下文。擅长多 Agent 协调、冲突仲裁、状态同步。' : 'Core state management and coordination.', color: 'text-cyan-400', model: 'DeepSeek-V3' },
-                { id: 'sentinel', name: zh ? '哨兵 Sentinel' : 'Sentinel', desc: zh ? '安全边界防护与审计。擅长安全审计、漏洞检测、合规性检查。' : 'Security boundary defense and audit.', color: 'text-red-400', model: 'Claude 3.5 Sonnet' },
-                { id: 'grandmaster', name: zh ? '宗师 Grandmaster' : 'Grandmaster', desc: zh ? '知识库构建与本体论。擅长跨域综合分析、最终决策、知识图谱构建。' : 'Knowledge base construction and ontology.', color: 'text-green-400', model: 'GPT-4o / Claude' },
+                { id: 'navigator', name: zh ? '言启·千行 Navigator' : 'Navigator', desc: zh ? '意图识别与任务路由。擅长自然语言理解、意图解析、上下文管理。' : 'Intent recognition and task routing.', color: 'text-amber-400', model: 'GPT-4o / DeepSeek-V3' },
+                { id: 'thinker', name: zh ? '语枢·万物 Thinker' : 'Thinker', desc: zh ? '数据分析与深度洞察。擅长数据分析、归纳推理、假设推演。' : 'Data analysis and deep insight.', color: 'text-blue-400', model: 'Claude 3.5 Sonnet' },
+                { id: 'prophet', name: zh ? '预见·先知 Prophet' : 'Prophet', desc: zh ? '趋势预测与风险前置。擅长风险评估、性能预测、容量规划。' : 'Trend prediction and risk forecasting.', color: 'text-purple-400', model: 'Gemini 2.0 Flash' },
+                { id: 'bole', name: zh ? '知遇·伯乐 Bole' : 'Bole', desc: zh ? '个性化推荐与潜能发掘。擅长能力匹配、基准测试、画像分析。' : 'Personalized recommendation and potential discovery.', color: 'text-pink-400', model: 'GPT-4o / Claude' },
+                { id: 'pivot', name: zh ? '元启·天枢 Pivot' : 'Pivot', desc: zh ? '全局编排与决策中枢。擅长多 Agent 协调、冲突仲裁、状态同步。' : 'Global orchestration and decision center.', color: 'text-cyan-400', model: 'DeepSeek-V3' },
+                { id: 'sentinel', name: zh ? '智云·守护 Sentinel' : 'Sentinel', desc: zh ? '行为审计与安全防护。擅长安全审计、行为分析、合规性检查。' : 'Behavior audit and security protection.', color: 'text-red-400', model: 'Claude 3.5 Sonnet' },
+                { id: 'grandmaster', name: zh ? '格物·宗师 Grandmaster' : 'Grandmaster', desc: zh ? '代码分析与质量管控。擅长代码评审、模式识别、质量检测。' : 'Code analysis and quality control.', color: 'text-green-400', model: 'GPT-4o / Claude' },
+                { id: 'grace', name: zh ? '创想·灵韵 Grace' : 'Grace', desc: zh ? '内容创作与创意生成。擅长创意设计、视觉美学、故事叙述。' : 'Content creation and creative generation.', color: 'text-violet-400', model: 'GPT-4o / Claude' },
               ].map(a => (
                 <button
                   key={a.id}

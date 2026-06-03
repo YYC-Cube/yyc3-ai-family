@@ -8,12 +8,13 @@ import {
   Figma, MoreHorizontal, RefreshCw, Copy,
 } from 'lucide-react';
 import * as React from 'react';
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+
 
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Input } from '@/app/components/ui/input';
+import { Panel, PanelGroup, PanelResizeHandle } from '@/app/components/ui/resizable-panels';
 import { ScrollArea } from '@/app/components/ui/scroll-area';
 import { useSystemStore } from '@/lib/store';
 import { cn } from '@/lib/utils';

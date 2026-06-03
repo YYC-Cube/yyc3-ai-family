@@ -56,7 +56,7 @@ const SMOKE_TESTS: SmokeTestItem[] = [
 
   // --- Console Tabs (20) ---
   { id: 'tab:dashboard', label: '总控台', labelEn: 'Dashboard', category: 'console', icon: LayoutDashboard, color: 'text-white', phase: 'P4', loadFn: () => import('@/app/components/console/ConsoleView') },
-  { id: 'tab:ai', label: '智愈中心', labelEn: 'AI Center', category: 'console', icon: Brain, color: 'text-amber-500', phase: 'P7', loadFn: () => import('@/app/components/console/AgentChatInterface') },
+  { id: 'tab:ai', label: '言启中心', labelEn: 'AI Center', category: 'console', icon: Brain, color: 'text-amber-500', phase: 'P7', loadFn: () => import('@/app/components/console/AgentChatInterface') },
   { id: 'tab:agent_identity', label: '身份卡片', labelEn: 'Agent Identity', category: 'console', icon: Heart, color: 'text-pink-500', phase: 'P19', loadFn: () => import('@/app/components/console/AgentIdentityCard') },
   { id: 'tab:family_presence', label: '家人在线', labelEn: 'Family Presence', category: 'console', icon: Users, color: 'text-emerald-500', phase: 'P19', loadFn: () => import('@/app/components/console/FamilyPresenceBoard') },
   { id: 'tab:knowledge_base', label: '知识库', labelEn: 'Knowledge Base', category: 'console', icon: BookOpen, color: 'text-green-500', phase: 'P19', loadFn: () => import('@/app/components/console/KnowledgeBase') },

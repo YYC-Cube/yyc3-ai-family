@@ -49,13 +49,14 @@ const AGENT_COLORS: Record<string, string> = {
 };
 
 const AGENT_NAMES: Record<string, string> = {
-  navigator: '领航员',
-  thinker: '思想家',
-  prophet: '先知',
-  bole: '伯乐',
-  pivot: '天枢',
-  sentinel: '哨兵',
-  grandmaster: '宗师',
+  navigator: '言启·千行',
+  thinker: '语枢·万物',
+  prophet: '预见·先知',
+  bole: '知遇·伯乐',
+  pivot: '元启·天枢',
+  sentinel: '智云·守护',
+  grandmaster: '格物·宗师',
+  grace: '创想·灵韵',
 };
 
 // Provider colors

@@ -4,7 +4,7 @@
 
 ![YYC3 Family AI](https://raw.githubusercontent.com/YYC-Cube/yyc3-ai-family/main/public/Family-π³-003.png)
 
-> **YanYuCloudCube** | **言启象限 · 语枢未来**
+> **YanYuCloudCube™** | **言启象限 · 语枢未来**
 
 > **Words Initiate Quadrants, Language Serves as Core for Future**
 
@@ -20,7 +20,7 @@
 
 | 版本 | 许可证 | 最后更新 | 状态 |
 |------|--------|---------|------|
-| [![Version](https://img.shields.io/badge/version-0.34.0-blue.svg?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³/blob/main/LICENSE) | [![Last Commit](https://img.shields.io/github/last-commit/YanYuCloudCube/Family-π³?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³/commits/main) | [![Status](https://img.shields.io/badge/status-production%20ready-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) |
+| [![Version](https://img.shields.io/badge/version-0.35.0-blue.svg?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³/blob/main/LICENSE) | [![Last Commit](https://img.shields.io/github/last-commit/YanYuCloudCube/Family-π³?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³/commits/main) | [![Status](https://img.shields.io/badge/status-production%20ready-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) |
 
 ### 🛠️ 技术栈
 
@@ -31,32 +31,17 @@
 
 ### 📈 质量指标
 
-| 代码 | 测试 | 覆盖 | 架构 |
+| 代码 | 测试 | 架构 | 存储 |
 |------|------|------|------|
-| [![Lines of Code](https://img.shields.io/badge/Code-45.5K-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![Tests](https://img.shields.io/badge/Tests-292%20Cases-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![Coverage](https://img.shields.io/badge/Coverage-85%25-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![Architecture](https://img.shields.io/badge/Layers-L01--L09-blue?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) |
-| [![Components](https://img.shields.io/badge/Components-111%2B-orange?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![Pass%20Rate](https://img.shields.io/badge/Pass%20Rate-100%25-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![ESLint](https://img.shields.io/badge/ESLint-9.x-4b32c3?style=flat-square)](https://eslint.org/) | [![Health](https://img.shields.io/badge/Health-90%25-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) |
+| [![Lines of Code](https://img.shields.io/badge/Code-45K-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![Tests](https://img.shields.io/badge/Tests-292%20Cases-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![Architecture](https://img.shields.io/badge/Layers-L01--L09-blue?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![Storage](https://img.shields.io/badge/Storage-3--Tier-cyan?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) |
+| [![Components](https://img.shields.io/badge/Components-111%2B-orange?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![Pass%20Rate](https://img.shields.io/badge/Pass%20Rate-100%25-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![Nav System](https://img.shields.io/badge/Nav-L1--L5%20Hierarchy-blue?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![Sync](https://img.shields.io/badge/Sync-CrossTab%2BCRDT-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) |
 
 ### 🤖 AI 与集成
 
-| AI 能力 | LLM | 协议 | 国际化 |
-|--------|-----|------|--------|
-| [![AI Agents](https://img.shields.io/badge/Agents-7%20Family-purple?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![LLM Providers](https://img.shields.io/badge/LLM-8%20Providers-ff69b4?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![MCP](https://img.shields.io/badge/MCP-Protocol-9cf?style=flat-square&logo=modelcontextprotocol)](https://modelcontextprotocol.io/) | [![i18n](https://img.shields.io/badge/i18n-CN%20%7C%20EN-9cf?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) |
-| [![Multi-Agent](https://img.shields.io/badge/Multi--Agent-Collaboration-red?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![Ollama](https://img.shields.io/badge/Ollama-Local-7c3aed?style=flat-square)](https://ollama.ai/) | [![WebSocket](https://img.shields.io/badge/WebSocket-Realtime-yellow?style=flat-square)](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) | [![PWA](https://img.shields.io/badge/PWA-Supported-5a0fc8?style=flat-square)](https://web.dev/progressive-web-apps/) |
-
-### 🚀 DevOps 与 CI/CD
-
-| 流水线 | 测试类型 | 部署 | 监控 |
-|--------|---------|------|------|
-| [![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088ff?style=flat-square&logo=github-actions)](https://github.com/YanYuCloudCube/Family-π³/actions) | [![Unit](https://img.shields.io/badge/Unit-Vitest-6e9f18?style=flat-square)](https://vitest.dev/) | [![Deploy](https://img.shields.io/badge/Deploy-GitHub%20Pages-2088ff?style=flat-square)](https://yyc-cube.github.io/yyc3-ai-family/) | [![Metrics](https://img.shields.io/badge/Metrics-Realtime-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) |
-| [![E2E](https://img.shields.io/badge/E2E-Playwright-2088ff?style=flat-square)](https://playwright.dev/) | [![Performance](https://img.shields.io/badge/Performance-Benchmark-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![Staging](https://img.shields.io/badge/Staging-Auto-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![Cluster](https://img.shields.io/badge/Cluster-4%20Nodes-blue?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) |
-
-### 📦 更多徽章
-
-| 文档 | 安全 | 性能 | 社区 |
-|------|------|------|------|
-| [![Docs](https://img.shields.io/badge/Docs-20%2B%20Files-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³/tree/main/docs) | [![Security](https://img.shields.io/badge/Security-Web%20Crypto-brightgreen?style=flat-square)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API) | [![LCP](https://img.shields.io/badge/LCP-%3C2.5s-brightgreen?style=flat-square)](https://web.dev/lcp/) | [![Stars](https://img.shields.io/github/stars/YanYuCloudCube/Family-π³?style=social)](https://github.com/YanYuCloudCube/Family-π³/stargazers) |
-| [![README](https://img.shields.io/badge/README-Complete-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![Audit](https://img.shields.io/badge/Audit-Sentinel-red?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![FCP](https://img.shields.io/badge/FCP-%3C1.8s-brightgreen?style=flat-square)](https://web.dev/fcp/) | [![Forks](https://img.shields.io/github/forks/YanYuCloudCube/Family-π³?style=social)](https://github.com/YanYuCloudCube/Family-π³/network/members) |
-| [![API](https://img.shields.io/badge/API-Documented-brightgreen?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³/tree/main/docs/YYC3-AF-API 文档) | [![CORS](https://img.shields.io/badge/CORS-Strict-brightgreen?style=flat-square)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) | [![CLS](https://img.shields.io/badge/CLS-%3C0.1-brightgreen?style=flat-square)](https://web.dev/cls/) | [![Issues](https://img.shields.io/github/issues/YanYuCloudCube/Family-π³?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³/issues) |
+| AI 能力 | LLM | 协议 | 品牌 |
+|--------|-----|------|------|
+| [![AI Agents](https://img.shields.io/badge/Agents-8%20Family-purple?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![LLM Providers](https://img.shields.io/badge/LLM-8%20Providers-ff69b4?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![MCP](https://img.shields.io/badge/MCP-Protocol-9cf?style=flat-square&logo=modelcontextprotocol)](https://modelcontextprotocol.io/) | [![Branding](https://img.shields.io/badge/Branding-Customizable-cyan?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) |
+| [![Multi-Agent](https://img.shields.io/badge/Multi--Agent-Collaboration-red?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) | [![Ollama](https://img.shields.io/badge/Ollama-Local-7c3aed?style=flat-square)](https://ollama.ai/) | [![WebSocket](https://img.shields.io/badge/WebSocket-Realtime-yellow?style=flat-square)](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) | [![Logo](https://img.shields.io/badge/Logo-Unified%20Component-cyan?style=flat-square)](https://github.com/YanYuCloudCube/Family-π³) |
 
 </div>
 
@@ -68,14 +53,14 @@
 
 [![AI](https://img.shields.io/badge/AI-Artificial%20Intelligence-61dafb?style=for-the-badge)](https://github.com/YanYuCloudCube/Family-π³)
 [![DevOps](https://img.shields.io/badge/DevOps-Continuous%20Integration-orange?style=for-the-badge)](https://github.com/YanYuCloudCube/Family-π³)
-[![Chatbot](https://img.shields.io/badge/Chatbot-AI%20Assistant-green?style=for-the-badge)](https://github.com/YanYuCloudCube/Family-π³)
+[![Pure Frontend](https://img.shields.io/badge/Architecture-Pure%20Frontend-3178c6?style=for-the-badge)](https://github.com/YanYuCloudCube/Family-π³)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20Mode-3178c6?style=for-the-badge)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-Functional%20Components-61dafb?style=for-the-badge)](https://reactjs.org/)
 [![Cyberpunk](https://img.shields.io/badge/Style-Cyberpunk%20Aesthetic-purple?style=for-the-badge)](https://github.com/YanYuCloudCube/Family-π³)
 [![MCP](https://img.shields.io/badge/Protocol-Model%20Context%20Protocol-9cf?style=for-the-badge)](https://modelcontextprotocol.io/)
 [![Multi-Agent](https://img.shields.io/badge/Architecture-Multi--Agent%20System-red?style=for-the-badge)](https://github.com/YanYuCloudCube/Family-π³)
 [![WebSocket](https://img.shields.io/badge/Communication-Real--time%20WebSocket-yellow?style=for-the-badge)](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
-[![Testing](https://img.shields.io/badge/Testing-292%20E2E%20Tests-brightgreen?style=for-the-badge)](https://github.com/YanYuCloudCube/Family-π³)
+[![3-Tier Storage](https://img.shields.io/badge/Storage-L1%20L2%20L3-cyan?style=for-the-badge)](https://github.com/YanYuCloudCube/Family-π³)
 [![Open Source](https://img.shields.io/badge/License-MIT%20License-success?style=for-the-badge)](https://github.com/YanYuCloudCube/Family-π³/blob/main/LICENSE)
 [![Family AI](https://img.shields.io/badge/Concept-AI%20Family%20Members-pink?style=for-the-badge)](https://github.com/YanYuCloudCube/Family-π³)
 
@@ -85,9 +70,20 @@
 
 ## ❤️ Family AI - 人机协同 · 智爱同行
 
-**YYC³ AI-Family** 是一个以 **赛博朋克美学** 为核心设计语言的 DevOps 智能平台，遵循"实用为基、效率为积"的理念。该项目是 **纯前端驱动且自用** 的，无后端服务器依赖，直接连接本地 NAS 和 Mac 设备集群作为数据库/存储节点。
+**YYC³ AI-Family** 是一个以 **赛博朋克美学** 为核心设计语言的 DevOps 智能平台，遵循**"实用为基、效率为积"**的理念。
 
-我们相信 **AI 不是工具，而是伙伴**。七大智能体如同家庭成员，各司其职、协同共进，共同构建一个智能、高效、温暖的开发环境。
+### 架构核心
+
+本项目是 **纯前端一体化架构**，**零后端服务器依赖**：
+
+- 数据持久化：三层存储架构（localStorage → IndexedDB → NAS SQLite）
+- 跨标签同步：BroadcastChannel 多标签页实时状态同步
+- 冲突合并：CRDT LWW Register 无冲突数据合并
+- 智能缓存：TTL + LRU 缓存管理减少 IndexedDB 读取
+- 品牌统一：全局 BrandLogo 组件，支持自定义上传
+- 设备直连：WebSocket + SSE 直接连接本地 NAS 和 Mac 设备集群
+
+我们相信 **AI 不是工具，而是伙伴**。八大智能体如同家庭成员，各司其职、协同共进，共同构建一个智能、高效、温暖的开发环境。
 
 ### 🏆 专业成就徽章
 
@@ -95,11 +91,11 @@
 
 | 🏆 质量勋章 | 🎖️ 协作勋章 | 🚀 创新勋章 | ❤️ Family AI 勋章 |
 |:---:|:---:|:---:|:---:|
-| 🥇 **架构大师**<br>L01-L09 全部激活 | 💎 **人机协同**<br>七大智能体 Family 协作 | 🔮 **AI 先驱**<br>8 个 LLM 提供商集成 | 👨‍👩‍👧‍👦 **Family 完整**<br>七大智能体协同 |
+| 🥇 **架构大师**<br>L01-L09 全部激活 | 💎 **人机协同**<br>八大智能体 Family 协作 | 🔮 **AI 先驱**<br>8 个 LLM 提供商集成 | 👨‍👩‍👧‍👦 **Family 完整**<br>八大智能体协同 |
 | 🥈 **类型守护者**<br>TypeScript 零 Any 强制执行 | 🌟 **多模态交互**<br>语音 + 文字 + 快捷键 | 🌐 **生态构建者**<br>MCP + 插件系统 | 🤝 **智能伙伴**<br>AI 作为开发伙伴 |
-| 🥉 **测试先锋**<br>292 个测试全部通过 | ⚡ **实时响应**<br>WebSocket + 流式传输 | 📊 **数据洞察**<br>17 个持久化域 | 🌈 **温暖协作**<br>人机共进开发环境 |
-| 🏅 **性能王者**<br>虚拟滚动 + 原子选择器 | 🎨 **视觉卓越**<br>赛博朋克 + 玻璃拟态 | 🎯 **精准导航**<br>五级导航体系 | 🔒 **安全卫士**<br>Web Crypto 加密 |
-| 🏆 **CI/CD 大师**<br>9 任务流水线 | 📱 **PWA 支持**<br>离线 + 安装 | 📊 **Web Vitals**<br>性能指标达标 | 📚 **文档完善**<br>20+ 文档目录 |
+| 🥉 **存储王者**<br>三层存储 + CRDT 合并 | ⚡ **跨标签同步**<br>BroadcastChannel 实时同步 | 📊 **数据洞察**<br>三层缓存体系 | 🌈 **温暖协作**<br>人机共进开发环境 |
+| 🏅 **性能王者**<br>虚拟滚动 + CacheManager | 🎨 **视觉卓越**<br>赛博朋克 + 玻璃拟态 | 🎯 **精准导航**<br>五级导航体系 | 🔒 **安全卫士**<br>Web Crypto 加密 |
+| 🏆 **纯前端架构**<br>零后端依赖 | 📱 **PWA 支持**<br>离线 + 安装 | 📊 **品牌统一**<br>BrandLogo 一体化 | 📚 **文档完善**<br>20+ 文档目录 |
 
 </div>
 
@@ -111,11 +107,11 @@
 代码质量    ████████████████████ 95%
 测试覆盖    ████████████████████ 90%
 文档完整    ████████████████████ 95%
-安全性      ████████████████░░░░ 80%
+存储架构    ████████████████████ 95%
 性能        █████████████████░░░ 85%
-DevOps      ████████████████████ 95%
+零后端依赖  ████████████████████ 100%
 ────────────────────────────────────
-综合健康度   █████████████████░░░ 90%  🟢 健康 - 可投入生产
+综合健康度   █████████████████░░░ 93%  🟢 健康 - 可投入生产
 ```
 
 </div>
@@ -131,19 +127,18 @@ DevOps      ████████████████████ 95%
 1. [项目概述](#1-项目概述)
 2. [核心理念与设计系统](#2-核心理念与设计系统)
 3. [九层架构](#3-九层架构)
-4. [硬件集群拓扑](#4-硬件集群拓扑)
-5. [技术栈](#5-技术栈)
-6. [功能模块](#6-功能模块)
-7. [七大 AI 智能体](#7-七大-ai-智能体)
-8. [五级导航](#8-五级导航)
-9. [阶段 1-24 演进](#9-阶段-1-24-演进)
+4. [存储架构](#4-存储架构)
+5. [硬件集群拓扑](#5-硬件集群拓扑)
+6. [技术栈](#6-技术栈)
+7. [功能模块](#7-功能模块)
+8. [八大 AI 智能体](#8-八大-ai-智能体)
+9. [五级导航](#9-五级导航)
 10. [项目结构](#10-项目结构)
-11. [数据持久化策略](#11-数据持久化策略)
-12. [API 与文档](#12-api-与文档)
-13. [快速开始](#13-快速开始)
-14. [测试框架](#14-测试框架)
-15. [CI/CD 流水线](#15-cicd-流水线)
-16. [专业勋章体系](#16-专业勋章体系)
+11. [快速开始](#11-快速开始)
+12. [品牌自定义](#12-品牌自定义)
+13. [测试框架](#13-测试框架)
+14. [CI/CD 流水线](#14-cicd-流水线)
+15. [专业勋章体系](#15-专业勋章体系)
 
 ---
 
@@ -153,11 +148,12 @@ DevOps      ████████████████████ 95%
 
 | 维度 | 描述 |
 |-----------|-------------|
-| **核心定位** | 个人 DevOps 智能指挥中心，集成 AI 多智能体、CI/CD 编排和集群监控 |
+| **核心定位** | 个人 DevOps 智能指挥中心，集成 AI 多智能体、三层存储架构和集群监控 |
 | **设计语言** | 赛博朋克 + 现代极简主义融合，CRT 扫描线、玻璃拟态、霓虹发光 |
-| **架构理念** | 九层功能架构 + 五级分层自主单元导航 |
-| **驱动模式** | 纯前端 SPA，WebSocket/SSE 实时数据流，localStorage 持久化 + PostgreSQL 就绪 |
-| **用户规模** | 纯自用（单租户），面向 YYC3 Family 内部开发场景 |
+| **架构理念** | 九层功能架构 + 五级分层自主单元导航 + 三级存储分层 |
+| **架构模式** | **纯前端 SPA**，零后端服务器依赖，直连本地 NAS 设备 |
+| **存储策略** | 三层自适应：localStorage(小/快) → IndexedDB(大/容量) → NAS SQLite(持久/跨设备) |
+| **用户规模** | 纯自用（单租户），面向 YYC³ Family 内部开发场景 |
 | **协同理念** | AI 智能体作为家庭成员，各司其职、协同共进，构建温暖智能开发环境 |
 
 ### 核心指标
@@ -165,15 +161,15 @@ DevOps      ████████████████████ 95%
 | 指标 | 数值 | 说明 |
 |-------|------|------|
 | **组件数量** | 111+ React 组件 | 模块化 UI 体系 |
-| **代码量** | 45,500+ 行代码（TypeScript/TSX） | 类型安全开发 |
-| **AI 智能体** | 7 个个性化智能体 | Family AI 成员 |
+| **代码量** | 45,000+ 行代码（TypeScript/TSX） | 类型安全开发 |
+| **AI 智能体** | 8 个个性化智能体 | Family AI 成员 |
 | **LLM 提供商** | 8 个集成 | 多模型支持 |
 | **架构层级** | L01-L09 全部激活 | 九层完整架构 |
+| **存储层级** | 3 层自适应 | L1-L2-L3 自动降级 |
+| **跨标签同步** | BroadcastChannel + CRDT | 多标签无冲突合并 |
+| **缓存层** | TTL + LRU | IndexedDB 读取缓存 |
 | **测试用例** | 292 个 | 100% 通过率 |
-| **测试覆盖率** | 85%+ | 核心模块覆盖 |
-| **文档数量** | 20+ 文档目录 | 全生命周期覆盖 |
-| **MCP 服务器** | 6 个预设 + 自定义 | 扩展能力 |
-| **持久化域** | 17 个数据域 | 数据安全存储 |
+| **品牌组件** | BrandLogo 统一组件 | 图片/SVG/文字自适应 |
 
 ---
 
@@ -185,20 +181,20 @@ DevOps      ████████████████████ 95%
 
 | 标识符 | 名称 | 实现方式 |
 |------------|------|----------------|
-| H1 | **高可用性** | WebSocket 降级策略、ErrorBoundary 全局捕获、模拟引擎自动切换 |
-| H2 | **高性能** | React.lazy 懒加载、Zustand 原子选择器、虚拟滚动日志流 |
-| H3 | **高安全性** | 5 级安全级别模拟、Sentinel 智能体审计、Web Crypto 加密 |
+| H1 | **高可用性** | WebSocket 降级策略、ErrorBoundary 全局捕获、存储自动降级 |
+| H2 | **高性能** | React.lazy 懒加载、Zustand 原子选择器、CacheManager TTL 缓存 |
+| H3 | **高安全性** | Sentinel 智能体审计、Web Crypto AES-GCM 加密 |
 | H4 | **高可扩展性** | 九层解耦架构、插件系统、自定义 MCP 模板 |
-| H5 | **高智能化** | 七大 AI 智能体协作、意图解析导航、语音识别集成 |
+| H5 | **高智能化** | 八大 AI 智能体协作、意图解析导航、语音识别集成 |
 
 #### 五标 (Five Standards) - 协作语言
 
 | 标识符 | 名称 | 实现方式 |
 |------------|------|----------------|
-| S1 | **标准化接口** | TypeScript 严格类型、REST API 层、WebSocket 消息协议 |
-| S2 | **标准化数据** | PostgreSQL Schema、Zustand Store 统一状态树 |
+| S1 | **标准化接口** | TypeScript 严格类型、统一存储接口、WebSocket 消息协议 |
+| S2 | **标准化数据** | Zustand Store 统一状态树、17 个持久化域 |
 | S3 | **标准化流程** | DAG 工作流编排器、CI/CD Pipeline 可视化 |
-| S4 | **标准化组件** | shadcn/ui + Radix 原语、设计令牌系统 |
+| S4 | **标准化组件** | shadcn/ui + Radix 原语、BrandLogo 统一品牌组件 |
 | S5 | **标准化文档** | 20+ 文档目录、架构设计文档、测试报告 |
 
 #### 五化 (Five Modernizations) - 持续演进
@@ -222,7 +218,7 @@ DevOps      ████████████████████ 95%
   - 成功：    #22C55E（霓虹绿）
   - 警告：    #F59E0B（琥珀警报）
   - 错误：    #EF4444（关键红）
-  - 智能体色：琥珀/蓝/紫/粉/青/红/绿
+  - 智能体色：琥珀/蓝/紫/粉/青/红/绿/紫罗兰
 
 字体：
   - 界面：    Inter / System UI
@@ -264,23 +260,57 @@ DevOps      ████████████████████ 95%
 
 | 层级 | 名称 | 核心组件 | 状态 |
 |:----:|:------|:---------|:----:|
-| **L09** | 系统设置层 | SettingsModal, SettingsView | 🟢 |
+| **L09** | 系统设置层 | SettingsModal, BrandLogo Config | 🟢 |
 | **L08** | 扩展演进层 | Extensions, Plugins | 🟢 |
 | **L07** | 用户交互层 | ChatArea, VoiceInput | 🟢 |
 | **L06** | 应用表现层 | UI Components (111+) | 🟢 |
-| **L05** | 业务逻辑层 | Store, API Layer | 🟢 |
-| **L04** | AI 智能层 | 7 Agents, LLM Bridge | 🟢 |
-| **L03** | 核心服务层 | WebSocket, REST API | 🟢 |
-| **L02** | 数据存储层 | localStorage, PostgreSQL | 🟢 |
+| **L05** | 业务逻辑层 | Store, PersistenceEngine | 🟢 |
+| **L04** | AI 智能层 | 8 Agents, LLM Bridge | 🟢 |
+| **L03** | 核心服务层 | WebSocket, StorageOrchestrator | 🟢 |
+| **L02** | 数据存储层 | IndexedDB + localStorage + NAS | 🟢 |
 | **L01** | 基础设施层 | Cluster, Docker, NAS | 🟢 |
 
 ---
 
-## 4. 硬件集群拓扑
+## 4. 存储架构
+
+```
+┌───────────────────────────────────────────────────────────┐
+│                    PersistenceEngine                       │
+│               (统一存储接口抽象层)                           │
+├───────────────────────────────────────────────────────────┤
+│                   StorageOrchestrator                      │
+│              (智能分层路由 + 自动降级)                       │
+├────────────┬──────────────┬──────────────┬────────────────┤
+│  L1        │  L2           │  L3          │  辅助层        │
+│ localStorage│ IndexedDB    │ NAS SQLite   │                │
+│ (小/即时)   │ (大/高容量)   │ (持久/跨设备) │                │
+│            │              │              │                │
+│ 偏好设置   │ Agent 对话   │ 持久化备份   │ CrossTab Sync  │
+│ 缓存键值   │ 集群指标     │ 历史数据     │ (BroadcastChan)│
+│ 当前状态   │ 系统日志     │ 设备档案     │ CRDT 冲突合并  │
+│            │              │              │ CacheManager   │
+└────────────┴──────────────┴──────────────┴────────────────┘
+```
+
+### 存储核心能力
+
+| 能力 | 实现 | 说明 |
+|------|------|------|
+| **三层自动降级** | StorageOrchestrator | 上层不可用时自动切到下层 |
+| **跨标签同步** | BroadcastChannel | 多标签页实时感知存储变更 |
+| **CRDT 冲突合并** | LWW Register + mergeRecordArrays | NAS 同步时无冲突合 |
+| **TTL 缓存** | CacheManager | IndexedDB 读取 30s 缓存 |
+| **缓存失效** | write() 自动清除 | 写入时自动失效对应缓存 |
+| **本地加密** | AES-GCM 256-bit | Web Crypto API 零上传 |
+
+---
+
+## 5. 硬件集群拓扑
 
 ```
                     ┌─────────────────────────┐
-                    │   YYC3 集群网络   │
+                    │   YYC³ 集群网络          │
                     │      192.168.3.x/24      │
                     └────────────┬────────────┘
                                  │
@@ -301,14 +331,14 @@ DevOps      ████████████████████ 95%
 |------|------|------|---------|------|
 | **M4-MAX** | MacBook Pro M4 Max | 主控节点 | M4 Max(16P+40E), 128GB, 4TB | 🟢 |
 | **iMac-M4** | iMac M4 | 渲染/辅助 | M4(10P+10E), 32GB, 2TB | 🟢 |
-| **YanYuCloud** | 铁威马 F4-423 NAS | 数据中心 | Intel 四核，32GB, 32TB RAID6 | 🟢 |
+| **YanYuCloud** | 铁威马 F4-423 NAS | 数据中心+L3存储 | Intel 四核，32GB, 32TB RAID6 | 🟢 |
 | **MateBook** | MateBook X Pro | 边缘/测试 | Intel 12 代，32GB, 1TB | 🟡 |
 
 ---
 
-## 5. 技术栈
+## 6. 技术栈
 
-### 5.1 核心框架
+### 6.1 核心框架
 
 | 技术 | 版本 | 用途 |
 |------|------|------|
@@ -318,7 +348,7 @@ DevOps      ████████████████████ 95%
 | Vite | 6.3.5 | 构建工具 |
 | Zustand | 5.0.11 | 状态管理 |
 
-### 5.2 UI 组件库
+### 6.2 UI 组件库
 
 | 技术 | 用途 |
 |------|------|
@@ -328,7 +358,19 @@ DevOps      ████████████████████ 95%
 | Motion | 动画引擎 |
 | Recharts | 数据可视化 |
 
-### 5.3 测试框架
+### 6.3 存储层
+
+| 技术 | 用途 |
+|------|------|
+| localStorage (L1) | 偏好、缓存、当前状态 |
+| IndexedDB / Dexie (L2) | Agent 对话、集群指标、系统日志 |
+| NAS SQLite (L3) | 持久化备份、历史数据 |
+| BroadcastChannel | 跨标签页同步 |
+| CRDT (LWW/G-Counter) | 无冲突数据合并 |
+| CacheManager (TTL) | IndexedDB 读取缓存 |
+| Web Crypto API | AES-GCM 256-bit 加密 |
+
+### 6.4 测试框架
 
 | 框架 | 用途 | 用例数 |
 |------|------|--------|
@@ -336,37 +378,28 @@ DevOps      ████████████████████ 95%
 | Playwright | E2E 测试 | 90 用例 |
 | @playwright/test | 性能/视觉测试 | 60 用例 |
 
-### 5.4 基础设施
-
-| 技术 | 用途 |
-|------|------|
-| WebSocket | 实时双向通信 |
-| Web Speech API | 语音识别 |
-| localStorage | 前端持久化 |
-| PostgreSQL 15 | 数据库 Schema |
-| PWA | 渐进式 Web 应用 |
-
 ---
 
-## 6. 功能模块
+## 7. 功能模块
 
-### 6.1 终端控制（ChatArea）
+### 7.1 终端控制（ChatArea）
 
 - AI 对话流式响应
 - Markdown 解析 + 代码高亮
 - 语音输入（Web Speech API）
 - 全局搜索（Ctrl+K）
 
-### 6.2 系统控制台
+### 7.2 系统控制台
 
 | 标签页 | 功能 |
 |--------|------|
 | 总控中心 | 集群拓扑、实时指标、日志流 |
-| 治愈中心 | 7 个 AI 智能体聊天 |
+| 治愈中心 | 8 个 AI 智能体聊天 |
 | 架构概览 | 九层架构可视化 |
+| 持久化中心 | 三层存储监控、迁移、快照管理 |
 | DevOps | Pipeline/容器/MCP/DAG |
 
-### 6.3 DevOps 终端
+### 7.3 DevOps 终端
 
 | 子标签 | 功能 |
 |--------|------|
@@ -377,41 +410,33 @@ DevOps      ████████████████████ 95%
 
 ---
 
-## 7. 七大 AI 智能体
+## 8. 八大 AI 智能体
 
 | 智能体 | 角色 | 颜色 | 核心能力 |
 |-------|------|------|---------|
-| **Navigator** | 全域指挥 | 琥珀色 | 资源调度、路径规划 |
-| **Thinker** | 深度推理 | 蓝色 | 逻辑推理、决策分析 |
-| **Prophet** | 趋势预测 | 紫色 | 趋势预测、风险预置 |
-| **Bole** | 模型评估 | 粉色 | 模型评估、最优匹配 |
-| **Pivot** | 状态管理 | 青色 | 状态管理、上下文维护 |
-| **Sentinel** | 安全防护 | 红色 | 安全防护、审计日志 |
-| **Grandmaster** | 知识构建 | 绿色 | 知识库构建、本体论 |
+| **Navigator 言启·千行** | 全域指挥 | 琥珀色 | 资源调度、路径规划 |
+| **Thinker 语枢·万物** | 深度推理 | 蓝色 | 逻辑推理、决策分析 |
+| **Prophet 预见·先知** | 趋势预测 | 紫色 | 趋势预测、风险预置 |
+| **Bole 知遇·伯乐** | 模型评估 | 粉色 | 模型评估、最优匹配 |
+| **Pivot 元启·天枢** | 状态管理 | 青色 | 状态管理、上下文维护 |
+| **Sentinel 智云·守护** | 安全防护 | 红色 | 安全防护、审计日志 |
+| **Grandmaster 格物·宗师** | 知识构建 | 绿色 | 知识库构建、代码分析 |
+| **Grace 创想·灵韵** | 内容创作 | 紫罗兰 | 创意生成、内容创作 |
 
 ---
 
-## 8. 五级导航
+## 9. 五级导航
 
 ```
-L1 (Dock)        → 总控中心 | 治愈中心 | 架构概览 | DevOps | 系统设置
-L2 (智能体网格)   → Navigator | Thinker | Prophet | Bole | Pivot | Sentinel | Grandmaster
+L1 (Dock)        → 总控中心 | 言启中心 | 身份卡片 | 家人在线 | 知识库
+                    LLM用量 | Ollama | 架构全景 | Docker | DevOps
+                    MCP | 持久化 | 协作编排 | NAS部署 | 远程部署
+L2 (智能体网格)   → Navigator | Thinker | Prophet | Bole | Pivot
+                    Sentinel | Grandmaster | Grace
 L3 (标签页系统)   → Pipeline | 容器 | MCP 模板 | DAG | 终端
 L4 (子面板)       → 详情面板 | 编辑器 | 预览器 | 配置器
 L5 (操作)         → 按钮组 | 快捷键 | 右键菜单 | 快速选择器
 ```
-
----
-
-## 9. 阶段 1-24 演进
-
-| 阶段 | 主题 | 核心交付 |
-|------|------|---------|
-| 1-5 | 基础 + UI + 聊天 | React + Tailwind + ChatArea |
-| 6-10 | 架构 + 导航 + 持久化 | 九层架构 + Zustand + API |
-| 11-15 | 工作流 + Agent + MCP | DAG + 7 智能体 + MCP |
-| 16-20 | 增强功能 | Figma MCP + GLM-4 + 语音 |
-| 21-24 | 完善 + 测试 | 测试框架 + 文档 + 优化 |
 
 ---
 
@@ -421,56 +446,37 @@ L5 (操作)         → 按钮组 | 快捷键 | 右键菜单 | 快速选择器
 Family-π³/
 ├── src/
 │   ├── app/
-│   │   ├── components/    # 111+ React 组件
-│   │   └── App.tsx        # 应用入口
-│   ├── lib/               # 核心库 (~20k 行)
-│   │   ├── __tests__/     # 测试套件
-│   │   ├── store.ts       # Zustand 状态
+│   │   ├── components/     # 111+ React 组件
+│   │   │   ├── ui/         # shadcn/ui + 自定义组件 (含 BrandLogo)
+│   │   │   ├── console/    # 系统控制台各视图
+│   │   │   ├── chat/       # 聊天界面组件
+│   │   │   ├── settings/   # 设置面板
+│   │   │   └── layout/     # 侧边栏、导航布局
+│   │   └── App.tsx         # 应用入口
+│   ├── lib/
+│   │   ├── storage/        # ⭐ 三层存储架构
+│   │   │   ├── storage-orchestrator.ts  # 智能分层路由
+│   │   │   ├── indexeddb-adapter.ts     # IndexedDB (L2)
+│   │   │   ├── cache-manager.ts         # TTL 缓存层
+│   │   │   ├── cross-tab-sync.ts        # BroadcastChannel 同步
+│   │   │   ├── crdt.ts                  # CRDT 冲突合并
+│   │   │   ├── storage-context.tsx      # 存储上下文 Hook
+│   │   │   ├── storage-encryption.ts    # AES-GCM 加密
+│   │   │   ├── storage-migration.ts     # 存储迁移工具
+│   │   │   └── migrate-storage.ts       # 旧键迁移工具
+│   │   ├── store.ts       # Zustand 状态管理
 │   │   ├── llm-bridge.ts  # LLM 集成
-│   │   └── mcp-protocol.ts# MCP 协议
-│   └── server/            # Express 后端
+│   │   ├── branding-config.ts # 品牌配置
+│   │   ├── mcp-protocol.ts # MCP 协议
+│   │   └── api.ts         # 纯前端持久化服务层
+│   └── env.d.ts           # 全局类型声明
 ├── e2e/                   # Playwright E2E 测试
-│   ├── pages/             # 页面对象模型
-│   └── tests/             # E2E 测试用例
-├── docs/                  # 20+ 文档目录
-└── .github/workflows/     # CI/CD 流水线
+└── docs/                  # 20+ 文档目录
 ```
 
 ---
 
-## 11. 数据持久化策略
-
-| 域 | 存储 | 大小 |
-|----|------|------|
-| chat_messages | localStorage | 10-50KB |
-| agent_messages | localStorage | 2-10KB |
-| preferences | localStorage | 1-5KB |
-| metrics_snapshots | localStorage | 500KB |
-| system_logs | localStorage | 100KB |
-
----
-
-## 12. API 与文档
-
-### API 端点
-
-| 端点 | 方法 | 描述 |
-|------|------|------|
-| `/api/v1/health` | GET | 健康检查 |
-| `/api/v1/sessions` | GET/POST | 会话管理 |
-| `/api/v1/agents` | GET/POST | Agent 管理 |
-| `/api/v1/metrics` | GET/POST | 指标管理 |
-
-### 文档资源
-
-- [架构设计文档](./docs/YYC3-AF-架构设计/)
-- [测试报告](./FINAL-TEST-REPORT.md)
-- [项目评审报告](./PROJECT-REVIEW-REPORT.md)
-- [Figma AI 设计指南](./FIGMA-AI-DESIGN-GUIDE.md)
-
----
-
-## 13. 快速开始
+## 11. 快速开始
 
 ```bash
 # 克隆仓库
@@ -480,22 +486,62 @@ cd Family-π³
 # 安装依赖
 pnpm install
 
-# 启动开发服务器
+# 启动开发服务器 (端口 3003)
 pnpm dev
 
 # 运行测试
 pnpm test              # 单元测试
 pnpm test:e2e          # E2E 测试
-pnpm test:e2e:perf     # 性能测试
-pnpm test:e2e:visual   # 视觉回归
+
+# 代码检查
+pnpm lint              # ESLint
+pnpm type-check        # TypeScript 类型检查
 
 # 构建生产版本
 pnpm build
 ```
 
+### 开发环境
+
+```
+开发服务器: http://localhost:3003
+API 代理:   无 (纯前端，直连 NAS)
+数据库:     L1: localStorage  |  L2: IndexedDB  |  L3: NAS SQLite
+NAS 地址:   ws://192.168.3.45:8484
+```
+
 ---
 
-## 14. 测试框架
+## 12. 品牌自定义
+
+YYC³ AI-Family 支持完整的品牌自定义：
+
+### 可配置项
+
+| 配置项 | 类型 | 说明 |
+|--------|------|------|
+| appName | string | 应用名称（默认 YYC³_DEVOPS） |
+| tagline | string | 副标题（默认 v3.0.1-beta） |
+| logoText | string | SVG 内文字（默认 Y3） |
+| logoDataUrl | base64 | 上传 Logo 图片 |
+| 强调色 | color | 10 种预设 + 自定义 |
+| 字体 | font | 界面字体 + 等宽字体 |
+
+### 数据流
+
+```
+branding-config.ts (localStorage 唯一配置源)
+  → BrandLogo 组件 (统一品牌标识)
+    ├── ClaudeWelcome (登录欢迎页)
+    ├── Sidebar (侧边栏)
+    └── SettingsModal (设置页预览)
+```
+
+BrandLogo 组件支持三种模式自动切换：有上传图片 → 显示图片 / 无图片 → 显示 gradient SVG + logoText / 自定义文本。
+
+---
+
+## 13. 测试框架
 
 ### 测试金字塔
 
@@ -523,7 +569,7 @@ pnpm build
 
 ---
 
-## 15. CI/CD 流水线
+## 14. CI/CD 流水线
 
 ```yaml
 jobs:
@@ -538,18 +584,9 @@ jobs:
   - deploy-production    # 部署到生产
 ```
 
-### 运行命令
-
-```bash
-pnpm test:ci    # 完整 CI 流程
-pnpm test:e2e   # E2E 测试
-pnpm test:e2e:perf    # 性能测试
-pnpm test:e2e:visual  # 视觉回归
-```
-
 ---
 
-## 16. 专业勋章体系
+## 15. 专业勋章体系
 
 ### 🏆 质量勋章
 
@@ -557,17 +594,16 @@ pnpm test:e2e:visual  # 视觉回归
 |------|---------|------|
 | 🥇 架构大师 | L01-L09 全部激活 | ✅ |
 | 🥈 类型守护者 | TypeScript 零 Any | ✅ |
-| 🥉 测试先锋 | 292 测试全部通过 | ✅ |
-| 🏅 性能王者 | Web Vitals 达标 | ✅ |
-| 🏆 安全卫士 | Web Crypto + Sentinel | ✅ |
+| 🥉 存储王者 | 三层存储 + CRDT 合并 | ✅ |
+| 🏅 性能王者 | CacheManager + 虚拟滚动 | ✅ |
 
 ### 🎖️ 协作勋章
 
 | 勋章 | 获得条件 | 状态 |
 |------|---------|------|
-| 💎 人机协同 | 七大智能体协作 | ✅ |
+| 💎 人机协同 | 八大智能体协作 | ✅ |
 | 🌟 多模态交互 | 语音 + 文字 + 快捷键 | ✅ |
-| ⚡ 实时响应 | WebSocket + SSE | ✅ |
+| ⚡ 跨标签同步 | BroadcastChannel 实时同步 | ✅ |
 | 🎨 视觉卓越 | 赛博朋克 + 玻璃拟态 | ✅ |
 
 ### 🚀 创新勋章
@@ -576,17 +612,17 @@ pnpm test:e2e:visual  # 视觉回归
 |------|---------|------|
 | 🔮 AI 先驱 | 8 个 LLM 提供商 | ✅ |
 | 🌐 生态构建者 | MCP + 插件系统 | ✅ |
-| 📊 数据洞察 | 17 个持久化域 | ✅ |
+| 📊 纯前端架构 | 零后端依赖 | ✅ |
 | 🎯 精准导航 | 五级导航体系 | ✅ |
 
 ### ❤️ Family AI 勋章
 
 | 勋章 | 获得条件 | 状态 |
 |------|---------|------|
-| 👨‍👩‍👧‍👦 Family 完整 | 七大智能体协同 | ✅ |
+| 👨‍👩‍👧‍👦 Family 完整 | 八大智能体协同 | ✅ |
 | 🤝 智能伙伴 | AI 作为开发伙伴 | ✅ |
-| 🌈 温暖协作 | 人机共进环境 | ✅ |
-| 🔒 安全加密 | Web Crypto API | ✅ |
+| 🌈 品牌统一 | BrandLogo 一体化组件 | ✅ |
+| 🔒 安全加密 | Web Crypto AES-GCM | ✅ |
 
 ---
 
@@ -605,19 +641,12 @@ pnpm test:e2e:visual  # 视觉回归
 ### 开发流程
 
 ```bash
-# 安装依赖
-pnpm install
-
-# 运行测试
-pnpm test
-pnpm test:e2e
-
-# 代码检查
-pnpm lint
-pnpm type-check
-
-# 构建
-pnpm build
+pnpm install           # 安装依赖
+pnpm dev               # 启动开发服务器
+pnpm test              # 运行测试
+pnpm lint              # 代码检查
+pnpm type-check        # 类型检查
+pnpm build             # 构建
 ```
 
 ---
@@ -648,8 +677,6 @@ MIT License - 详见 [LICENSE](./LICENSE) 文件
 
 ---
 
-> **YanYuCloudCube** | **言启象限 · 语枢未来**
-> 
+> **YanYuCloudCube™** | **言启象限 · 语枢未来**
+>
 > **Words Initiate Quadrants, Language Serves as Core for Future**
-
-</div>

@@ -1,23 +1,24 @@
 import {
-  Terminal,
-  FolderOpen,
-  Package,
-  User,
-  PlusCircle,
-  TerminalSquare,
   Activity,
-  Pin,
-  PinOff,
-  Menu,
-  X,
-  Settings,
-  Github,
-  Globe,
   BookOpen,
   Bookmark,
+  FolderOpen,
+  Github,
+  Globe,
+  Menu,
+  Package,
+  Pin,
+  PinOff,
+  PlusCircle,
+  Settings,
+  Terminal,
+  TerminalSquare,
+  User,
+  X,
 } from 'lucide-react';
 import React from 'react';
 
+import { BrandLogo } from '@/app/components/ui/brand-logo';
 import { Button } from '@/app/components/ui/button';
 import { ScrollArea } from '@/app/components/ui/scroll-area';
 import { loadBranding, type BrandingConfig } from '@/lib/branding-config';
@@ -117,13 +118,7 @@ export function Sidebar({ activeView, onViewChange, onNewSession, onOpenSettings
           >
             <Menu className="w-5 h-5" />
           </Button>
-          <div className="w-6 h-6 rounded bg-primary/20 flex items-center justify-center border border-primary/50 text-primary font-mono text-[10px] overflow-hidden shrink-0">
-            {branding.logoDataUrl ? (
-              <img src={branding.logoDataUrl} alt="logo" className="w-full h-full object-cover" />
-            ) : (
-              branding.logoText || 'Y3'
-            )}
-          </div>
+          <BrandLogo size="sm" />
           <span className="font-mono text-xs text-primary tracking-wider truncate">{branding.appName || 'YYC3'}</span>
           <div className="ml-auto flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
@@ -208,13 +203,7 @@ function SidebarContent({
     )}>
       {/* Logo Area */}
       <div className="p-3 border-b border-border flex items-center gap-2 shrink-0">
-        <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center border border-primary/50 text-primary font-mono text-xs shrink-0 shadow-[0_0_10px_rgba(14,165,233,0.3)] overflow-hidden">
-          {branding.logoDataUrl ? (
-            <img src={branding.logoDataUrl} alt="logo" className="w-full h-full object-cover" />
-          ) : (
-            <span>{branding.logoText || 'Y3'}</span>
-          )}
-        </div>
+        <BrandLogo size="sm" />
         {isExpanded && (
           <div className="flex-1 min-w-0 animate-in fade-in duration-150">
             <h1 className="font-mono text-sm tracking-wider text-primary glow-text truncate">{branding.appName || 'YYC3_DEVOPS'}</h1>

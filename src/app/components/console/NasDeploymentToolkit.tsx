@@ -151,13 +151,14 @@ console.log(\`[Heartbeat WS] Server listening on ws://0.0.0.0:\${PORT}/ws/heartb
 // --- Family members registry ---
 const familyMembers = {
   agents: [
-    { memberId: 'navigator',   memberType: 'agent',  name: '智愈·领航员' },
-    { memberId: 'thinker',     memberType: 'agent',  name: '洞见·思想家' },
+    { memberId: 'navigator',   memberType: 'agent',  name: '言启·千行' },
+    { memberId: 'thinker',     memberType: 'agent',  name: '语枢·万物' },
     { memberId: 'prophet',     memberType: 'agent',  name: '预见·先知' },
     { memberId: 'bole',        memberType: 'agent',  name: '知遇·伯乐' },
     { memberId: 'pivot',       memberType: 'agent',  name: '元启·天枢' },
-    { memberId: 'sentinel',    memberType: 'agent',  name: '卫安·哨兵' },
+    { memberId: 'sentinel',    memberType: 'agent',  name: '智云·守护' },
     { memberId: 'grandmaster', memberType: 'agent',  name: '格物·宗师' },
+    { memberId: 'grace',       memberType: 'agent',  name: '创想·灵韵' },
   ],
   devices: [
     { memberId: 'm4-max',     memberType: 'device', name: 'MacBook Pro M4 Max' },

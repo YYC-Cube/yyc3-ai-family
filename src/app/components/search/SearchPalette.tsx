@@ -81,9 +81,9 @@ function buildCommandRegistry(): CommandDef[] {
     { id: 'cmd-settings', title: '系统设置', keywords: ['设置', 'settings', 'config', '配置'], description: '系统参数配置', action: () => store.openSettings('general') },
 
     // === Agents ===
-    { id: 'cmd-navigator', title: 'Navigator 领航员', keywords: ['领航员', 'navigator', '任务分发'], description: '任务分发与路由智能体', action: () => store.navigateToAgent('navigator') },
-    { id: 'cmd-sentinel', title: 'Sentinel 哨兵', keywords: ['哨兵', 'sentinel', '安全审计'], description: '安全审计与监控智能体', action: () => store.navigateToAgent('sentinel') },
-    { id: 'cmd-thinker', title: 'Thinker 思想家', keywords: ['思想家', 'thinker', '深度推理'], description: '深度推理与分析智能体', action: () => store.navigateToAgent('thinker') },
+    { id: 'cmd-navigator', title: '言启·千行', keywords: ['言启·千行', 'navigator', '意图识别'], description: '意图识别与任务路由', action: () => store.navigateToAgent('navigator') },
+    { id: 'cmd-sentinel', title: '智云·守护', keywords: ['智云·守护', 'sentinel', '安全审计'], description: '行为审计与安全防护', action: () => store.navigateToAgent('sentinel') },
+    { id: 'cmd-thinker', title: '语枢·万物', keywords: ['语枢·万物', 'thinker', '数据分析'], description: '数据分析与深度洞察', action: () => store.navigateToAgent('thinker') },
     { id: 'cmd-prophet', title: 'Prophet 先知', keywords: ['先知', 'prophet', '预测'], description: '预测与趋势分析智能体', action: () => store.navigateToAgent('prophet') },
     { id: 'cmd-bole', title: 'Bole 伯乐', keywords: ['伯乐', 'bole', '资源优化'], description: '人才与资源优化智能体', action: () => store.navigateToAgent('bole') },
     { id: 'cmd-pivot', title: 'Pivot 天枢', keywords: ['天枢', 'pivot', '架构枢纽'], description: '架构核心枢纽智能体', action: () => store.navigateToAgent('pivot') },

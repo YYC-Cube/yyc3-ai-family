@@ -1,25 +1,26 @@
 #!/bin/bash
 
 # @file test-agents.sh
-# @description YYC³ AI-Family 七大智能体集成测试脚本，测试七大智能体的模型连接和推理能力
+# @description YYC³ AI-Family 八大智能体集成测试脚本，测试八大智能体的模型连接和推理能力
 # @author YYC³ Team
 # @version 1.0.0
 # @created 2026-02-25
 # @tags [testing],[agents],[ai]
 
 # ============================================================
-# YYC³ AI Family - 七大智能体集成测试
+# YYC³ AI Family - 八大智能体集成测试
 # 文件: /Users/yanyu/YYC3-Mac-Max/Family-π³/scripts/test-agents.sh
-# 用途: 测试七大智能体的模型连接和推理能力
+# 用途: 测试八大智能体的模型连接和推理能力
 #
-# 七大智能体:
-#   Navigator  (智愈·领航员) - 全域资源调度
-#   Thinker    (洞见·思想家) - 深度逻辑推理
+# 八大智能体:
+#   Navigator  (言启·千行) - 意图识别与任务路由
+#   Thinker    (语枢·万物) - 数据分析与深度洞察
 #   Prophet    (预见·先知)   - 趋势预测
-#   Bole       (知遇·伯乐)   - 模型评估
-#   Pivot      (元启·天枢)   - 核心协调
-#   Sentinel   (卫安·哨兵)   - 安全防护
-#   Grandmaster(格物·宗师)   - 知识库构建
+#   Bole       (知遇·伯乐)   - 个性化推荐
+#   Pivot      (元启·天枢)   - 全局编排与决策中枢
+#   Sentinel   (智云·守护)   - 行为审计与安全防护
+#   Grandmaster(格物·宗师)   - 代码分析与质量管控
+#   Grace      (创想·灵韵)   - 内容创作与创意生成
 # ============================================================
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -124,17 +125,17 @@ for agent in "navigator" "thinker" "prophet" "bole" "pivot" "sentinel" "grandmas
 done
 
 # ============================================================
-# Navigator (智愈·领航员) - M4 Max
+# Navigator (言启·千行) - M4 Max
 # ============================================================
-print_header "Navigator (智愈·领航员)"
+print_header "Navigator (言启·千行)"
 
 test_agent_model "qwen2.5:7b" "qwen2.5:7b" "http://localhost:11434" "导航测试"
 test_agent_model "nomic-embed" "nomic-embed-text" "http://localhost:11434" "嵌入测试"
 
 # ============================================================
-# Thinker (洞见·思想家) - Cloud API
+# Thinker (语枢·万物) - Cloud API
 # ============================================================
-print_header "Thinker (洞见·思想家)"
+print_header "Thinker (语枢·万物)"
 
 ((TOTAL++))
 printf "  %-20s" "DeepSeek API"
@@ -178,9 +179,9 @@ print_header "Pivot (元启·天枢)"
 test_agent_model "glm4:9b" "glm4:9b" "http://192.168.3.77:11434" "协调测试"
 
 # ============================================================
-# Sentinel (卫安·哨兵) - iMac M4
+# Sentinel (智云·守护) - iMac M4
 # ============================================================
-print_header "Sentinel (卫安·哨兵)"
+print_header "Sentinel (智云·守护)"
 
 test_agent_model "phi3:mini" "phi3:mini" "http://192.168.3.77:11434" "安全检查测试"
 test_agent_model "phi3:14b" "phi3:14b" "http://192.168.3.77:11434" "深度安全分析"

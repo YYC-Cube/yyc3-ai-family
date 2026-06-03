@@ -21,10 +21,12 @@ async function simpleAgentChat() {
     baseUrl: 'https://open.bigmodel.cn/api/',
     timeout: 30000,
   });
+
   console.log('✅ SDK初始化成功\n');
 
   console.log('2️⃣ 获取可用助手列表...');
   const assistants = await sdk.assistants.listAssistants();
+
   console.log(`📋 可用助手数量: ${assistants.length}`);
 
   assistants.forEach((assistant, index) => {
@@ -36,7 +38,7 @@ async function simpleAgentChat() {
 
   console.log('3️⃣ 选择工程师助手进行对话...');
   const engineerAssistant = assistants.find(a =>
-    a.name.includes('工程师') || a.nameEn.toLowerCase().includes('engineer')
+    a.name.includes('工程师') || a.nameEn.toLowerCase().includes('engineer'),
   );
 
   if (!engineerAssistant) {
@@ -51,12 +53,13 @@ async function simpleAgentChat() {
     console.log(`使用助手: ${firstAssistant.name}\n`);
 
     const response = await sdk.client.chat(firstAssistant.id, [
-      { role: 'user', content: '你好！请简单介绍一下你自己。' }
+      { role: 'user', content: '你好！请简单介绍一下你自己。' },
     ]);
 
     console.log('💬 助手回复:');
     console.log(response.choices[0].message.content);
     console.log('\n📊 Token使用量:', response.usage);
+
     return;
   }
 
@@ -66,7 +69,7 @@ async function simpleAgentChat() {
   const startTime = Date.now();
 
   const response = await sdk.client.chat(engineerAssistant.id, [
-    { role: 'user', content: '请帮我设计一个用户登录系统的基本架构，包括前端、后端和数据库设计。请简洁回答。' }
+    { role: 'user', content: '请帮我设计一个用户登录系统的基本架构，包括前端、后端和数据库设计。请简洁回答。' },
   ]);
 
   const elapsed = Date.now() - startTime;
@@ -85,6 +88,7 @@ async function streamChatExample() {
 
   if (!process.env.BIGMODEL_API_KEY) {
     console.error('❌ 错误: 请设置环境变量 BIGMODEL_API_KEY');
+
     return;
   }
 
@@ -97,6 +101,7 @@ async function streamChatExample() {
 
   if (!assistant) {
     console.log('❌ 没有可用的助手');
+
     return;
   }
 
@@ -108,7 +113,7 @@ async function streamChatExample() {
   const startTime = Date.now();
 
   const stream = await sdk.client.chatStream(assistant.id, [
-    { role: 'user', content: '请用200字介绍YYC³（言云立方）项目的核心理念和特点。' }
+    { role: 'user', content: '请用200字介绍YYC³（言云立方）项目的核心理念和特点。' },
   ]);
 
   for await (const chunk of stream) {

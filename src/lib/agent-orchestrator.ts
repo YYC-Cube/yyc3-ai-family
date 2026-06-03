@@ -154,8 +154,8 @@ export interface TimelineEvent {
   id: string;
   timestamp: string;
   type: 'task_created' | 'agent_assigned' | 'agent_started' | 'agent_completed'
-    | 'agent_error' | 'subtask_created' | 'consensus_reached' | 'human_review'
-    | 'task_completed' | 'feedback_received' | 'message';
+  | 'agent_error' | 'subtask_created' | 'consensus_reached' | 'human_review'
+  | 'task_completed' | 'feedback_received' | 'message';
   agentId?: string;
   message: string;
   metadata?: Record<string, unknown>;
@@ -191,9 +191,9 @@ export const AGENT_CAPABILITIES: Record<string, AgentCapability> = {
   navigator: {
     id: 'navigator',
     name: 'Navigator',
-    nameZh: '智愈 领航员',
-    specialties: ['resource scheduling', 'path planning', 'global coordination'],
-    strengths: ['系统全局视角', '路径优化', '资源调度'],
+    nameZh: '言启·千行',
+    specialties: ['intent recognition', 'task routing', 'context management'],
+    strengths: ['意图识别', '自然语言理解', '上下文管理'],
     collaborationPreferences: {
       preferredPartners: ['thinker', 'pivot'],
       complementaryAgents: ['sentinel', 'prophet'],
@@ -204,9 +204,9 @@ export const AGENT_CAPABILITIES: Record<string, AgentCapability> = {
   thinker: {
     id: 'thinker',
     name: 'Thinker',
-    nameZh: '洞见 思想家',
-    specialties: ['deep reasoning', 'logic analysis', 'decision support'],
-    strengths: ['深度逻辑推理', '因果分析', '决策建模'],
+    nameZh: '语枢·万物',
+    specialties: ['data analysis', 'deep insight', 'hypothesis reasoning'],
+    strengths: ['数据分析', '深度洞察', '归纳推理'],
     collaborationPreferences: {
       preferredPartners: ['navigator', 'grandmaster'],
       complementaryAgents: ['prophet', 'bole'],
@@ -256,15 +256,28 @@ export const AGENT_CAPABILITIES: Record<string, AgentCapability> = {
   sentinel: {
     id: 'sentinel',
     name: 'Sentinel',
-    nameZh: '卫安 哨兵',
-    specialties: ['security audit', 'compliance check', 'vulnerability assessment'],
-    strengths: ['安全审计', '合规检查', '漏洞检测'],
+    nameZh: '智云·守护',
+    specialties: ['behavior audit', 'security protection', 'compliance check'],
+    strengths: ['行为审计', '安全防护', '合规检查'],
     collaborationPreferences: {
       preferredPartners: ['prophet', 'pivot'],
       complementaryAgents: ['navigator', 'thinker'],
       conflictAgents: [],
     },
     scores: { analysis: 85, creativity: 40, execution: 80, communication: 60, review: 98, decision: 70 },
+  },
+  grace: {
+    id: 'grace',
+    name: 'Grace',
+    nameZh: '创想·灵韵',
+    specialties: ['content creation', 'creative design', 'visual aesthetics'],
+    strengths: ['内容创作', '创意设计', '视觉美学'],
+    collaborationPreferences: {
+      preferredPartners: ['grandmaster', 'thinker'],
+      complementaryAgents: ['navigator', 'prophet'],
+      conflictAgents: [],
+    },
+    scores: { analysis: 60, creativity: 98, execution: 75, communication: 80, review: 65, decision: 60 },
   },
   grandmaster: {
     id: 'grandmaster',
@@ -497,7 +510,7 @@ export function discoverToolsForTask(intent: string): MCPTool[] {
   for (const server of allServers) {
     for (const tool of server.tools) {
       const toolMatch = tool.name.toLowerCase().includes(keywords) ||
-                        tool.description.toLowerCase().includes(keywords);
+        tool.description.toLowerCase().includes(keywords);
 
       // Domain mapping
       const domainMatch =
@@ -597,8 +610,8 @@ export function recommendAgents(
     agentId: s.agentId,
     role: i === 0 ? 'lead' as AgentRole :
       (mode === 'debate' && i === selected.length - 1) ? 'judge' as AgentRole :
-      (mode === 'ensemble' && i >= selected.length - 1) ? 'reviewer' as AgentRole :
-      'contributor' as AgentRole,
+        (mode === 'ensemble' && i >= selected.length - 1) ? 'reviewer' as AgentRole :
+          'contributor' as AgentRole,
     score: Math.round(s.score),
     reasoning: s.reasons.length > 0 ? s.reasons.join('; ') : `Base capability score: ${Math.round(s.score)}`,
   }));

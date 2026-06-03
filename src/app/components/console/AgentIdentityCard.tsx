@@ -12,8 +12,20 @@
 // ============================================================
 
 import {
-  Brain, Sparkles, Activity, Users, Network, Shield, Book,
-  Edit3, Check, X, Heart, Signal, ArrowLeftRight,
+  Activity,
+  ArrowLeftRight,
+  Book,
+  Brain,
+  Check,
+  Edit3,
+  Heart,
+  Network,
+  Palette,
+  Shield,
+  Signal,
+  Sparkles,
+  Users,
+  X,
 } from 'lucide-react';
 import * as React from 'react';
 
@@ -21,13 +33,13 @@ import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import {
-  type AgentProfile,
-  type AgentIdentity,
-  type MoodState,
   MOOD_COLORS,
   PRESENCE_META,
   loadAgentProfiles,
   saveAgentProfiles,
+  type AgentIdentity,
+  type AgentProfile,
+  type MoodState,
 } from '@/lib/agent-identity';
 import { eventBus } from '@/lib/event-bus';
 import { cn } from '@/lib/utils';
@@ -44,6 +56,7 @@ const AGENT_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>
   pivot: Network,
   sentinel: Shield,
   grandmaster: Book,
+  grace: Palette,
 };
 
 const AGENT_COLOR_MAP: Record<string, { text: string; bg: string; border: string; glow: string }> = {
@@ -54,6 +67,7 @@ const AGENT_COLOR_MAP: Record<string, { text: string; bg: string; border: string
   pivot: { text: 'text-cyan-500', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30', glow: 'shadow-cyan-500/20' },
   sentinel: { text: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-500/30', glow: 'shadow-red-500/20' },
   grandmaster: { text: 'text-green-500', bg: 'bg-green-500/10', border: 'border-green-500/30', glow: 'shadow-green-500/20' },
+  grace: { text: 'text-violet-500', bg: 'bg-violet-500/10', border: 'border-violet-500/30', glow: 'shadow-violet-500/20' },
 };
 
 // ============================================================

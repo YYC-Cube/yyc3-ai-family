@@ -14,12 +14,10 @@ import {
   AGENT_CAPABILITIES,
   COLLABORATION_PRESETS,
   createTask,
-  addTimelineEvent as addTimelineEventFn,
   recommendAgents as recommendAgentsFn,
   updateTask,
   discoverToolsForTask,
   parseMCPInvocations,
-  type CollaborationTask,
   type CollaborationMode,
   type AgentRole,
 } from '../agent-orchestrator';
@@ -417,7 +415,7 @@ describe('Agent Orchestrator — Tool Discovery', () => {
     const toolNames = tools.map(t => t.name);
 
     const hasRelevantTool = toolNames.some(name =>
-      name.includes('cluster') || name.includes('docker') || name.includes('health')
+      name.includes('cluster') || name.includes('docker') || name.includes('health'),
     );
 
     expect(hasRelevantTool).toBe(true);

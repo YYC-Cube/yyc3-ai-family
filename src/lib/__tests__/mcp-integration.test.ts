@@ -18,31 +18,30 @@ import {
   registerMCPServer,
   removeMCPServer,
   initMCPRegistry,
-  
+
   // Connection management
   connectMCPServer,
   disconnectMCPServer,
   testMCPConnection,
   getMCPConnection,
   getAllMCPConnections,
-  
+
   // Tool execution
   executeMCPCall,
   smartMCPCall,
   logMCPCall,
   getMCPCallLog,
-  
+
   // Code generation
   generateMCPServerCode,
   generateMCPClientConfig,
-  
+
   // Presets
   MCP_SERVER_PRESETS,
   MCP_CALL_PRESETS,
-  
+
   // Types
   type MCPServerDefinition,
-  type MCPTool,
   type MCPCallResult,
 } from '../mcp-protocol';
 
@@ -64,6 +63,7 @@ Object.defineProperty(global, 'localStorage', { value: localStorageMock });
 
 // Mock fetch for HTTP-SSE transport
 const mockFetch = vi.fn();
+
 global.fetch = mockFetch;
 
 // Mock crypto for encryption
@@ -987,6 +987,7 @@ describe('MCP Integration — Performance', () => {
     await saveMCPRegistry(servers);
 
     const start = Date.now();
+
     await loadMCPRegistry();
     const duration = Date.now() - start;
 

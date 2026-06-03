@@ -9,16 +9,16 @@ import { MobileNavBar } from '@/app/components/layout/MobileNavBar';
 import { Sidebar } from '@/app/components/layout/Sidebar';
 import { NeuralLinkOverlay } from '@/app/components/monitoring/NeuralLinkOverlay';
 import { SettingsModal } from '@/app/components/settings/SettingsModal';
-import { Panel, PanelGroup, PanelResizeHandle } from '@/app/components/ui/resizable-panels';
 import type { ImperativePanelHandle } from '@/app/components/ui/resizable-panels';
+import { Panel, PanelGroup, PanelResizeHandle } from '@/app/components/ui/resizable-panels';
 import { _registerEventBusRef } from '@/lib/agent-orchestrator';
 import { eventBus } from '@/lib/event-bus';
 import { LanguageProvider, useTranslation } from '@/lib/i18n';
 // NOTE: theme.css is already imported via main.tsx → index.css → theme.css
 // Do NOT re-import it here to avoid double Tailwind CSS processing.
-import { generalStreamChat, hasConfiguredProvider, trackUsage, loadProviderConfigs, initProviderConfigs } from '@/lib/llm-bridge';
 import type { LLMMessage } from '@/lib/llm-bridge';
-import { updateOllamaModels, PROVIDERS } from '@/lib/llm-providers';
+import { generalStreamChat, hasConfiguredProvider, initProviderConfigs, loadProviderConfigs, trackUsage } from '@/lib/llm-bridge';
+import { PROVIDERS, updateOllamaModels } from '@/lib/llm-providers';
 import { initMCPRegistry } from '@/lib/mcp-protocol';
 import { usePersistenceSync } from '@/lib/persistence-binding';
 import { getProxiedProviders } from '@/lib/proxy-endpoints';
@@ -105,13 +105,14 @@ function matchNavigationIntent(lowerText: string) {
 
   // Agent matching
   const agentMap: Record<string, string> = {
-    'navigator': 'navigator', '领航员': 'navigator',
-    'thinker': 'thinker', '思想家': 'thinker',
-    'prophet': 'prophet', '先知': 'prophet',
-    'bole': 'bole', '伯乐': 'bole',
-    'pivot': 'pivot', '天枢': 'pivot',
-    'sentinel': 'sentinel', '哨兵': 'sentinel',
-    'grandmaster': 'grandmaster', '宗师': 'grandmaster',
+    'navigator': 'navigator', '言启·千行': 'navigator', '言启': 'navigator', '千行': 'navigator',
+    'thinker': 'thinker', '语枢·万物': 'thinker', '语枢': 'thinker', '万物': 'thinker',
+    'prophet': 'prophet', '预见·先知': 'prophet', '先知': 'prophet',
+    'bole': 'bole', '知遇·伯乐': 'bole', '伯乐': 'bole',
+    'pivot': 'pivot', '元启·天枢': 'pivot', '天枢': 'pivot',
+    'sentinel': 'sentinel', '智云·守护': 'sentinel', '智云': 'sentinel', '守护': 'sentinel',
+    'grandmaster': 'grandmaster', '格物·宗师': 'grandmaster', '宗师': 'grandmaster',
+    'grace': 'grace', '创想·灵韵': 'grace', '灵韵': 'grace',
   };
 
   for (const [key, id] of Object.entries(agentMap)) {
@@ -121,53 +122,33 @@ function matchNavigationIntent(lowerText: string) {
   }
 
   // Console Tab matching
-  if (lowerText.includes('dashboard') || lowerText.includes('仪表盘'))
-  {return { target: 'Dashboard', action: () => state.navigateToConsoleTab('dashboard') };}
-  if (lowerText.includes('devops') || lowerText.includes('运维') || lowerText.includes('pipeline') || lowerText.includes('workflow'))
-  {return { target: 'DevOps Workspace', action: () => state.navigateToConsoleTab('devops') };}
-  if (lowerText.includes('ollama') || lowerText.includes('本地模型'))
-  {return { target: 'Ollama Manager', action: () => state.navigateToConsoleTab('ollama') };}
-  if (lowerText.includes('stream') || lowerText.includes('诊断') || lowerText.includes('streaming'))
-  {return { target: 'Stream Diagnostics', action: () => state.navigateToConsoleTab('diagnostics') };}
-  if (lowerText.includes('security') || lowerText.includes('安全') || lowerText.includes('audit'))
-  {return { target: 'Security Audit', action: () => state.navigateToConsoleTab('security') };}
-  if (lowerText.includes('mcp') || lowerText.includes('工具链'))
-  {return { target: 'MCP Hub', action: () => state.navigateToConsoleTab('mcp') };}
-  if (lowerText.includes('persist') || lowerText.includes('持久化') || lowerText.includes('sync'))
-  {return { target: 'Persistence Engine', action: () => state.navigateToConsoleTab('persistence') };}
-  if (lowerText.includes('smoke') || lowerText.includes('test') || lowerText.includes('测试'))
-  {return { target: 'Test Framework', action: () => state.navigateToConsoleTab('test') };}
+  if (lowerText.includes('dashboard') || lowerText.includes('仪表盘')) { return { target: 'Dashboard', action: () => state.navigateToConsoleTab('dashboard') }; }
+  if (lowerText.includes('devops') || lowerText.includes('运维') || lowerText.includes('pipeline') || lowerText.includes('workflow')) { return { target: 'DevOps Workspace', action: () => state.navigateToConsoleTab('devops') }; }
+  if (lowerText.includes('ollama') || lowerText.includes('本地模型')) { return { target: 'Ollama Manager', action: () => state.navigateToConsoleTab('ollama') }; }
+  if (lowerText.includes('stream') || lowerText.includes('诊断') || lowerText.includes('streaming')) { return { target: 'Stream Diagnostics', action: () => state.navigateToConsoleTab('diagnostics') }; }
+  if (lowerText.includes('security') || lowerText.includes('安全') || lowerText.includes('audit')) { return { target: 'Security Audit', action: () => state.navigateToConsoleTab('security') }; }
+  if (lowerText.includes('mcp') || lowerText.includes('工具链')) { return { target: 'MCP Hub', action: () => state.navigateToConsoleTab('mcp') }; }
+  if (lowerText.includes('persist') || lowerText.includes('持久化') || lowerText.includes('sync')) { return { target: 'Persistence Engine', action: () => state.navigateToConsoleTab('persistence') }; }
+  if (lowerText.includes('smoke') || lowerText.includes('test') || lowerText.includes('测试')) { return { target: 'Test Framework', action: () => state.navigateToConsoleTab('test') }; }
 
   // Phase 36: Hardware Monitor navigation intent
-  if (lowerText.includes('hardware') || lowerText.includes('硬件') || lowerText.includes('telemetry') || lowerText.includes('遥测') || lowerText.includes('温度') || lowerText.includes('cpu core') || lowerText.includes('thermal'))
-  {return { target: 'Hardware Monitor', action: () => state.navigateToConsoleTab('hardware_monitor') };}
+  if (lowerText.includes('hardware') || lowerText.includes('硬件') || lowerText.includes('telemetry') || lowerText.includes('遥测') || lowerText.includes('温度') || lowerText.includes('cpu core') || lowerText.includes('thermal')) { return { target: 'Hardware Monitor', action: () => state.navigateToConsoleTab('hardware_monitor') }; }
 
   // Phase 45: Mode Control, Manual, Nine-Layer navigation intents
-  if (lowerText.includes('manual') || lowerText.includes('手册') || lowerText.includes('guide') || lowerText.includes('指南'))
-  {return { target: 'Operation Manual', action: () => state.navigateToConsoleTab('operation_manual') };}
-  if (lowerText.includes('nine layer') || lowerText.includes('九层') || lowerText.includes('blueprint') || lowerText.includes('蓝图') || lowerText.includes('层级'))
-  {return { target: 'Nine-Layer Architecture', action: () => state.navigateToConsoleTab('nine_layer_architecture') };}
-  if ((lowerText.includes('mode') && lowerText.includes('control')) || lowerText.includes('模式控制') || lowerText.includes('模式管理'))
-  {return { target: 'Mode Control Panel', action: () => state.navigateToConsoleTab('mode_control') };}
+  if (lowerText.includes('manual') || lowerText.includes('手册') || lowerText.includes('guide') || lowerText.includes('指南')) { return { target: 'Operation Manual', action: () => state.navigateToConsoleTab('operation_manual') }; }
+  if (lowerText.includes('nine layer') || lowerText.includes('九层') || lowerText.includes('blueprint') || lowerText.includes('蓝图') || lowerText.includes('层级')) { return { target: 'Nine-Layer Architecture', action: () => state.navigateToConsoleTab('nine_layer_architecture') }; }
+  if ((lowerText.includes('mode') && lowerText.includes('control')) || lowerText.includes('模式控制') || lowerText.includes('模式管理')) { return { target: 'Mode Control Panel', action: () => state.navigateToConsoleTab('mode_control') }; }
   // Phase 46: PG Proxy Deploy Kit navigation intent
-  if (lowerText.includes('pg proxy') || lowerText.includes('pg-proxy') || lowerText.includes('pg代理') || lowerText.includes('代理部署') || (lowerText.includes('deploy') && lowerText.includes('proxy')))
-  {return { target: 'PG Proxy Deploy Kit', action: () => state.navigateToConsoleTab('pg_proxy_deploy_kit') };}
+  if (lowerText.includes('pg proxy') || lowerText.includes('pg-proxy') || lowerText.includes('pg代理') || lowerText.includes('代理部署') || (lowerText.includes('deploy') && lowerText.includes('proxy'))) { return { target: 'PG Proxy Deploy Kit', action: () => state.navigateToConsoleTab('pg_proxy_deploy_kit') }; }
 
   // Global View matching
-  if (lowerText.includes('project') || lowerText.includes('项目'))
-  {return { target: 'Projects View', action: () => state.setActiveView('projects') };}
-  if (lowerText.includes('monitor') || lowerText.includes('监控') || lowerText.includes('health'))
-  {return { target: 'Service Health', action: () => state.setActiveView('monitor') };}
-  if (lowerText.includes('knowledge') || lowerText.includes('知识库') || lowerText.includes('rag'))
-  {return { target: 'Knowledge Base', action: () => state.setActiveView('knowledge') };}
-  if (lowerText.includes('artifact') || lowerText.includes('产物'))
-  {return { target: 'Artifacts Gallery', action: () => state.setActiveView('artifacts') };}
-  if (lowerText.includes('service') || lowerText.includes('服务') || lowerText.includes('nas'))
-  {return { target: 'Services Panel', action: () => state.setActiveView('services') };}
-  if (lowerText.includes('bookmark') || lowerText.includes('收藏'))
-  {return { target: 'Bookmarks', action: () => state.setActiveView('bookmarks') };}
-  if (lowerText.includes('settings') || lowerText.includes('设置') || lowerText.includes('配置'))
-  {return { target: 'Settings', action: () => state.openSettings() };}
+  if (lowerText.includes('project') || lowerText.includes('项目')) { return { target: 'Projects View', action: () => state.setActiveView('projects') }; }
+  if (lowerText.includes('monitor') || lowerText.includes('监控') || lowerText.includes('health')) { return { target: 'Service Health', action: () => state.setActiveView('monitor') }; }
+  if (lowerText.includes('knowledge') || lowerText.includes('知识库') || lowerText.includes('rag')) { return { target: 'Knowledge Base', action: () => state.setActiveView('knowledge') }; }
+  if (lowerText.includes('artifact') || lowerText.includes('产物')) { return { target: 'Artifacts Gallery', action: () => state.setActiveView('artifacts') }; }
+  if (lowerText.includes('service') || lowerText.includes('服务') || lowerText.includes('nas')) { return { target: 'Services Panel', action: () => state.setActiveView('services') }; }
+  if (lowerText.includes('bookmark') || lowerText.includes('收藏')) { return { target: 'Bookmarks', action: () => state.setActiveView('bookmarks') }; }
+  if (lowerText.includes('settings') || lowerText.includes('设置') || lowerText.includes('配置')) { return { target: 'Settings', action: () => state.openSettings() }; }
 
   return null;
 }
@@ -382,11 +363,11 @@ function AppContent() {
     }
 
     // --- AI Family / Agent Architecture ---
-    if (/\b(ai family|agent|七大|7大|七位|ai 家族|ai家族|领航员|思想家|先知|伯乐|天枢|哨兵|宗师)\b/.test(lowerText) ||
-        /\b(navigator|thinker|prophet|bole|pivot|sentinel|grandmaster)\b/.test(lowerText)) {
+    if (/\b(ai family|agent|八大|8大|八位|ai 家族|ai家族|言启|千行|语枢|万物|智云|守护|先知|伯乐|天枢|宗师|灵韵)\b/.test(lowerText) ||
+      /\b(navigator|thinker|prophet|bole|pivot|sentinel|grandmaster|grace)\b/.test(lowerText)) {
       return zh
-        ? `## AI Family — 七大智能体\n\n| Agent | 代号 | 角色 | 擅长领域 |\n|-------|------|------|----------|\n| Navigator | 领航员 | 路径规划 | 项目导航、任务分解 |\n| Thinker | 思想家 | 深度推理 | 架构设计、技术分析 |\n| Prophet | 先知 | 预测预警 | 风险评估、趋势预测 |\n| Bole | 伯乐 | 代码审计 | Code Review、质量把关 |\n| Pivot | 天枢 | 协调中枢 | 多 Agent 编排、冲突仲裁 |\n| Sentinel | 哨兵 | 安全守卫 | 安全审计、漏洞检测 |\n| Grandmaster | 宗师 | 全能指挥 | 域综合、最终决策 |\n\n**核心模块：** \`agent-orchestrator.ts\` (1427行)\n\n每个 Agent 拥有独立的 System Prompt、推荐 Provider/Model 和聊天历史。\n\n**当前会话：** ${msgCount} 条消息\n\n💡 前往 **Console → AI Agent** 选择任意 Agent 开始专项对话。`
-        : `## AI Family — 7 Intelligent Agents\n\n| Agent | Codename | Role | Specialty |\n|-------|----------|------|----------|\n| Navigator | 领航员 | Path Planning | Project navigation, task decomposition |\n| Thinker | 思想家 | Deep Reasoning | Architecture design, tech analysis |\n| Prophet | 先知 | Prediction | Risk assessment, trend forecasting |\n| Bole | 伯乐 | Code Audit | Code review, quality control |\n| Pivot | 天枢 | Coordinator | Multi-agent orchestration, conflict resolution |\n| Sentinel | 哨兵 | Security Guard | Security audit, vulnerability detection |\n| Grandmaster | 宗师 | Commander | Cross-domain synthesis, final decisions |\n\n**Core module:** \`agent-orchestrator.ts\` (1427 lines)\n\nEach agent has its own System Prompt, preferred Provider/Model, and chat history.\n\n**Current session:** ${msgCount} messages\n\n💡 Go to **Console → AI Agent** to start a specialized conversation with any agent.`;
+        ? `## AI Family — 八大智能体\n\n| Agent | 代号 | 角色 | 擅长领域 |\n|-------|------|------|----------|\n| Navigator | 言启·千行 | 导航员 | 意图识别、任务路由 |\n| Thinker | 语枢·万物 | 思考者 | 数据分析、深度洞察 |\n| Prophet | 预见·先知 | 预言家 | 趋势预测、风险前置 |\n| Bole | 知遇·伯乐 | 推荐官 | 个性化推荐、潜能发掘 |\n| Pivot | 元启·天枢 | 总指挥 | 全局编排、决策中枢 |\n| Sentinel | 智云·守护 | 安全官 | 行为审计、安全防护 |\n| Grandmaster | 格物·宗师 | 质量官 | 代码分析、质量管控 |\n| Grace | 创想·灵韵 | 创意官 | 内容创作、创意生成 |\n\n**核心模块：** \`agent-orchestrator.ts\` (1427行)\n\n每个 Agent 拥有独立的 System Prompt、推荐 Provider/Model 和聊天历史。\n\n**当前会话：** ${msgCount} 条消息\n\n💡 前往 **Console → AI Agent** 选择任意 Agent 开始专项对话。`
+        : `## AI Family — 8 Intelligent Agents\n\n| Agent | Codename | Role | Specialty |\n|-------|----------|------|----------|\n| Navigator | 言启·千行 | Navigator | Intent recognition, task routing |\n| Thinker | 语枢·万物 | Thinker | Data analysis, deep insight |\n| Prophet | 预见·先知 | Prophet | Trend prediction, risk assessment |\n| Bole | 知遇·伯乐 | Bole | Personalized recommendation |\n| Pivot | 元启·天枢 | Pivot | Global orchestration, decision |\n| Sentinel | 智云·守护 | Sentinel | Behavior audit, security |\n| Grandmaster | 格物·宗师 | Grandmaster | Code analysis, quality control |\n| Grace | 创想·灵韵 | Creator | Content creation, creative design |\n\n**Core module:** \`agent-orchestrator.ts\` (1427 lines)\n\nEach agent has its own System Prompt, preferred Provider/Model, and chat history.\n\n**Current session:** ${msgCount} messages\n\n💡 Go to **Console → AI Agent** to start a specialized conversation with any agent.`;
     }
 
     // --- LLM / Provider Architecture ---

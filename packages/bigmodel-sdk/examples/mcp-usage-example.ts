@@ -40,6 +40,7 @@ async function main() {
   });
 
   const serverNames = ['fileSystem', 'postgresql', 'braveSearch', 'docker', 'github'];
+
   console.log('已配置的 MCP 服务器:', serverNames);
   console.log('');
 
@@ -59,6 +60,7 @@ async function main() {
 
     if (fsServer) {
       const tools = await fsServer.listTools();
+
       console.log(`文件系统服务器工具数量: ${tools.length}`);
       tools.slice(0, 3).forEach((tool: any) => {
         console.log(`  - ${tool.name}: ${tool.description}`);
@@ -77,6 +79,7 @@ async function main() {
 
     if (fsServer) {
       const resources = await fsServer.listResources();
+
       console.log(`文件系统服务器资源数量: ${resources.length}`);
       resources.slice(0, 3).forEach((resource: any) => {
         console.log(`  - ${resource.name}: ${resource.uri}`);

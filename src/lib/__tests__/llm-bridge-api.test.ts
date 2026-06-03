@@ -30,6 +30,7 @@ import {
 
 // Mock fetch for API calls
 const mockFetch = vi.fn();
+
 global.fetch = mockFetch;
 
 // Mock localStorage
@@ -317,6 +318,7 @@ describe('LLM Bridge API — Usage Tracking', () => {
     trackUsage(response, 'navigator');
 
     const stored = localStorageMock.store.get('yyc3-llm-usage');
+
     expect(stored).toBeDefined();
   });
 

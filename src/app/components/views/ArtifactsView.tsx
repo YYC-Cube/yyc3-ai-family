@@ -1,18 +1,35 @@
 import {
-  Package, FileCode, Download, Eye, Clock,
-  Search, Copy, Check,
-  Terminal, Globe, Code, FileText, Image,
-  Trash2, Star,
-  Layers, Tag, GitCommit, Cpu, Sparkles,
-  Plus, X, Save, ArrowLeft,
+  ArrowLeft,
+  Check,
+  Clock,
+  Code,
+  Copy,
+  Cpu,
+  Download, Eye,
+  FileCode,
+  FileText,
+  GitCommit,
+  Globe,
+  Image,
+  Layers,
+  Package,
+  Plus,
+  Save,
+  Search,
+  Sparkles,
+  Star,
+  Tag,
+  Terminal,
+  Trash2,
+  X,
 } from 'lucide-react';
 import * as React from 'react';
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Input } from '@/app/components/ui/input';
+import { Panel, PanelGroup, PanelResizeHandle } from '@/app/components/ui/resizable-panels';
 import { ScrollArea } from '@/app/components/ui/scroll-area';
 import { useSystemStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
@@ -47,7 +64,7 @@ const INITIAL_ARTIFACTS: ArtifactItem[] = [
     language: 'TypeScript/React',
     size: '4.8 KB',
     createdAt: '2026-02-14 10:42',
-    generatedBy: '智愈·领航员',
+    generatedBy: '言启·千行',
     agentColor: 'text-amber-500',
     starred: true,
     version: 'v3.2',
@@ -75,7 +92,7 @@ const INITIAL_ARTIFACTS: ArtifactItem[] = [
     language: 'Markdown',
     size: '6.3 KB',
     createdAt: '2026-02-13 12:00',
-    generatedBy: '卫安·哨兵',
+    generatedBy: '智云·守护',
     agentColor: 'text-red-500',
     starred: true,
     version: 'v2.0',
@@ -89,7 +106,7 @@ const INITIAL_ARTIFACTS: ArtifactItem[] = [
     language: 'Bash',
     size: '1.2 KB',
     createdAt: '2026-02-12 20:15',
-    generatedBy: '智愈·领航员',
+    generatedBy: '言启·千行',
     agentColor: 'text-amber-500',
     starred: false,
     version: 'v2.1',
@@ -103,7 +120,7 @@ const INITIAL_ARTIFACTS: ArtifactItem[] = [
     language: 'TypeScript',
     size: '3.7 KB',
     createdAt: '2026-02-12 14:00',
-    generatedBy: '洞见·思想家',
+    generatedBy: '语枢·万物',
     agentColor: 'text-blue-500',
     starred: false,
     version: 'v1.8',
@@ -145,7 +162,7 @@ const INITIAL_ARTIFACTS: ArtifactItem[] = [
     language: 'TypeScript/React',
     size: '12.1 KB',
     createdAt: '2026-02-09 22:00',
-    generatedBy: '智愈·领航员',
+    generatedBy: '言启·千行',
     agentColor: 'text-amber-500',
     starred: true,
     version: 'v2.5',
@@ -166,12 +183,12 @@ const typeConfig: Record<ArtifactType, { icon: typeof FileCode; color: string; l
 };
 
 const AGENT_COLORS: Record<string, string> = {
-  '智愈·领航员': 'text-amber-500',
-  '洞见·思想家': 'text-blue-500',
+  '言启·千行': 'text-amber-500',
+  '语枢·万物': 'text-blue-500',
   '预见·先知': 'text-purple-500',
   '知遇·伯乐': 'text-pink-500',
   '元启·天枢': 'text-cyan-500',
-  '卫安·哨兵': 'text-red-500',
+  '智云·守护': 'text-red-500',
   '格物·宗师': 'text-green-500',
 };
 
@@ -205,7 +222,7 @@ function CreateArtifactDialog({ open, onClose, onCreate }: CreateArtifactDialogP
   const [language, setLanguage] = React.useState('TypeScript');
   const [content, setContent] = React.useState('');
   const [tags, setTags] = React.useState('');
-  const [generatedBy, setGeneratedBy] = React.useState('智愈·领航员');
+  const [generatedBy, setGeneratedBy] = React.useState('言启·千行');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

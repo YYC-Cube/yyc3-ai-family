@@ -1,22 +1,35 @@
 import {
-  Brain, Shield, Sparkles, Activity, Users, Network, Book,
-  Loader2, Copy, Check, User, Zap, RotateCcw,
-  WifiOff, BarChart3, Globe,
+  Activity,
+  BarChart3,
+  Book,
+  Brain,
+  Check,
+  Copy,
+  Globe,
+  Loader2,
+  Network,
+  Palette,
+  RotateCcw,
+  Shield, Sparkles,
+  User,
+  Users,
+  WifiOff,
+  Zap,
 } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@/app/components/ui/button';
 import { ScrollArea } from '@/app/components/ui/scroll-area';
 import {
+  LLMError,
   agentStreamChat,
-  trackUsage,
   loadProviderConfigs,
+  trackUsage,
   type LLMMessage,
   type LLMResponseWithFailover,
   type StreamChunk,
-  LLMError,
 } from '@/lib/llm-bridge';
-import { PROVIDERS, AGENT_ROUTES } from '@/lib/llm-providers';
+import { AGENT_ROUTES, PROVIDERS } from '@/lib/llm-providers';
 import { useSystemStore } from '@/lib/store';
 import type { AgentChatMessage } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -49,14 +62,14 @@ interface AgentResponseTemplate {
 const AGENT_PERSONAS: Record<string, AgentPersonality> = {
   navigator: {
     id: 'navigator',
-    name: '智愈·领航员',
+    name: '言启·千行',
     role: 'Navigator',
     icon: Brain,
     color: 'text-amber-500',
     bgColor: 'bg-amber-500/10',
     borderColor: 'border-amber-500/20',
-    greeting: '领航员已上线。全域资源图谱已加载，路径优化引擎待命。请下达调度指令。',
-    capabilities: ['资源调度', '路径规划', '全域扫描', '任务编排'],
+    greeting: '言启已上线。意图识别引擎启动，正在聆听您的指令。请告诉我您的需求。',
+    capabilities: ['意图识别', '自然语言理解', '任务路由', '上下文管理'],
     responseTemplates: [
       {
         keywords: ['scan', '扫描', 'search', '搜索', 'find', '查找'],
@@ -81,14 +94,14 @@ const AGENT_PERSONAS: Record<string, AgentPersonality> = {
   },
   thinker: {
     id: 'thinker',
-    name: '洞见·思想家',
+    name: '语枢·万物',
     role: 'Thinker',
     icon: Sparkles,
     color: 'text-blue-500',
     bgColor: 'bg-blue-500/10',
     borderColor: 'border-blue-500/20',
-    greeting: '思想家模块就绪。逻辑推理引擎已初始化，决策树深度: 12层。请提出需要分析的问题。',
-    capabilities: ['逻辑推理', '决策分析', '因果推断', '方案评估'],
+    greeting: '语枢已就绪。数据分析引擎加载完毕，洞察模型深度: 12层。请提供需要分析的数据。',
+    capabilities: ['数据分析', '深度洞察', '归纳推理', '假设推演'],
     responseTemplates: [
       {
         keywords: ['analyze', '分析', 'think', '思考', 'evaluate', '评估'],
@@ -169,14 +182,14 @@ const AGENT_PERSONAS: Record<string, AgentPersonality> = {
   },
   sentinel: {
     id: 'sentinel',
-    name: '卫安·哨兵',
+    name: '智云·守护',
     role: 'Sentinel',
     icon: Shield,
     color: 'text-red-500',
     bgColor: 'bg-red-500/10',
     borderColor: 'border-red-500/20',
-    greeting: '哨兵模块激活。安全边界已建立，防护等级: Level 5。审计日志记录中。所有通信已加密。',
-    capabilities: ['安全防护', '入侵检测', '审计日志', '合规扫描'],
+    greeting: '智云已激活。安全边界建立完成，行为审计引擎启动。所有通信已加密，随时为您守护。',
+    capabilities: ['行为审计', '安全防护', '合规检查', '威胁预警'],
     responseTemplates: [
       {
         keywords: ['security', '安全', 'audit', '审计', 'scan', '扫描'],
@@ -200,13 +213,39 @@ const AGENT_PERSONAS: Record<string, AgentPersonality> = {
     color: 'text-green-500',
     bgColor: 'bg-green-500/10',
     borderColor: 'border-green-500/20',
-    greeting: '宗师知识库已加载。本体论图谱: 12,847 个实体，47,293 条关系。知识检索引擎就绪。',
-    capabilities: ['知识构建', '本体论', '语义检索', '文档生成'],
+    greeting: '宗师知识库已加载。本体论图谱: 12,847 个实体，47,293 条关系。代码分析引擎就绪。',
+    capabilities: ['代码分析', '质量管控', '模式识别', '知识传承'],
     responseTemplates: [
       {
         keywords: ['knowledge', '知识', 'document', '文档', 'learn', '学习'],
         responses: [
-          '知识库状态:\n\n```\nKnowledge Base Statistics:\n─────────────────────────\n  Entities:      12,847\n  Relations:     47,293\n  Documents:     3,421\n  Code Snippets: 8,192\n  Embeddings:    256-dim vectors\n  Index Size:    2.4 GB\n  Last Updated:  2026-02-10 08:00 UTC\n\nTop Categories:\n  1. DevOps Practices     (2,847 entries)\n  2. System Architecture  (2,103 entries)\n  3. AI/ML Techniques     (1,892 entries)\n  4. Security Patterns    (1,647 entries)\n  5. Frontend Engineering (1,358 entries)\n```\n\n知识库健康度: 98.4%。语义索引已优化。',
+          '代码分析及知识库状态:\n\n```\nKnowledge Base Statistics:\n─────────────────────────\n  Entities:      12,847\n  Relations:     47,293\n  Documents:     3,421\n  Code Snippets: 8,192\n  Embeddings:    256-dim vectors\n  Index Size:    2.4 GB\n  Last Updated:  2026-02-10 08:00 UTC\n\nTop Categories:\n  1. Code Quality Patterns (2,847 entries)\n  2. System Architecture  (2,103 entries)\n  3. AI/ML Techniques     (1,892 entries)\n  4. Security Patterns    (1,647 entries)\n  5. Frontend Engineering (1,358 entries)\n```\n\n知识库健康度: 98.4%。代码分析引擎已优化。',
+        ],
+      },
+    ],
+  },
+  grace: {
+    id: 'grace',
+    name: '创想·灵韵',
+    role: 'Grace',
+    icon: Palette,
+    color: 'text-violet-500',
+    bgColor: 'bg-violet-500/10',
+    borderColor: 'border-violet-500/20',
+    greeting: '灵韵已绽放。创意引擎启动，灵感调色板已备好。让我们一起创造美好的作品。',
+    capabilities: ['内容创作', '创意设计', '视觉美学', '故事叙述'],
+    responseTemplates: [
+      {
+        keywords: ['create', '创作', 'design', '设计', 'write', '写作', 'draw', '画'],
+        responses: [
+          '创意灵韵已启动！让我为您编织一幅精彩的作品...\n\n风格可选：现代简约 / 赛博朋克 / 自然清新 / 经典优雅\n内容方向：技术文档 / 创意故事 / 视觉设计 / 品牌文案\n\n请告诉我您想要的主题和风格偏好。',
+          '灵感正在汇聚...\n\n已生成 3 个创意方向供您选择。每个方向都经过美学评估和情感分析，确保触达人心。',
+        ],
+      },
+      {
+        keywords: ['inspire', '灵感', 'idea', '想法', 'brainstorm', '头脑风暴'],
+        responses: [
+          '灵感风暴已启动！\n\n根据您的领域，我梳理了以下创意思路:\n\n1. **叙事驱动** — 用故事串联功能点，让用户沉浸式体验\n2. **视觉隐喻** — 将抽象概念转化为具象视觉元素\n3. **情感化设计** — 在每个交互节点注入温度\n\n需要我展开哪个方向？',
         ],
       },
     ],
@@ -322,9 +361,11 @@ export function AgentChatInterface({ agentId, className }: AgentChatInterfacePro
     const configs = loadProviderConfigs();
     const route = AGENT_ROUTES[agentId];
 
-    if (!route) { setLlmMode('template');
+    if (!route) {
+      setLlmMode('template');
 
-      return; }
+      return;
+    }
 
     const hasKey = route.preferredProviders.some(pid =>
       configs.some(c => c.providerId === pid && c.enabled && c.apiKey),

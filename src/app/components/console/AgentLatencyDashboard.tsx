@@ -57,7 +57,7 @@ export interface LatencyThresholds {
 export const DEFAULT_AGENT_LATENCY: AgentLatencyMetric[] = [
   {
     agentId: 'navigator',
-    agentName: '智愈·领航员',
+    agentName: '言启·千行',
     node: 'M4 Max',
     model: 'qwen2.5:7b',
     p50: 2850,
@@ -69,7 +69,7 @@ export const DEFAULT_AGENT_LATENCY: AgentLatencyMetric[] = [
   },
   {
     agentId: 'thinker',
-    agentName: '洞见·思想家',
+    agentName: '语枢·万物',
     node: 'M4 Max',
     model: 'qwen2.5:7b',
     p50: 2920,
@@ -117,7 +117,7 @@ export const DEFAULT_AGENT_LATENCY: AgentLatencyMetric[] = [
   },
   {
     agentId: 'sentinel',
-    agentName: '卫安·哨兵',
+    agentName: '智云·守护',
     node: 'iMac M4',
     model: 'phi3:mini',
     p50: 9200,

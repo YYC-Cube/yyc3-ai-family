@@ -1,27 +1,46 @@
 import {
-  Database, HardDrive, Download, Upload, Save, Trash2,
-  RefreshCw, Clock, Archive,
-  ArrowRight, Settings, Wifi, WifiOff, BarChart3,
-  FolderOpen, Shield, Layers,
-  History, FileText,
+  Archive,
+  ArrowRight,
+  BarChart3,
+  Clock,
+  Database,
+  Download,
+  FileText,
+  FolderOpen,
+  HardDrive,
+  History,
+  Layers,
+  Layers2,
+  RefreshCw,
+  Save,
+  Settings,
+  Shield,
+  Trash2,
+  Upload,
+  Wifi, WifiOff,
 } from 'lucide-react';
 import * as React from 'react';
 
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import {
   getPersistenceEngine,
   loadEngineConfig,
   saveEngineConfig,
   type PersistDomain,
-  type StorageStats,
   type PersistSnapshot,
-  type SyncStrategy,
   type PersistenceEngineConfig,
+  type StorageStats,
+  type SyncStrategy,
 } from '@/lib/persistence-engine';
+import { StorageProvider } from '@/lib/storage/storage-context';
 import { useSystemStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
+
+
+import { StorageDashboard, StorageMigrationWizard } from './StorageDashboard';
+
 
 // --- Domain Metadata ---
 const DOMAIN_META: Record<PersistDomain, { label: string; icon: typeof Database; color: string }> = {
@@ -62,7 +81,7 @@ export function PersistenceManager() {
   const [config, setConfig] = React.useState<PersistenceEngineConfig>(loadEngineConfig);
   const [snapshots, setSnapshots] = React.useState<PersistSnapshot[]>(engine.getSnapshots());
   const [loading, setLoading] = React.useState<string | null>(null);
-  const [activeSection, setActiveSection] = React.useState<'overview' | 'domains' | 'snapshots' | 'config'>('overview');
+  const [activeSection, setActiveSection] = React.useState<'overview' | 'domains' | 'storage' | 'snapshots' | 'config'>('overview');
   const [domainData, setDomainData] = React.useState<Record<string, number>>({});
 
   // Load stats
@@ -159,9 +178,10 @@ export function PersistenceManager() {
     setLoading(null);
   };
 
-  const sections: { id: typeof activeSection; label: string; icon: typeof Database }[] = [
+  const sections: { id: 'overview' | 'domains' | 'storage' | 'snapshots' | 'config'; label: string; icon: typeof Database }[] = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
     { id: 'domains', label: 'Domains', icon: Database },
+    { id: 'storage', label: 'Storage', icon: Layers2 },
     { id: 'snapshots', label: 'Snapshots', icon: History },
     { id: 'config', label: 'Config', icon: Settings },
   ];
@@ -301,6 +321,16 @@ export function PersistenceManager() {
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {/* SECTION: Storage Dashboard (Unified) */}
+      {activeSection === 'storage' && (
+        <StorageProvider>
+          <div className="space-y-6">
+            <StorageDashboard />
+            <StorageMigrationWizard />
+          </div>
+        </StorageProvider>
       )}
 
       {/* SECTION: Domains */}

@@ -1,17 +1,35 @@
 import {
-  X, Copy, Download, Code2, Eye, ChevronLeft, ChevronRight,
-  RefreshCw, ExternalLink, Maximize2, Minimize2,
-  ChevronDown, File,
-  Globe, MonitorPlay, Smartphone,
-  Star, Search, LayoutGrid, MoreHorizontal,
-  Plus, Layers, Server, Bot, Wrench, Rocket, Hash,
+  Bot,
+  ChevronDown,
+  ChevronLeft, ChevronRight,
+  Code2,
+  Copy, Download,
+  ExternalLink,
+  Eye,
+  File,
+  Globe,
+  Hash,
+  Layers,
+  LayoutGrid,
+  Maximize2, Minimize2,
+  MonitorPlay,
+  MoreHorizontal,
+  Plus,
+  RefreshCw,
+  Rocket,
+  Search,
+  Server,
+  Smartphone,
+  Star,
+  Wrench,
+  X,
 } from 'lucide-react';
 import * as React from 'react';
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 import { Button } from '@/app/components/ui/button';
+import { Panel, PanelGroup, PanelResizeHandle } from '@/app/components/ui/resizable-panels';
 import { ScrollArea } from '@/app/components/ui/scroll-area';
 import { useTranslation } from '@/lib/i18n';
 import { useSystemStore } from '@/lib/store';
@@ -67,13 +85,14 @@ const PROJECT_NAV_DATA: NavCategory[] = [
   {
     id: 'agents', label: '智能体集群', icon: Bot,
     items: [
-      { id: 'navigator', label: 'Navigator 领航员', description: '任务分发与路由', type: 'agent' },
-      { id: 'sentinel', label: 'Sentinel 哨兵', description: '安全审计与监控', type: 'agent' },
-      { id: 'thinker', label: 'Thinker 思想家', description: '深度推理与分析', type: 'agent' },
-      { id: 'prophet', label: 'Prophet 先知', description: '预测与趋势分析', type: 'agent' },
-      { id: 'bole', label: 'Bole 伯乐', description: '人才与资源优化', type: 'agent' },
-      { id: 'pivot', label: 'Pivot 天枢', description: '架构核心枢纽', type: 'agent' },
-      { id: 'grandmaster', label: 'Grandmaster 宗师', description: '总控与决策', type: 'agent' },
+      { id: 'navigator', label: '言启·千行', description: '意图识别与任务路由', type: 'agent' },
+      { id: 'sentinel', label: '智云·守护', description: '行为审计与安全防护', type: 'agent' },
+      { id: 'thinker', label: '语枢·万物', description: '数据分析与深度洞察', type: 'agent' },
+      { id: 'prophet', label: '预见·先知', description: '趋势预测与风险前置', type: 'agent' },
+      { id: 'bole', label: '知遇·伯乐', description: '个性化推荐与潜能发掘', type: 'agent' },
+      { id: 'pivot', label: '元启·天枢', description: '全局编排与决策中枢', type: 'agent' },
+      { id: 'grandmaster', label: '格物·宗师', description: '代码分析与质量管控', type: 'agent' },
+      { id: 'grace', label: '创想·灵韵', description: '内容创作与创意生成', type: 'agent' },
     ],
   },
   {
@@ -349,7 +368,7 @@ export function ArtifactsPanel({ isOpen, onClose, artifact }: ArtifactsPanelProp
 
   return (
     <div className={cn(
-      'flex flex-col h-full bg-background/95 backdrop-blur-xl shadow-2xl transition-all duration-300 ease-in-out z-10 animate-in fade-in duration-200',
+      'flex flex-col h-full bg-background/95 backdrop-blur-xl shadow-2xl transition-all duration-300 ease-in-out z-10 animate-in fade-in',
       isMobile ? 'w-full' : 'w-full',
       isMaximized && 'fixed inset-0 z-50',
     )}>

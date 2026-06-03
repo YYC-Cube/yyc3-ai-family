@@ -17,7 +17,6 @@ import {
   EVENT_CATEGORY_META,
   type BusEvent,
   type EventCategory,
-  type EventFilter,
 } from '../event-bus';
 
 // Import RingBuffer via internal access for testing

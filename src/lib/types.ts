@@ -29,7 +29,7 @@ export type Language = 'zh' | 'en';
 
 export type AgentId =
   | 'navigator' | 'thinker' | 'prophet'
-  | 'bole' | 'pivot' | 'sentinel' | 'grandmaster';
+  | 'bole' | 'pivot' | 'sentinel' | 'grandmaster' | 'grace';
 
 export type AgentRole = 'architect' | 'coder' | 'auditor' | 'orchestrator';
 
@@ -47,13 +47,14 @@ export interface AgentInfo {
 }
 
 export const AGENT_REGISTRY: AgentInfo[] = [
-  { id: 'navigator', name: '智愈·领航员', nameEn: 'Navigator', role: 'Commander', desc: '全域资源调度与路径规划', descEn: 'Global resource scheduling & path planning', icon: 'Brain', color: 'text-amber-500', bgColor: 'bg-amber-500/10', borderColor: 'border-amber-500/20' },
-  { id: 'thinker', name: '洞见·思想家', nameEn: 'Thinker', role: 'Strategist', desc: '深度逻辑推理与决策分析', descEn: 'Deep logical reasoning & decision analysis', icon: 'Sparkles', color: 'text-blue-500', bgColor: 'bg-blue-500/10', borderColor: 'border-blue-500/20' },
-  { id: 'prophet', name: '预见·先知', nameEn: 'Prophet', role: 'Predictor', desc: '趋势预测与风险前置', descEn: 'Trend prediction & risk assessment', icon: 'Activity', color: 'text-purple-500', bgColor: 'bg-purple-500/10', borderColor: 'border-purple-500/20' },
-  { id: 'bole', name: '知遇·伯乐', nameEn: 'Bole', role: 'Evaluator', desc: '模型评估与优选匹配', descEn: 'Model evaluation & optimal matching', icon: 'Users', color: 'text-pink-500', bgColor: 'bg-pink-500/10', borderColor: 'border-pink-500/20' },
-  { id: 'pivot', name: '元启·天枢', nameEn: 'Pivot', role: 'Coordinator', desc: '核心状态管理与上下文', descEn: 'Core state management & context', icon: 'Network', color: 'text-cyan-500', bgColor: 'bg-cyan-500/10', borderColor: 'border-cyan-500/20' },
-  { id: 'sentinel', name: '卫安·哨兵', nameEn: 'Sentinel', role: 'Guardian', desc: '安全边界防护与审计', descEn: 'Security boundary protection & audit', icon: 'Shield', color: 'text-red-500', bgColor: 'bg-red-500/10', borderColor: 'border-red-500/20' },
-  { id: 'grandmaster', name: '格物·宗师', nameEn: 'Grandmaster', role: 'Scholar', desc: '知识库构建与本体论', descEn: 'Knowledge base building & ontology', icon: 'Book', color: 'text-green-500', bgColor: 'bg-green-500/10', borderColor: 'border-green-500/20' },
+  { id: 'navigator', name: '言启·千行', nameEn: 'Navigator', role: 'Navigator', desc: '意图识别与任务路由', descEn: 'Intent recognition & task routing', icon: 'Brain', color: 'text-amber-500', bgColor: 'bg-amber-500/10', borderColor: 'border-amber-500/20' },
+  { id: 'thinker', name: '语枢·万物', nameEn: 'Thinker', role: 'Thinker', desc: '数据分析与深度洞察', descEn: 'Data analysis & deep insight', icon: 'Sparkles', color: 'text-blue-500', bgColor: 'bg-blue-500/10', borderColor: 'border-blue-500/20' },
+  { id: 'prophet', name: '预见·先知', nameEn: 'Prophet', role: 'Prophet', desc: '趋势预测与风险前置', descEn: 'Trend prediction & risk assessment', icon: 'Activity', color: 'text-purple-500', bgColor: 'bg-purple-500/10', borderColor: 'border-purple-500/20' },
+  { id: 'bole', name: '知遇·伯乐', nameEn: 'Bole', role: 'Bole', desc: '个性化推荐与潜能发掘', descEn: 'Personalized recommendation & potential discovery', icon: 'Users', color: 'text-pink-500', bgColor: 'bg-pink-500/10', borderColor: 'border-pink-500/20' },
+  { id: 'pivot', name: '元启·天枢', nameEn: 'Pivot', role: 'Pivot', desc: '全局编排与决策中枢', descEn: 'Global orchestration & decision center', icon: 'Network', color: 'text-cyan-500', bgColor: 'bg-cyan-500/10', borderColor: 'border-cyan-500/20' },
+  { id: 'sentinel', name: '智云·守护', nameEn: 'Sentinel', role: 'Sentinel', desc: '行为审计与安全防护', descEn: 'Behavior audit & security protection', icon: 'Shield', color: 'text-red-500', bgColor: 'bg-red-500/10', borderColor: 'border-red-500/20' },
+  { id: 'grandmaster', name: '格物·宗师', nameEn: 'Grandmaster', role: 'Grandmaster', desc: '代码分析与质量管控', descEn: 'Code analysis & quality control', icon: 'Book', color: 'text-green-500', bgColor: 'bg-green-500/10', borderColor: 'border-green-500/20' },
+  { id: 'grace', name: '创想·灵韵', nameEn: 'Grace', role: 'Creator', desc: '内容创作与创意生成', descEn: 'Content creation & creative generation', icon: 'Palette', color: 'text-violet-500', bgColor: 'bg-violet-500/10', borderColor: 'border-violet-500/20' },
 ];
 
 // ============================================================

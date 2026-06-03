@@ -149,11 +149,11 @@ test.describe('Agent System', () => {
 
     // Select Navigator
     await agentPage.selectNavigator();
-    await expect(page.getByText(/领航员|Navigator/i)).toBeVisible();
+    await expect(page.getByText(/言启·千行|Navigator/i)).toBeVisible();
 
     // Select Thinker
     await agentPage.selectThinker();
-    await expect(page.getByText(/思想家|Thinker/i)).toBeVisible();
+    await expect(page.getByText(/语枢·万物|Thinker/i)).toBeVisible();
   });
 
   test('should maintain agent chat history', async ({ page }) => {

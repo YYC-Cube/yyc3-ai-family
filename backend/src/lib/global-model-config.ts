@@ -1,1 +1,0 @@
-../../../src/lib/global-model-config.ts

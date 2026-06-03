@@ -3,7 +3,7 @@
  * 页面对象模型 - 用于 E2E 测试
  */
 
-import { type Locator, type Page, expect } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 /**
  * 主页页面对象
@@ -138,10 +138,10 @@ export class AgentChatPage {
   constructor(page: Page) {
     this.page = page;
     this.agentList = page.getByTestId('agent-list');
-    this.navigatorButton = page.getByRole('button', { name: /领航员|Navigator/i });
-    this.thinkerButton = page.getByRole('button', { name: /思想家|Thinker/i });
+    this.navigatorButton = page.getByRole('button', { name: /言启·千行|Navigator/i });
+    this.thinkerButton = page.getByRole('button', { name: /语枢·万物|Thinker/i });
     this.prophetButton = page.getByRole('button', { name: /先知|Prophet/i });
-    this.sentinelButton = page.getByRole('button', { name: /哨兵|Sentinel/i });
+    this.sentinelButton = page.getByRole('button', { name: /智云·守护|Sentinel/i });
     this.grandmasterButton = page.getByRole('button', { name: /宗师|Grandmaster/i });
   }
 

@@ -12,27 +12,27 @@
 // ============================================================
 
 import {
+  getEnabledProviderIds,
+  hasConfiguredProvider,
   loadProviderConfigs,
   saveProviderConfigs,
-  hasConfiguredProvider,
-  getEnabledProviderIds,
   type ProviderConfig,
 } from '../llm-bridge';
 import {
+  AgentHistoryRecordSchema,
   ChatMessageSchema,
   ChatSessionSchema,
-  AgentHistoryRecordSchema,
-  PreferencesSchema,
-  SystemLogSchema,
   KnowledgeEntrySchema,
   LLMProviderConfigSchema,
-  validateRecord,
+  PreferencesSchema,
+  SystemLogSchema,
   validateArray,
+  validateRecord,
   validators,
 } from '../persist-schemas';
 import { useSystemStore } from '../store';
-import type { ChatMessage, ViewMode, AgentRole } from '../types';
-import { AGENT_REGISTRY, PROMPT_TEMPLATES, MAX_FILE_SIZE, MAX_FILES } from '../types';
+import type { AgentRole, ChatMessage, ViewMode } from '../types';
+import { AGENT_REGISTRY, MAX_FILES, MAX_FILE_SIZE, PROMPT_TEMPLATES } from '../types';
 
 // ============================================================
 // Test Infrastructure
@@ -405,13 +405,14 @@ registerTest('Store', 'ST-19', 'Responsive state setters', () => {
 // Recreate the matching logic for testing
 function testMatchNavigationIntent(lowerText: string): string | null {
   const agentMap: Record<string, string> = {
-    'navigator': 'navigator', '领航员': 'navigator',
-    'sentinel': 'sentinel', '哨兵': 'sentinel',
-    'thinker': 'thinker', '思想家': 'thinker',
-    'prophet': 'prophet', '先知': 'prophet',
-    'bole': 'bole', '伯乐': 'bole',
-    'pivot': 'pivot', '天枢': 'pivot',
-    'grandmaster': 'grandmaster', '宗师': 'grandmaster',
+    'navigator': 'navigator', '言启·千行': 'navigator',
+    'sentinel': 'sentinel', '智云·守护': 'sentinel',
+    'thinker': 'thinker', '语枢·万物': 'thinker',
+    'prophet': 'prophet', '预见·先知': 'prophet',
+    'bole': 'bole', '知遇·伯乐': 'bole',
+    'pivot': 'pivot', '元启·天枢': 'pivot',
+    'grandmaster': 'grandmaster', '格物·宗师': 'grandmaster',
+    'grace': 'grace', '创想·灵韵': 'grace',
   };
 
   for (const [keyword, agentId] of Object.entries(agentMap)) {
@@ -456,7 +457,7 @@ registerTest('Navigation', 'NAV-01', 'Agent: navigator (EN)', () => {
 });
 
 registerTest('Navigation', 'NAV-02', 'Agent: navigator (ZH)', () => {
-  assertEqual(testMatchNavigationIntent('打开领航员'), 'Agent: navigator', 'ZH navigator');
+  assertEqual(testMatchNavigationIntent('打开言启·千行'), 'Agent: navigator', 'ZH navigator');
 });
 
 registerTest('Navigation', 'NAV-03', 'Agent: sentinel', () => {
@@ -508,10 +509,11 @@ registerTest('Navigation', 'NAV-11', 'All 7 agents matchable', () => {
   }
 });
 
-registerTest('Navigation', 'NAV-12', 'All 7 agents matchable (ZH)', () => {
+registerTest('Navigation', 'NAV-12', 'All 8 agents matchable (ZH)', () => {
   const zhAgents: [string, string][] = [
-    ['领航员', 'navigator'], ['哨兵', 'sentinel'], ['思想家', 'thinker'],
-    ['先知', 'prophet'], ['伯乐', 'bole'], ['天枢', 'pivot'], ['宗师', 'grandmaster'],
+    ['言启·千行', 'navigator'], ['智云·守护', 'sentinel'], ['语枢·万物', 'thinker'],
+    ['预见·先知', 'prophet'], ['知遇·伯乐', 'bole'], ['元启·天枢', 'pivot'], ['格物·宗师', 'grandmaster'],
+    ['创想·灵韵', 'grace'],
   ];
 
   for (const [zh, id] of zhAgents) {

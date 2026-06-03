@@ -15,7 +15,6 @@ import {
   PRESET_WORKFLOWS,
   type WorkflowDefinition,
   type WorkflowStep,
-  type WorkflowResult,
   type WorkflowContext,
 } from '../workflow-executor';
 

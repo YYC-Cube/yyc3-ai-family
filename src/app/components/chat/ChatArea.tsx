@@ -1,14 +1,15 @@
-import { Send, Paperclip, Globe, Columns, Search, Loader2, Plus, Mic, Brain, Cpu, Sparkles, Zap, ChevronRight, Figma, CheckCircle2, XCircle, Command, FileUp, FolderUp, X, Lightbulb, File, Image, Settings, Github, Compass, MessageSquare } from 'lucide-react';
+import { Brain, CheckCircle2, ChevronRight, Columns, Command, Compass, Cpu, Figma, File, FileUp, FolderUp, Github, Globe, Image, Lightbulb, Loader2, MessageSquare, Mic, Paperclip, Plus, Search, Send, Settings, Sparkles, X, XCircle, Zap } from 'lucide-react';
 import * as React from 'react';
 
+import { ChatToolbar } from '@/app/components/chat/ChatToolbar';
 import { SearchPalette } from '@/app/components/search/SearchPalette';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { ScrollArea } from '@/app/components/ui/scroll-area';
 import { useTranslation } from '@/lib/i18n';
 import { useSystemStore } from '@/lib/store';
-import { PROMPT_TEMPLATES, MAX_FILE_SIZE, MAX_FILES } from '@/lib/types';
 import type { FileAttachment, PromptTemplate } from '@/lib/types';
+import { MAX_FILES, MAX_FILE_SIZE, PROMPT_TEMPLATES } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 import { ClaudeWelcome } from './ClaudeWelcome';
@@ -386,31 +387,33 @@ export function ChatArea({
             size="sm"
             className={cn(
               'gap-1.5 text-xs font-mono transition-all hover:scale-[1.02] active:scale-[0.98] px-2.5',
-                 chatMode === 'ai'
-                   ? 'text-emerald-400 bg-emerald-500/10 shadow-[0_0_10px_rgba(16,185,129,0.15)]'
-                   : 'text-amber-400 bg-amber-500/10 shadow-[0_0_10px_rgba(245,158,11,0.1)]',
+              chatMode === 'ai'
+                ? 'text-emerald-400 bg-emerald-500/10 shadow-[0_0_10px_rgba(16,185,129,0.15)]'
+                : 'text-amber-400 bg-amber-500/10 shadow-[0_0_10px_rgba(245,158,11,0.1)]',
             )}
             onClick={toggleChatMode}
             title={`${chatMode === 'ai' ? t('chat.mode_ai_desc') : t('chat.mode_navigate_desc')} (Ctrl+M)`}
           >
             {chatMode === 'ai' ? (
-                 <MessageSquare className="w-3.5 h-3.5" />
-               ) : (
-                 <Compass className="w-3.5 h-3.5" />
-               )}
+              <MessageSquare className="w-3.5 h-3.5" />
+            ) : (
+              <Compass className="w-3.5 h-3.5" />
+            )}
             <span className="hidden sm:inline">{chatMode === 'ai' ? t('chat.mode_ai') : t('chat.mode_navigate')}</span>
           </Button>
 
           <div className="w-px h-5 bg-border/50 mx-0.5" />
+
+          <ChatToolbar />
 
           <Button
             variant="ghost"
             size="sm"
             className={cn(
               'gap-2 text-xs font-mono transition-all hover:scale-[1.02] active:scale-[0.98]',
-                 isArtifactsOpen
-                   ? 'text-[#0EA5E9] bg-[#0EA5E9]/10 shadow-[0_0_10px_rgba(14,165,233,0.15)]'
-                   : 'text-muted-foreground hover:text-[#0EA5E9] hover:bg-[#0EA5E9]/5',
+              isArtifactsOpen
+                ? 'text-[#0EA5E9] bg-[#0EA5E9]/10 shadow-[0_0_10px_rgba(14,165,233,0.15)]'
+                : 'text-muted-foreground hover:text-[#0EA5E9] hover:bg-[#0EA5E9]/5',
             )}
             onClick={onToggleArtifacts}
           >
@@ -450,30 +453,30 @@ export function ChatArea({
         <ScrollArea className="h-full" ref={scrollRef}>
           <div className="flex flex-col pb-4">
             {messages.length === 0 ? (
-                <div className="h-full min-h-[calc(100vh-280px)] flex items-center justify-center p-8 animate-in fade-in zoom-in-95 duration-500">
-                  <ClaudeWelcome onQuickAction={onSendMessage} />
-                </div>
-              ) : (
-                <div className="flex flex-col gap-2 p-4 md:p-8 max-w-4xl mx-auto w-full">
-                  {messages.map(msg => (
-                    <MessageBubble
-                      key={msg.id}
-                      role={msg.role}
-                      content={msg.content}
-                      timestamp={msg.timestamp}
-                      onOpenArtifact={onOpenArtifact}
-                      agentName={msg.agentName}
-                      agentRole={msg.agentRole}
-                    />
-                  ))}
-                  {isStreaming && (
-                    <div className="pl-16 flex items-center gap-2 text-primary/50 text-xs font-mono animate-pulse">
-                      <div className="w-2 h-2 rounded-full bg-primary/50" />
-                      <span className="tracking-widest">{t('chat.busy')}...</span>
-                    </div>
-                  )}
-                </div>
-              )}
+              <div className="h-full min-h-[calc(100vh-280px)] flex items-center justify-center p-8 animate-in fade-in zoom-in-95 duration-500">
+                <ClaudeWelcome onQuickAction={onSendMessage} />
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2 p-4 md:p-8 max-w-4xl mx-auto w-full">
+                {messages.map(msg => (
+                  <MessageBubble
+                    key={msg.id}
+                    role={msg.role}
+                    content={msg.content}
+                    timestamp={msg.timestamp}
+                    onOpenArtifact={onOpenArtifact}
+                    agentName={msg.agentName}
+                    agentRole={msg.agentRole}
+                  />
+                ))}
+                {isStreaming && (
+                  <div className="pl-16 flex items-center gap-2 text-primary/50 text-xs font-mono animate-pulse">
+                    <div className="w-2 h-2 rounded-full bg-primary/50" />
+                    <span className="tracking-widest">{t('chat.busy')}...</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </ScrollArea>
       </div>
@@ -574,9 +577,9 @@ export function ChatArea({
                   size="icon"
                   className={cn(
                     'h-8 w-8 rounded-full transition-all hover:scale-110',
-                      isPromptMenuOpen
-                        ? 'text-amber-400 bg-amber-500/10'
-                        : 'text-muted-foreground hover:text-amber-400 hover:bg-amber-500/10',
+                    isPromptMenuOpen
+                      ? 'text-amber-400 bg-amber-500/10'
+                      : 'text-muted-foreground hover:text-amber-400 hover:bg-amber-500/10',
                   )}
                   onClick={() => setIsPromptMenuOpen(!isPromptMenuOpen)}
                   title="Prompt templates"
@@ -617,9 +620,9 @@ export function ChatArea({
                   size="icon"
                   className={cn(
                     'h-8 w-8 rounded-full transition-all hover:scale-110',
-                      isQuickSelectorOpen
-                        ? 'text-primary bg-primary/10 rotate-45'
-                        : 'text-muted-foreground hover:text-primary hover:bg-primary/10',
+                    isQuickSelectorOpen
+                      ? 'text-primary bg-primary/10 rotate-45'
+                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10',
                   )}
                   onClick={() => setIsQuickSelectorOpen(!isQuickSelectorOpen)}
                 >
@@ -686,10 +689,10 @@ export function ChatArea({
                             <div className="text-xs text-zinc-200 group-hover:text-white truncate flex items-center gap-1.5">
                               {mcp.name}
                               {mcp.validated ? (
-                                  <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />
-                                ) : (
-                                  <XCircle className="w-3 h-3 text-zinc-600 shrink-0" />
-                                )}
+                                <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />
+                              ) : (
+                                <XCircle className="w-3 h-3 text-zinc-600 shrink-0" />
+                              )}
                             </div>
                             <div className="text-[9px] text-zinc-600 truncate">{mcp.desc}</div>
                           </div>
@@ -722,9 +725,9 @@ export function ChatArea({
                   title={voiceSupported ? (isListening ? 'Stop listening' : 'Start voice input (Web Speech API)') : 'Speech API not supported'}
                   className={cn(
                     'h-8 w-8 rounded-full transition-all hover:scale-110',
-                      isListening
-                        ? 'text-red-400 bg-red-500/10 shadow-[0_0_12px_rgba(239,68,68,0.3)]'
-                        : 'text-muted-foreground hover:text-primary hover:bg-primary/10',
+                    isListening
+                      ? 'text-red-400 bg-red-500/10 shadow-[0_0_12px_rgba(239,68,68,0.3)]'
+                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10',
                   )}
                 >
                   <Mic className="w-4 h-4" />
@@ -746,20 +749,20 @@ export function ChatArea({
               size="sm"
               className={cn(
                 'rounded-lg px-4 gap-2 transition-all duration-300 font-mono text-xs font-bold hover:scale-105 active:scale-95',
-                  isStreaming ? 'bg-muted cursor-not-allowed' : 'bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:shadow-[0_0_25px_rgba(14,165,233,0.6)]',
+                isStreaming ? 'bg-muted cursor-not-allowed' : 'bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:shadow-[0_0_25px_rgba(14,165,233,0.6)]',
               )}
             >
               {isStreaming ? (
-                  <>
-                    <span>{t('chat.busy')}</span>
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  </>
-                ) : (
-                  <>
-                    <span>{t('chat.execute')}</span>
-                    <Send className="w-3 h-3" />
-                  </>
-                )}
+                <>
+                  <span>{t('chat.busy')}</span>
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                </>
+              ) : (
+                <>
+                  <span>{t('chat.execute')}</span>
+                  <Send className="w-3 h-3" />
+                </>
+              )}
             </Button>
           </div>
         </div>

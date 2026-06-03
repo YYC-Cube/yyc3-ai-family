@@ -1,12 +1,38 @@
 import {
-  Terminal, Shield, Brain, Activity,
-  Network, Book, ArrowRight,
-  Users, Layers2, Server, HardDrive, Key,
-  Sparkles, Briefcase, Monitor, Smartphone, Settings,
-  LayoutDashboard, Sliders, Database, BarChart3, Box,
-  Wrench, Heart, BookOpen, Rocket, TrendingUp, CloudCog,
-  Cpu, FileText, FlaskConical, TestTube2, Radio,
+  Activity,
+  ArrowRight,
+  BarChart3,
+  Book,
+  BookOpen,
+  Box,
+  Brain,
+  Briefcase,
+  CloudCog,
+  Cpu,
+  Database,
+  FileText, FlaskConical,
+  HardDrive,
+  Heart,
   Infinity as InfinityIcon,
+  Key,
+  Layers2,
+  LayoutDashboard,
+  Monitor,
+  Network,
+  Palette,
+  Radio,
+  Rocket,
+  Server,
+  Settings,
+  Shield,
+  Sliders,
+  Smartphone,
+  Sparkles,
+  Terminal,
+  TestTube2,
+  TrendingUp,
+  Users,
+  Wrench,
 } from 'lucide-react';
 import * as React from 'react';
 
@@ -124,7 +150,7 @@ const NAV_DATA: {
 } = {
   l1: [
     { id: 'dashboard', icon: LayoutDashboard, label: '总控台', desc: 'Main Console' },
-    { id: 'ai', icon: Brain, label: '智愈中心', desc: 'AI Core' },
+    { id: 'ai', icon: Brain, label: '言启中心', desc: 'AI Core' },
     { id: 'agent_identity', icon: Heart, label: '身份卡片', desc: 'Agent Identity' },
     { id: 'family_presence', icon: Users, label: '家人在线', desc: 'Family Presence' },
     { id: 'knowledge_base', icon: BookOpen, label: '知识库', desc: 'Knowledge Base' },
@@ -155,13 +181,14 @@ const NAV_DATA: {
     { id: 'settings', icon: Sliders, label: '系统设置', desc: 'Configuration' },
   ],
   agents: [
-    { id: 'navigator', name: '智愈·领航员', role: 'Navigator', desc: '全域资源调度与路径规划', icon: Brain, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-    { id: 'thinker', name: '洞见·思想家', role: 'Thinker', desc: '深度逻辑推理与决策分析', icon: Sparkles, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+    { id: 'navigator', name: '言启·千行', role: 'Navigator', desc: '意图识别与任务路由', icon: Brain, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+    { id: 'thinker', name: '语枢·万物', role: 'Thinker', desc: '数据分析与深度洞察', icon: Sparkles, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
     { id: 'prophet', name: '预见·先知', role: 'Prophet', desc: '趋势预测与风险前置', icon: Activity, color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
-    { id: 'bole', name: '知遇·伯乐', role: 'Talent Scout', desc: '模型评估与优选匹配', icon: Users, color: 'text-pink-500', bg: 'bg-pink-500/10', border: 'border-pink-500/20' },
-    { id: 'pivot', name: '元启·天枢', role: 'Pivot', desc: '核心状态管理与上下文', icon: Network, color: 'text-cyan-500', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20' },
-    { id: 'sentinel', name: '卫安·哨兵', role: 'Sentinel', desc: '安全边界防护与审计', icon: Shield, color: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-500/20' },
-    { id: 'grandmaster', name: '格物·宗师', role: 'Grandmaster', desc: '知识库构建与本体论', icon: Book, color: 'text-green-500', bg: 'bg-green-500/10', border: 'border-green-500/20' },
+    { id: 'bole', name: '知遇·伯乐', role: 'Bole', desc: '个性化推荐与潜能发掘', icon: Users, color: 'text-pink-500', bg: 'bg-pink-500/10', border: 'border-pink-500/20' },
+    { id: 'pivot', name: '元启·天枢', role: 'Pivot', desc: '全局编排与决策中枢', icon: Network, color: 'text-cyan-500', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20' },
+    { id: 'sentinel', name: '智云·守护', role: 'Sentinel', desc: '行为审计与安全防护', icon: Shield, color: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-500/20' },
+    { id: 'grandmaster', name: '格物·宗师', role: 'Grandmaster', desc: '代码分析与质量管控', icon: Book, color: 'text-green-500', bg: 'bg-green-500/10', border: 'border-green-500/20' },
+    { id: 'grace', name: '创想·灵韵', role: 'Grace', desc: '内容创作与创意生成', icon: Palette, color: 'text-violet-500', bg: 'bg-violet-500/10', border: 'border-violet-500/20' },
   ],
   layers: [
     { id: 'L09', label: 'L09 系统设置层', desc: 'Configuration', icon: Settings, color: 'text-zinc-400' },
@@ -228,17 +255,17 @@ export function ConsoleView() {
   // Derive status badge
   const statusLabel = systemStatus === 'optimal' ? 'SYSTEM OPTIMAL'
     : systemStatus === 'warning' ? 'SYSTEM WARNING'
-    : systemStatus === 'critical' ? 'SYSTEM CRITICAL'
-    : 'SYSTEM BOOTING';
+      : systemStatus === 'critical' ? 'SYSTEM CRITICAL'
+        : 'SYSTEM BOOTING';
 
   // Map status to concrete Tailwind classes (dynamic interpolation doesn't work)
   const statusClasses = systemStatus === 'optimal'
     ? { badge: 'bg-green-500/10 border-green-500/20', dot: 'bg-green-500', text: 'text-green-500' }
     : systemStatus === 'warning'
-    ? { badge: 'bg-amber-500/10 border-amber-500/20', dot: 'bg-amber-500', text: 'text-amber-500' }
-    : systemStatus === 'critical'
-    ? { badge: 'bg-red-500/10 border-red-500/20', dot: 'bg-red-500', text: 'text-red-500' }
-    : { badge: 'bg-zinc-500/10 border-zinc-500/20', dot: 'bg-zinc-500', text: 'text-zinc-500' };
+      ? { badge: 'bg-amber-500/10 border-amber-500/20', dot: 'bg-amber-500', text: 'text-amber-500' }
+      : systemStatus === 'critical'
+        ? { badge: 'bg-red-500/10 border-red-500/20', dot: 'bg-red-500', text: 'text-red-500' }
+        : { badge: 'bg-zinc-500/10 border-zinc-500/20', dot: 'bg-zinc-500', text: 'text-zinc-500' };
 
   return (
     <div className="flex h-full w-full bg-[#050505] text-foreground font-sans overflow-hidden animate-in fade-in duration-500">
@@ -299,9 +326,9 @@ export function ConsoleView() {
             {/* DB Connection Indicator */}
             <div className={cn(
               'flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-mono',
-                   dbConnected
-                     ? 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-500'
-                     : 'bg-zinc-800/50 border border-white/5 text-zinc-600',
+              dbConnected
+                ? 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-500'
+                : 'bg-zinc-800/50 border border-white/5 text-zinc-600',
             )}>
               <Database className="w-3 h-3" />
               {dbConnected ? 'PG:LIVE' : 'PG:LOCAL'}
@@ -310,16 +337,16 @@ export function ConsoleView() {
             {!isMobile && (
               <div className={cn(
                 'flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-mono',
-                     syncStatus.nasOnline
-                       ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-500'
-                       : syncStatus.pendingCount > 0
-                       ? 'bg-amber-500/10 border border-amber-500/20 text-amber-500'
-                       : 'bg-zinc-800/50 border border-white/5 text-zinc-600',
+                syncStatus.nasOnline
+                  ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-500'
+                  : syncStatus.pendingCount > 0
+                    ? 'bg-amber-500/10 border border-amber-500/20 text-amber-500'
+                    : 'bg-zinc-800/50 border border-white/5 text-zinc-600',
               )}>
                 <HardDrive className="w-3 h-3" />
                 {syncStatus.nasOnline
-                       ? (syncStatus.pendingCount > 0 ? `SYNC:${syncStatus.pendingCount}` : 'NAS:OK')
-                       : (syncStatus.pendingCount > 0 ? `Q:${syncStatus.pendingCount}` : 'NAS:OFF')}
+                  ? (syncStatus.pendingCount > 0 ? `SYNC:${syncStatus.pendingCount}` : 'NAS:OK')
+                  : (syncStatus.pendingCount > 0 ? `Q:${syncStatus.pendingCount}` : 'NAS:OFF')}
                 {syncStatus.retryAttempt > 0 && (
                   <span className="text-amber-400/60">R{syncStatus.retryAttempt}</span>
                 )}
@@ -354,16 +381,16 @@ export function ConsoleView() {
                   <div className="mb-4 flex items-center justify-between">
                     <h3 className="text-lg font-bold text-white flex items-center gap-2">
                       <Network className="w-5 h-5 text-primary" />
-                                    Cluster Topology
+                      Cluster Topology
                     </h3>
                     <div className="flex items-center gap-3">
                       {clusterMetrics && (
                         <span className="text-[10px] font-mono text-zinc-500">
-                                        M4: {Math.round(clusterMetrics['m4-max'].cpu)}% CPU | {Math.round(clusterMetrics['m4-max'].memory)}% MEM
+                          M4: {Math.round(clusterMetrics['m4-max'].cpu)}% CPU | {Math.round(clusterMetrics['m4-max'].memory)}% MEM
                         </span>
                       )}
                       <Badge variant="outline" className="font-mono text-[10px] border-white/10 text-zinc-400">
-                                        ENV: LOCAL_DEV
+                        ENV: LOCAL_DEV
                       </Badge>
                     </div>
                   </div>
@@ -377,9 +404,9 @@ export function ConsoleView() {
                       <span>Orchestrator Load (M4 Max)</span>
                       <Badge variant="secondary" className="bg-amber-500/10 text-amber-500 border-amber-500/20">
                         {clusterMetrics ? (
-                                        clusterMetrics['m4-max'].cpu > 70 ? 'High Load' :
-                                        clusterMetrics['m4-max'].cpu > 40 ? 'Moderate' : 'High Efficiency'
-                                      ) : 'Initializing...'}
+                          clusterMetrics['m4-max'].cpu > 70 ? 'High Load' :
+                            clusterMetrics['m4-max'].cpu > 40 ? 'Moderate' : 'High Efficiency'
+                        ) : 'Initializing...'}
                       </Badge>
                     </CardTitle>
                     <CardDescription>Real-time resource allocation across 16P+40E cores.</CardDescription>
@@ -394,7 +421,7 @@ export function ConsoleView() {
                   <CardHeader className="pb-2">
                     <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground uppercase tracking-wider">
                       <Terminal className="w-4 h-4" />
-                                    Cluster Kernel
+                      Cluster Kernel
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="flex-1 p-0 overflow-hidden relative">
@@ -422,7 +449,7 @@ export function ConsoleView() {
                               <span className={cn('text-xs font-mono', node.color)}>{node.label}</span>
                               <div className={cn(
                                 'w-2 h-2 rounded-full',
-                                        m.cpu < 5 ? 'bg-zinc-500' : 'bg-green-500 animate-pulse',
+                                m.cpu < 5 ? 'bg-zinc-500' : 'bg-green-500 animate-pulse',
                               )} />
                             </div>
                             <div className="space-y-2">
@@ -507,18 +534,18 @@ export function ConsoleView() {
                 <div className="mb-6">
                   <Button variant="ghost" className="pl-0 gap-2 text-zinc-400 hover:text-white" onClick={() => handleAgentSelect(null)}>
                     <ArrowRight className="w-4 h-4 rotate-180" />
-                                Back to Matrix
+                    Back to Matrix
                   </Button>
                 </div>
 
                 <div className={cn(
                   'grid gap-4 md:gap-6',
-                          isMobile ? 'grid-cols-1' : 'grid-cols-12 h-[calc(100vh-12rem)]',
+                  isMobile ? 'grid-cols-1' : 'grid-cols-12 h-[calc(100vh-12rem)]',
                 )}>
                   {/* Left: Agent Chat Interface */}
                   <div className={cn(
                     'bg-black/40 border border-white/10 rounded-xl overflow-hidden flex flex-col',
-                              isMobile ? 'h-[60vh]' : 'col-span-8',
+                    isMobile ? 'h-[60vh]' : 'col-span-8',
                   )}>
                     <ComponentErrorBoundary componentName="AgentChat" accentColor="text-amber-500" onError={handleComponentError} showHomeAction onGoHome={() => handleAgentSelect(null)}>
                       <AgentChatInterface agentId={selectedAgent} className="h-full" />
@@ -528,7 +555,7 @@ export function ConsoleView() {
                   {/* Right: State & Tools */}
                   <div className={cn(
                     'space-y-4 md:space-y-6',
-                              isMobile ? '' : 'col-span-4',
+                    isMobile ? '' : 'col-span-4',
                   )}>
                     <Card className="bg-black/40 border-white/10">
                       <CardHeader className="py-4">
@@ -803,7 +830,7 @@ export function ConsoleView() {
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <h2 className="text-2xl md:text-3xl text-white tracking-tight flex items-center gap-3">
                       <Activity className="w-7 h-7 text-emerald-400" />
-                            Infrastructure Health
+                      Infrastructure Health
                     </h2>
                     <div className="text-xs md:text-sm text-zinc-500">Real-time connectivity probes for all cluster services</div>
                   </div>

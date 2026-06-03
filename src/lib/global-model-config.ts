@@ -487,8 +487,8 @@ export interface AgentRoutingStrategy {
 export const AGENT_ROUTING_STRATEGIES: Record<string, AgentRoutingStrategy> = {
   navigator: {
     agentId: 'navigator',
-    agentName: '智愈·领航员',
-    primaryUseCase: '全域资源调度与路径规划',
+    agentName: '言启·千行',
+    primaryUseCase: '意图识别与任务路由',
     modelPriority: {
       local: ['qwen2.5:7b'],
       authorized: ['CodeGeeX4-ALL-9B'],
@@ -500,8 +500,8 @@ export const AGENT_ROUTING_STRATEGIES: Record<string, AgentRoutingStrategy> = {
   },
   thinker: {
     agentId: 'thinker',
-    agentName: '洞见·思想家',
-    primaryUseCase: '深度逻辑推理与决策分析',
+    agentName: '语枢·万物',
+    primaryUseCase: '数据分析与深度洞察',
     modelPriority: {
       local: ['qwen2.5:7b'],
       authorized: ['CodeGeeX4-ALL-9B'],
@@ -552,8 +552,8 @@ export const AGENT_ROUTING_STRATEGIES: Record<string, AgentRoutingStrategy> = {
   },
   sentinel: {
     agentId: 'sentinel',
-    agentName: '卫安·哨兵',
-    primaryUseCase: '安全边界防护与审计',
+    agentName: '智云·守护',
+    primaryUseCase: '行为审计与安全防护',
     modelPriority: {
       local: ['qwen2.5:7b', 'phi3:mini'],
       authorized: ['CogAgent'],
@@ -566,7 +566,7 @@ export const AGENT_ROUTING_STRATEGIES: Record<string, AgentRoutingStrategy> = {
   grandmaster: {
     agentId: 'grandmaster',
     agentName: '格物·宗师',
-    primaryUseCase: '知识库构建与本体论',
+    primaryUseCase: '代码分析与质量管控',
     modelPriority: {
       local: ['codegeex4:latest'],
       authorized: ['CodeGeeX4-ALL-9B', 'CogVideoX-5B'],
@@ -574,6 +574,19 @@ export const AGENT_ROUTING_STRATEGIES: Record<string, AgentRoutingStrategy> = {
     },
     fallbackChain: ['codegeex4:latest', 'GLM-4.7', 'gpt-4o'],
     temperature: 0.4,
+    maxTokens: 8192,
+  },
+  grace: {
+    agentId: 'grace',
+    agentName: '创想·灵韵',
+    primaryUseCase: '内容创作与创意生成',
+    modelPriority: {
+      local: ['qwen2.5:7b'],
+      authorized: [],
+      cloud: ['gpt-4o', 'claude-sonnet-4-20250514', 'GLM-4.7'],
+    },
+    fallbackChain: ['qwen2.5:7b', 'gpt-4o', 'GLM-4.7'],
+    temperature: 0.7,
     maxTokens: 8192,
   },
 };
